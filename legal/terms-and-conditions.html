@@ -1,1 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Terms and Conditions – Tikboo</title>
 
+<style>
+:root{
+  --bg:#000;
+  --text:#A5A5A5;
+  --muted:#A5A5A5;
+  --link:#A5A5A5;
+  --rule: rgba(255,255,255,0.10);
+
+  /* mikro-rytmus pro UI (header/hr) */
+  --gap:4px;
+
+  /* ✅ JEDINÁ “VELKÁ” MEZERA – JEN MEZI SEKCEMI */
+  --section-gap:16px;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  padding:18px 14px 34px;
+  -webkit-text-size-adjust:100%;
+}
+
+.wrap{
+  max-width:44ch;
+  margin:0 auto;
+}
+
+/* ===== TOPBAR: šipka vlevo + title přesně uprostřed ===== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:0 0 20px; /* vzduch mezi title a last updated */
+}
+
+.back-slot,
+.right-slot{
+  width:34px;          /* vyvážení pro perfektní center */
+  height:28px;
+  display:flex;
+  align-items:center;
+}
+
+.back-slot{ justify-content:flex-start; }
+.right-slot{ justify-content:flex-end; } /* prázdný – jen vyvažuje */
+
+.back{
+  width:28px;
+  height:28px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* systémová caret-left (hranatá) bez ikon */
+.back::before{
+  content:"";
+  width:12px;
+  height:12px;
+
+  /* ✅ caret tvar, co se nikdy “nezlomí” */
+  border-top:2px solid #fff;
+  border-left:2px solid #fff;
+
+  /* ✅ start: míří DOPRAVA na title (caret-right) */
+  transform-origin:50% 50%;
+  transform: rotate(135deg) translateZ(0);
+
+  /* ✅ smoothness */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* po 2 sekundách: 2 kolečka + konec “zpět” (doleva) */
+.back.spin::before{
+  animation: arrowSpin 1600ms cubic-bezier(.14,.92,.18,1) forwards;
+}
+
+/* ✅ 900° = 720° (2 spiny) + 180° (otočení na “back”) */
+@keyframes arrowSpin{
+  0%   { transform: rotate(135deg) translateZ(0); }   /* doprava → title */
+  100% { transform: rotate(1035deg) translateZ(0); }  /* 135 + 900 = 1035 => doleva */
+}
+
+/* title (jen bílý) v jedné řadě se šipkou */
+.topbar h1{
+  flex:1;
+  margin:0;
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  letter-spacing:0;
+  text-align:center;
+}
+
+/* Last updated */
+.last-updated{
+  font-size:13px;
+  color:var(--muted);
+  margin:0 0 var(--gap);
+}
+
+.hr{
+  height:1px;
+  background:var(--rule);
+  margin:var(--gap) 0 var(--gap);
+}
+
+/* ✅ Sekční nadpis: mezera jen NAD, žádná POD */
+.sec-title{
+  font-weight:700;
+  color:var(--text);
+  margin:var(--section-gap) 0 0;
+  font-size:14px;
+}
+
+/* první sekce ať nezačne “moc nízko” po HR */
+#legalRender .sec-title:first-of-type{
+  margin-top: var(--gap);
+}
+
+/* ✅ Legal wall: uvnitř sekce absolutně bez mezer */
+p{ margin:0; }
+
+/* Listy také bez vertikálních mezer */
+ul{
+  margin:0;
+  padding:0;
+  list-style:disc;
+  list-style-position:inside; /* 🔑 text začíná POD tečkou */
+}
+
+li{
+  margin:0 0 4px;
+  padding:0;
+}
+
+a{
+  color:var(--link);
+  text-decoration:underline;
+  text-underline-offset:2px;
+  word-break:break-word;
+}
+
+/* Zdrojový text – skryjeme po renderu */
+#legalSource{
+  display:block;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-family:inherit;
+  color:var(--text);
+  background:transparent;
+  border:0;
+}
+
+#legalRender{
+  margin-top:18px;
+}
+
+/* footer plně šedý, kompaktní */
+.legal-footer{
+  margin-top:var(--section-gap);
+}
+
+.legal-entity{
+  font-weight:700;
+  color:var(--text);
+  margin:0;
+}
+
+.service-provider-title{
+  color:var(--text);
+  font-weight:700;
+  margin:0;
+}
+
+.legal-footer-line{
+  margin:0;
+}
+
+@media (min-width: 860px){
+  body{ font-size:14px; }
+  .topbar h1{ font-size:18px; }
+  .sec-title{ font-size:14px; }
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="topbar">
+    <div class="back-slot">
+      <!-- změň href na svou reálnou cestu zpět (např. / nebo /gate) -->
+      <a class="back" href="/"></a>
+    </div>
+
+    <h1>Terms and Conditions</h1>
+
+    <div class="right-slot"></div>
+  </div>
+
+  <div class="last-updated" id="lastUpdated">Last updated: August 27, 2025</div>
+  <div class="hr"></div>
+
+  <!-- =========================================================
+       1) SEM VLOŽ SVŮJ CELÝ PRÁVNÍ TEXT (1:1) DO <pre> NÍŽE
+       2) NIC NEOBALUJ, NIC NEPŘEPISUJ, JEN VLOŽ
+       3) Skript to sám převede na krásné odstavce + UL/LI
+       ========================================================= -->
+
+  <pre id="legalSource">
+Terms and Conditions
+
+1. Introduction
+These Terms and Conditions of Use are intended to define the conditions and modalities according to which you can use our online services, operated under the name Tikboo, accessible via the website https://tikboo.com/ (the “Website”), or any other feature we offer in relation to the services we provide. Any visit, use, or registration implies the acceptance without any reservation or restriction of these Terms and Conditions of Use.
+These Terms and Conditions of Use may be modified at any time, at our sole discretion. If you do not accept these changes and choose to stop using Tikboo and its services, you remain responsible for any prior use.
+IF YOU DO NOT ACCEPT THESE TERMS AND CONDITIONS OF USE AND DO NOT AGREE TO BE BOUND BY THE TERMS PRESENT IN THIS DOCUMENT, YOU MUST REFRAIN FROM ACCESSING THE SERVICES OFFERED BY TIKBOO.
+2. Adult Content
+This website contains photo, video, and other material subject to age restrictions, such as nudity, adult language, graphic representations, and explicit descriptions of sexual activities. You acknowledge that you are aware of the explicitly sexual nature of the content provided by this website, that you are not offended by this content, and that you access this website freely, voluntarily, and of your own free will.
+Consequently, access to this website is prohibited to any person under eighteen (18) years of age, or who has not reached the age of majority in the jurisdiction in which they reside and from which they access this website, and we disclaim any responsibility in case of false declaration by a user regarding their age.
+3. Other Applicable Conditions
+Additional conditions also apply, such as our Privacy Policy available at https://tikboo.com/privacy.html which defines how we use, process, and protect the information you provide to us and that we collect, as well as our use of cookies.
+4. Definitions
+The following words and terms with a capitalized initial have a defined meaning in the following Terms and Conditions of Use. These definitions have the same meaning whether they appear in the singular or plural.
+Terms and Conditions of Use: Refers to this document which constitutes the entire agreement between you and us regarding the use of the Tikboo website and its services.
+Tikboo: Also referred to as we, our, us, etc. refers to the Tikboo website and its services.
+Service: Refers to all the features and services accessible on Tikboo within the framework of these Terms and Conditions of Use.
+User: Also called you, your, etc. refers to any person who visits or uses the Tikboo website.
+Member: Refers to any user who registers an account on Tikboo to access the services.
+Content: Refers to all texts, images, videos, media, software, interactive features, and other elements that make up the Tikboo services.
+Contribution: Refers to any text, photo, or video content posted by members to make them available on Tikboo.
+5. Description of Services
+The Tikboo website and its services allow its users and registered members to view sexually explicit content intended for adults. This website also allows its registered members to publish, host, and share sexually explicit content intended for adults.
+Tikboo reserves the right, at its sole discretion, to refuse to publish, remove, or block access to any contribution available via the Tikboo website or any other Tikboo service at any time, for any reason, or without any reason, with or without notice.
+By using Tikboo, you agree to be exposed to contributions sent and published by Tikboo members that may be inaccurate, offensive, indecent, or reprehensible, and you acknowledge that Tikboo cannot be held responsible for the compliance, reliability, security, or potential violations of intellectual property rights related to the contributions.
+Consequently, you agree to waive, and hereby waive, any legal right or recourse that you have or may have against Tikboo in this regard, and agree to release Tikboo, its owners, affiliates, operators and/or licensors, to the fullest extent permitted by law with respect to all matters relating to your use of Tikboo.
+The Tikboo website may also contain third-party content and links to third-party websites that are not owned or controlled by Tikboo. Tikboo assumes no responsibility for the content, terms and conditions, privacy policies, or practices of any third-party website. Tikboo cannot censor or modify the content of third-party websites. You acknowledge that Tikboo is exempt from any liability arising from your use of any third-party website.
+6. Access
+To visit Tikboo and its services, you must be eighteen (18) years of age or older, or have reached the age of majority in the jurisdiction in which you reside and from which you access Tikboo. You must have the legal capacity to engage and accept these Terms and Conditions of Use and must not be subject to any legal protection measure for adults (guardianship or curatorship). Otherwise, you will not be able to use Tikboo and its services, and we disclaim any responsibility in case of false declaration about your age.
+Part of the resources, pages, and features of Tikboo and its services are only accessible after creating a member account and providing certain registration details.
+The personal information you submit to us is governed by our Privacy Policy.
+Although we make reasonable efforts to ensure the availability of Tikboo 24 hours a day, this cannot be guaranteed. Access to Tikboo may be temporarily suspended without notice in case of system errors, maintenance or repair work, or for reasons beyond our control.
+7. Member Account
+To access certain resources, pages, and features of Tikboo such as, but not limited to, video uploading or writing comments, it is necessary to have a member account.
+When creating a member account, you are asked to provide a password. You are responsible for all activities that occur with your member account, and you must keep your password confidential. If you believe your password is no longer confidential, change it immediately and inform Tikboo of any unauthorized use of your account.
+After creating your account, you can request to join the Tikboo content creators program to benefit from exclusive advanced features.
+During your registration and when requesting to join the Tikboo content creators program, personal and profile information is also requested. As a member, you agree to provide accurate, truthful, non-misleading, and up-to-date information. False, incorrect, invalid, or outdated registration information may prevent the validation of your member account.
+Members are solely responsible for any content they publish or provide on Tikboo and the consequences that result from it.
+Tikboo reserves the right to delete a member’s profile and/or their content when the submitted content goes against these Terms and Conditions of Use.
+8. User Conduct
+When you use Tikboo and its services, you must comply with these Terms and Conditions of Use, applicable laws, rules, and regulations, as well as usage guidelines that Tikboo may communicate to you from time to time.
+You are solely responsible for the text, image, and other information you provide through your profile as well as your interactions, online or in person, with other users and members of Tikboo. You agree that none of this information will contain defamatory, offensive, illegal material or personal contact information, whether your own or that of another person.
+By using Tikboo and its services, you understand and accept that Tikboo makes no representations and gives no guarantees regarding the behavior of users and members with whom you interact in the context of our services.
+You may not access or use Tikboo and its services:
+• for illegal purposes;
+• to duplicate all or part of Tikboo and its services;
+• to create derivative works from Tikboo and its services;
+• to exploit or distribute for professional, advertising, promotional, or commercial purposes Tikboo and its services;
+• to access, index, incorporate or create a link to Tikboo (including the content) that is not authorized by Tikboo (including by removing, disabling, bypassing or short-circuiting any content protection or access control mechanism designed to prevent unauthorized downloading, stream capture, embedding, reproduction, access or distribution of Tikboo services);
+• to access Tikboo (including content) by automated means, including “robots,” “spiders” or “offline readers” (other than searches performed individually on publicly accessible search engines for the sole purpose of creating publicly accessible search results, and only to the extent necessary for this purpose);
+• to transmit or communicate any unlawful, threatening, abusive, cruel, harmful, propagandistic, privacy-invading, defamatory, slanderous, or illegal material;
+• to transmit or communicate any material that you do not have the right to transmit or communicate under a contractual or fiduciary relationship or that infringes any copyright, trademark, patent, or other intellectual property right;
+• to transmit any material likely to harm the computer systems of Tikboo or any other person, including, but not limited to, any material containing a virus, code, worm, data, or other files or programs designed to damage the Service or allow unauthorized access to it, and which could cause a defect, error, malfunction or corruption of the service;
+• to harm minors in any way, including, but not limited to, transmitting content that violates child pornography laws, child sexual exploitation laws, and laws prohibiting the depiction of minors engaging in sexual behaviors;
+• to falsify headers or manipulate identifiers in any other way to disguise the origin of any content transmitted through the service;
+• as part of a commercial communication campaign that has not been requested by the recipients (i.e., spam);
+• as part of an unnatural referencing campaign using spam links.
+Violation of any of these agreements may result in the termination of your member account and/or legal proceedings.
+9. User Contributions
+You acknowledge and agree that you are responsible for your contributions and all content that you upload, the consequences of their sending, their publication and their availability on Tikboo and its services and you declare and guarantee that:
+• You will not post and will not allow anyone else to post a contribution that represents a person under eighteen (18) years of age and you have verified and kept sufficient written documentation to confirm that all subjects of your contributions are eighteen (18) years of age or older.
+• You have the written consent and/or authorization of each identifiable person in the contribution to use the name or image of each identifiable person to allow the uploading and use of the contribution in any manner envisaged by Tikboo and these Terms and Conditions of Use.
+• You own the licenses, rights, consents, and authorizations necessary to use and authorize Tikboo to use all trademarks, copyrights, trade secrets, patents, or other proprietary rights in and to all contributions to enable uploading and use of the contribution in any manner envisaged by Tikboo and these Terms and Conditions of Use. By submitting a contribution, you also agree not to:
+• Submit material protected by copyright, protected by trade secret, or otherwise subject to third-party proprietary rights, including privacy and publicity rights, unless you are the owner of such rights or have permission from the rightful owner to post the material and to grant Tikboo all of the license rights granted here.
+• Post lies or misrepresentations that could harm Tikboo or a third party.
+• Submit material that is obscene, illegal, unlawful, defamatory, libelous, harassing, hateful, racially or ethnically offensive, or that encourages conduct that would be considered a criminal offense, give rise to civil liability, violate any law, or be otherwise inappropriate.
+• Post advertisements or commercial solicitations.
+• Impersonate another person.
+You retain all your ownership rights to all contributions that you post and share on Tikboo. However, by posting your contributions on Tikboo and its services, you grant Tikboo a worldwide, non-exclusive, royalty-free, transferable and sublicensable license to use, reproduce, copy, modify, distribute, publish, market, broadcast, create derivative works, adapt, translate, publicly display, make available or otherwise use any contribution, including, without limitation, to promote and redistribute part or all of the Tikboo website (and derivative works thereof) in all media formats and through all means of communication currently known or subsequently developed and on all websites or applications currently developed or subsequently developed, operated by Tikboo, its owners and operators.
+You also grant each user of Tikboo a non-exclusive license to access your contributions via the Tikboo website and its services, and to use, reproduce, distribute, prepare derivative works relating to, display and perform these contributions. These licenses granted by you terminate once you have requested the removal of your contributions from the Tikboo website.
+Tikboo does not authorize copyright infringement activities and intellectual property rights infringement on its website and Tikboo removes any contribution if we are properly informed that this contribution violates the intellectual property rights of a third party.
+Although pornographic and adult content is accepted, Tikboo also reserves the right to decide, in its sole and absolute discretion, whether a contribution is appropriate and complies with these Terms and Conditions of Use for violations other than copyright infringement and violations of intellectual property law, such as, but not limited to, obscene or defamatory content, or excessive length.
+Tikboo may review and remove any contribution that, in its sole judgment, violates these Terms and Conditions of Use or may be offensive or illegal, or violates the rights, harms or threatens the security of any user or person not associated with the site.
+Tikboo may terminate access to the Tikboo website and its services or to part of the resources, pages and features of a user or member for sending this contribution in violation of these Terms and Conditions of Use at any time, without notice and at its sole discretion.
+Tikboo provides its website as a service to its users. However, Tikboo assumes no responsibility for monitoring Tikboo services for any inappropriate content or behavior.
+If at any time Tikboo chooses, in its sole discretion, to monitor Tikboo services, Tikboo assumes no responsibility for the content, has no obligation to modify or remove inappropriate content, and is not responsible for the member’s conduct when submitting this contribution.
+You are solely responsible for the contributions that you make visible on the Tikboo website or any other contribution or information that you transmit or share with other users or independent third parties via the Tikboo website.
+Tikboo does not endorse any contribution or any opinion or recommendation expressed on the Tikboo website and its services, and Tikboo expressly disclaims any responsibility regarding the contributions.
+10. Illegal Content
+Tikboo has a ZERO TOLERANCE policy regarding any illegal content.
+Tikboo is committed to ensuring that any illegal content and any illegal contribution such as, but not limited to, the apology of crimes against humanity, denial or minimization of crimes against humanity, apology for terrorism, incitement to racial hatred, dissemination of violent or pedophile images, incitement to violence, incitement to sexual and/or sexist violence, attacks on human dignity, harassment, racial insults, sexist insults, defamation, infringements of image rights and privacy, identity theft, is deleted as soon as Tikboo becomes aware of it and will be reported to the competent authorities according to applicable laws, if necessary.
+We fully cooperate with law enforcement authorities and respond favorably to any judicial requisition asking us to disclose any information in our possession of any user or member.
+11. Content Removal
+We are committed to responding as quickly as possible when we are notified of content, a contribution, behavior or use that would go against these Terms and Conditions of Use.
+We also implement a policy aimed at voluntarily respecting laws relating to counterfeiting, copyright, trademark law and privacy protection.
+Any holder or representative of a holder of copyright and/or intellectual property rights, as well as any person whose privacy is violated by content or a contribution, may request the removal of said content or said contribution.
+We reserve the right to remove any content and contribution that does not comply with these Terms and Conditions of Use when we have been informed via the content removal page. If necessary, we may also restrict access to certain features of our website or revoke access to a user or member who does not comply with these Terms and Conditions of Use.
+12. Copyright and Trademark Rights
+The use of trademarks, logos, images, product names, and company names displayed or mentioned on Tikboo is for informational and descriptive purposes only, without implying any form of affiliation with the corresponding rights holders.
+However, Tikboo implements a policy of voluntary compliance with laws relating to counterfeiting, copyright, trademark rights, and privacy protection.
+As part of this policy, the Tikboo website may remove any content from third-party sources that violates laws relating to counterfeiting, copyright, trademark rights, privacy protection, or any other intellectual property law, after being informed via the content removal page.
+13. Account Termination
+You can delete your account at any time by clicking on the “delete my account” link accessible in the settings of the my profile page. Your member privileges will cease immediately.
+We may terminate or suspend your account immediately, without notice, for any reason, including, but not limited to, if you violate these Terms and Conditions, laws relating to counterfeiting, copyright, trademark rights, and privacy protection, as well as for any illegal contribution or behavior.
+If the Tikboo website disappears or ceases to function, it is evident that all accounts will be suspended immediately without notice.
+THE TERMINATION OF YOUR MEMBER ACCOUNT CANNOT GIVE RISE TO ANY COMPENSATION OF ANY KIND.
+14. Intellectual Property
+We own or are licensees of the content of the Tikboo website, including but not limited to, texts, images, photos, videos, logos, trademarks, and any other element protected by national and international intellectual property rights.
+All other elements, including but not limited to, texts, images, photos, videos, logos, trademarks, displayed or mentioned on Tikboo and belonging to third parties are the property of their respective owners and are protected by national and international intellectual property rights.
+Any reproduction, publication, distribution, transmission, broadcast, copying, sale, exploitation, in whole or in part, of the various contents, is totally prohibited without the prior written agreement of the respective owners. Consequently, you agree not to disable, circumvent, or interfere with the security features of Tikboo or features that prevent or restrict the use or copying of the Tikboo website.
+15. License
+Subject to compliance with these Terms and Conditions, we grant you a limited, personal, non-exclusive, non-transferable, non-sublicensable, and revocable license to access Tikboo and its services. This license ends when you stop using the Tikboo site and its services (Member Account Termination) or if you do not comply with these Terms and Conditions.
+Unless we give prior written agreement, you may not modify (including, but not limited to), create derivative works, copy, adapt, reverse engineer, distribute, reproduce, republish, download, post, transmit, transfer, license, sublicense, sell in any form or by any means, the Tikboo content and services, in whole or in part.
+16. Limitation of Liability
+You agree to use the Tikboo website and its services at your own risk.
+The information disseminated on this website comes from sources deemed reliable, however we cannot guarantee that it is free from defects, errors, or omissions. The information is presented for indicative and general purposes, without contractual value. Despite regular updates, the Tikboo site cannot be held responsible for changes in administrative and legal provisions occurring after publication. Similarly, the site cannot be held responsible for the use and interpretation of the information contained on this site.
+Tikboo is provided for domestic and private use only. You agree not to use Tikboo for commercial purposes and understand that Tikboo has no responsibility to you for any loss of profit, business interruption, or loss of business opportunity.
+We do not guarantee, endorse, or assume any responsibility for the products or services advertised, hyperlinked websites, or advertising content present on Tikboo.
+We are in no way involved in or responsible for monitoring transactions made between you and third-party suppliers of products or services. We have no control over third-party websites and cannot be held responsible for access to these websites, whether direct or indirect.
+17. General Provisions
+These Terms and Conditions constitute the entire agreement between you and us regarding your access to and use of the Tikboo website and its services and supersede all prior agreements.
+You may not assign, transfer, sell, or delegate your rights or obligations to a third party without our written agreement.
+We may freely assign this contract or transfer its rights to a third party, including but not limited to, an affiliated company, a buyer of all or substantially all of our assets, a successor, or in the event of a business reorganization, consolidation, or merger.
+If one or more terms, clauses, or provisions of these Terms and Conditions are declared invalid or unenforceable by a competent court or competent administrative authority, this invalidity will not affect the validity or enforceability of any other term, clause, or provision of these Terms and Conditions, and the invalid term, clause, or provision will be considered severed from this agreement.
+You agree that any notification we may send you is done exclusively by electronic means to the email address you provide when creating your member account.
+18. Dispute Resolution
+In the event of a dispute concerning the interpretation or execution of these Terms and Conditions, you are invited to contact us first to attempt to resolve the dispute amicably.
+19. Jurisdiction
+These Terms and Conditions are governed by and interpreted in accordance with the laws of the Commonwealth of Massachusetts, United States without regard to conflict of law principles. In the absence of an amicable resolution of a dispute arising between you and us, the state and federal courts located within the Commonwealth of Massachusetts, United States, shall have exclusive jurisdiction over the matter.
+Service Provider:
+XKEYNET LLC
+361 Newbury Street
+Boston, Massachusetts 02115
+United States
+  </pre>
+
+  <!-- Sem se vykreslí krásná verze -->
+  <div id="legalRender" aria-label="Terms and Conditions content"></div>
+
+</main>
+
+<script>
+(function(){
+  const src = document.getElementById('legalSource');
+  const out = document.getElementById('legalRender');
+  const lastUpdatedEl = document.getElementById('lastUpdated');
+  if(!src || !out) return;
+
+  // 1) Načti text a normalizuj newlines
+  let raw = src.textContent || "";
+  raw = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  // Vykopni nadbytečné levé odsazení (často vznikne při vložení do <pre>)
+  raw = raw.replace(/^\s+/gm, (m) => (m.length >= 2 ? "" : m));
+
+  // 2) Helpery
+  const esc = (s) => s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+  // linkify už ESCAPED text (bezpečné) – jen http(s)
+  const linkify = (escaped) => escaped.replace(
+    /(https?:\/\/[^\s<]+[^\s<\.)\],;:"'!?])/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
+
+  const isBullet = (line) => /^[•●\-–—*]\s+/.test(line);
+  const stripBullet = (line) => line.replace(/^[•●\-–—*]\s+/, "");
+
+  // Nadpisy: 1  / 1. / 1) / 2.1 / 10. ... (tolerantní)
+  const headingMatch = (line) => line.match(/^(\d+(?:\.\d+)*)(?:[.)])?\s+(.+)$/);
+
+  // 3) Rozsekání na řádky a stavový parser
+  const lines = raw.split("\n").map(l => l.trimRight());
+  const html = [];
+  let inList = false;
+
+  // Footer mód pro "Service Provider" blok
+  let inFooter = false;
+  let footerEntityDone = false;
+
+  const flushList = () => {
+    if(inList){ html.push("</ul>"); inList = false; }
+  };
+
+  // Auto-detekce "Last updated:" uvnitř textu -> přepíše horní řádek a uvnitř ho ignoruje
+  const trySetLastUpdated = (line) => {
+    const m = line.match(/^Last updated:\s*(.+)\s*$/i);
+    if(m && lastUpdatedEl){
+      lastUpdatedEl.textContent = "Last updated: " + m[1];
+      return true;
+    }
+    return false;
+  };
+
+  for(let i=0;i<lines.length;i++){
+    const lineRaw = lines[i];
+    const line = lineRaw.trim();
+
+    if(!line){
+      flushList();
+      continue;
+    }
+
+    const low = line.toLowerCase();
+    if(low === "privacy policy" || low === "terms and conditions"){
+      continue;
+    }
+
+    if(trySetLastUpdated(line)){
+      continue;
+    }
+
+    // Start footer bloku: "Service Provider:"
+    if(low === "service provider:" ){
+      flushList();
+      inFooter = true;
+      footerEntityDone = false;
+
+      // větší mezera před footer blokem (bez vlivu na zbytek)
+      html.push('<div class="legal-footer">');
+
+      html.push('<p class="service-provider-title">' + esc(line) + "</p>");
+      continue;
+    }
+
+    if(inFooter){
+      flushList();
+
+      if(!footerEntityDone && /^xkeynet\s+llc$/i.test(line)){
+        html.push('<div class="legal-entity">' + esc(line) + "</div>");
+        footerEntityDone = true;
+        continue;
+      }
+
+      html.push('<p class="legal-footer-line">' + esc(line) + "</p>");
+      continue;
+    }
+
+    const hm = headingMatch(line);
+    if(hm){
+      flushList();
+      const normalized = hm[1] + ". " + hm[2];
+      html.push('<div class="sec-title">' + linkify(esc(normalized)) + "</div>");
+      continue;
+    }
+
+    if(isBullet(line)){
+      if(!inList){ html.push("<ul>"); inList = true; }
+      const item = stripBullet(line).trim();
+      html.push("<li>" + linkify(esc(item)) + "</li>");
+      continue;
+    }
+
+    flushList();
+    html.push("<p>" + linkify(esc(line)) + "</p>");
+  }
+
+  flushList();
+
+  if(inFooter){
+    html.push("</div>");
+  }
+
+  src.style.display = "none";
+  out.innerHTML = html.join("\n");
+})();
+</script>
+
+<script>
+/* Arrow choreography:
+   - start: points to the title
+   - after 2s: 2 spins (720°) + ends as "back" */
+window.addEventListener("load", () => {
+  const el = document.querySelector(".back");
+  if(!el) return;
+  setTimeout(() => el.classList.add("spin"), 2000);
+});
+</script>
+
+</body>
+</html>
