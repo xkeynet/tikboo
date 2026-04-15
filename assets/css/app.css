@@ -403,10 +403,8 @@ body{
   margin-bottom:20px;
   user-select:none;
   white-space:nowrap;
-   
-.gate-brand .t{
-  margin-right:2px;
-}  
+}
+
 .legalScroll{
   flex:0 1 auto;
   width:100%;
