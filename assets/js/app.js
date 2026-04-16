@@ -615,17 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       startProg();
     }, { passive: true });
-
-    refs.layerCurrent.addEventListener('click', (e) => {
-      const isIcon = e.target.closest('.side');
-
-      if (isIcon) return; // 🔥 KLÍČOVÉ
-
-      if (isInteractiveTarget(e.target)) return;
-      if (PLAYLIST[state.index].type !== 'video') return;
-
-      togglePlayPause();
-    });
   }
 
   if (seekPill) {
@@ -706,8 +695,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (refs.layerCurrent) {
     refs.layerCurrent.addEventListener('click', (e) => {
+      const isIcon = e.target.closest('.side');
+
+      if (isIcon) return;
       if (isInteractiveTarget(e.target)) return;
       if (PLAYLIST[state.index].type !== 'video') return;
+
       togglePlayPause();
     });
   }
@@ -777,13 +770,39 @@ document.addEventListener('DOMContentLoaded', () => {
     openProfile('avatar');
   });
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const shareBtn = e.target.closest('[aria-label="Share"]');
     if (!shareBtn) return;
 
     e.preventDefault();
     e.stopPropagation();
-    alert('share tap OK');
+
+    const shareData = {
+      title: 'Tikboo',
+      text: 'Watch this',
+      url: 'https://tikboo.com/'
+    };
+
+    try {
+      track('share_tap', {
+        source: 'side_button'
+      });
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied');
+        return;
+      }
+
+      alert(shareData.url);
+    } catch (err) {
+      console.log('Share failed:', err);
+    }
   }, true);
 
   if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
