@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     openProfile('avatar');
   });
 
-  document.addEventListener('click', async (e) => {
+  const handleShare = async (e) => {
     const shareBtn = e.target.closest('[aria-label="Share"]');
     if (!shareBtn) return;
 
@@ -786,10 +786,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      track('share_tap', {
-        source: 'side_button'
-      });
-
       if (navigator.share) {
         await navigator.share(shareData);
         return;
@@ -806,7 +802,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Share failed:', err);
       alert('Share failed');
     }
-  });
+  };
+
+  document.addEventListener('click', handleShare, true);
+  document.addEventListener('touchend', handleShare, true);
 
   if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
 
