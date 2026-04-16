@@ -862,3 +862,26 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
+
+const shareBtn = document.getElementById('shareBtn');
+
+if (shareBtn) {
+  shareBtn.addEventListener('click', async () => {
+    const shareData = {
+      title: 'Tikboo',
+      text: 'Watch this',
+      url: 'https://tikboo.com/'
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied');
+      }
+    } catch (err) {
+      console.log('Share failed:', err);
+    }
+  });
+}
