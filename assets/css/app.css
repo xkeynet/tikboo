@@ -396,10 +396,10 @@ body{
 
 /* === GATE BRAND TEXT === */
 .gate-brand{
-  font-size:40px;
+  font-size:36px;
   font-weight:700;
   color:#fff;
-  letter-spacing:0.03em;
+  letter-spacing:0.02em;
   margin-bottom:20px;
   user-select:none;
   white-space:nowrap;
