@@ -772,6 +772,42 @@ document.addEventListener('DOMContentLoaded', () => {
     openProfile('avatar');
   });
 
+  document.addEventListener('click', async (e) => {
+    const shareBtn = e.target.closest('[aria-label="Share"]');
+    if (!shareBtn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shareData = {
+      title: 'Tikboo',
+      text: 'Watch this',
+      url: 'https://tikboo.com/'
+    };
+
+    try {
+      track('share_tap', {
+        source: 'side_button'
+      });
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied');
+        return;
+      }
+
+      alert(shareData.url);
+    } catch (err) {
+      console.log('Share failed:', err);
+      alert('Share failed');
+    }
+  });
+
   if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
 
   if (profileModal) {
@@ -862,26 +898,3 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
-
-const shareButtons = document.querySelectorAll('[aria-label="Share"]');
-
-shareButtons.forEach((shareBtn) => {
-  shareBtn.addEventListener('click', async () => {
-    const shareData = {
-      title: 'Tikboo',
-      text: 'Watch this',
-      url: 'https://tikboo.com/'
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareData.url);
-        alert('Link copied');
-      }
-    } catch (err) {
-      console.log('Share failed:', err);
-    }
-  });
-});
