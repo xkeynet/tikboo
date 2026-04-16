@@ -863,9 +863,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
-const shareBtn = document.getElementById('shareBtn');
+const shareButtons = document.querySelectorAll('[aria-label="Share"]');
 
-if (shareBtn) {
+shareButtons.forEach((shareBtn) => {
   shareBtn.addEventListener('click', async () => {
     const shareData = {
       title: 'Tikboo',
@@ -884,4 +884,4 @@ if (shareBtn) {
       console.log('Share failed:', err);
     }
   });
-}
+});
