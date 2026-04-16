@@ -772,40 +772,14 @@ document.addEventListener('DOMContentLoaded', () => {
     openProfile('avatar');
   });
 
-  const handleShare = async (e) => {
+  document.addEventListener('click', (e) => {
     const shareBtn = e.target.closest('[aria-label="Share"]');
     if (!shareBtn) return;
 
     e.preventDefault();
     e.stopPropagation();
-
-    const shareData = {
-      title: 'Tikboo',
-      text: 'Watch this',
-      url: 'https://tikboo.com/'
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(shareData.url);
-        alert('Link copied');
-        return;
-      }
-
-      alert(shareData.url);
-    } catch (err) {
-      console.log('Share failed:', err);
-      alert('Share failed');
-    }
-  };
-
-  document.addEventListener('click', handleShare, true);
-  document.addEventListener('touchend', handleShare, true);
+    alert('share tap OK');
+  }, true);
 
   if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
 
