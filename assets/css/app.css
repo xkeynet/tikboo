@@ -50,6 +50,7 @@ body{
   transform:translateY(0px);
   will-change:transform;
   background:#000;
+  isolation:isolate; 
 }
 .twincher-layer > video,
 .twincher-layer > img{
@@ -60,6 +61,7 @@ body{
   object-fit:cover;
   background:#000;
   display:none;
+  z-index:1; 
 }
 .twincher-layer > img{
   opacity:0;
@@ -124,7 +126,7 @@ body{
   display: flex;
   flex-direction: column;
   gap: 14px;
-  z-index: 5;
+  z-index: 20;
   pointer-events: auto;
 }
 .stack {
