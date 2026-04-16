@@ -616,10 +616,15 @@ document.addEventListener('DOMContentLoaded', () => {
       startProg();
     }, { passive: true });
 
-    seekWrap.addEventListener('click', (e) => {
+    refs.layerCurrent.addEventListener('click', (e) => {
+      const isIcon = e.target.closest('.side');
+
+      if (isIcon) return; // 🔥 KLÍČOVÉ
+
+      if (isInteractiveTarget(e.target)) return;
       if (PLAYLIST[state.index].type !== 'video') return;
-      e.preventDefault();
-      seekToClientX(e.clientX);
+
+      togglePlayPause();
     });
   }
 
