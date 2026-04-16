@@ -716,3 +716,16 @@ body{
 .icon-dots{
   opacity: 0.90;
 }
+
+.side,
+.side * {
+  pointer-events: auto !important;
+}
+
+.twincher-layer > video {
+  pointer-events: auto;
+}
+
+.twincher-layer > img {
+  pointer-events: none;
+}
