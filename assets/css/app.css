@@ -117,14 +117,15 @@ body{
 
 /* === RIGHT SIDE ACTIONS === */
 .side{
-  position: fixed;
+  position: absolute;
   right: 6px;
   top: 72%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  z-index: 2;
+  z-index: 5;
+  pointer-events: auto;
 }
 .stack {
   display: flex;
