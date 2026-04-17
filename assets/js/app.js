@@ -694,18 +694,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (refs.layerCurrent) {
-    refs.layerCurrent.addEventListener('click', (e) => {
-      const isIcon = e.target.closest('.side');
-
-      if (isIcon) return;
-      if (isInteractiveTarget(e.target)) return;
-      if (PLAYLIST[state.index].type !== 'video') return;
-
-      togglePlayPause();
-    });
-  }
-
   swipeEngine = window.initTikbooSwipe({
     refs,
     state,
