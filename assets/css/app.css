@@ -635,7 +635,7 @@ body{
 [aria-label="Profile"] .nav-icon{
   width:25px;
   height:25px;
-  transform: translateY(-2px); 
+  transform: translateY(-1px); 
 }
 
 .stack button[aria-label="Like"] + .count{ margin-top:-2px; }
