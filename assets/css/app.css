@@ -617,13 +617,13 @@ body{
 [aria-label="Home"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 [aria-label="Search"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(-2px); 
+  transform: translateY(-1px); 
 }
 
 [aria-label="Messages"] .nav-icon{
@@ -635,7 +635,7 @@ body{
 [aria-label="Profile"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(0px); 
+  transform: translateY(-1px); 
 }
 
 .stack button[aria-label="Like"] + .count{ margin-top:-2px; }
