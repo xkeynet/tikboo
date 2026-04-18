@@ -617,7 +617,7 @@ body{
 [aria-label="Home"] .nav-icon{
   width:24px;
   height:24px;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 [aria-label="Search"] .nav-icon{
