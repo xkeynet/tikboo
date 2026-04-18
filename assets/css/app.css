@@ -629,7 +629,7 @@ body{
 [aria-label="Messages"] .nav-icon{
   width:25px;
   height:25px;
-  transform: translateY(-2px);  
+  transform: translateY(-1px);  
 }
 
 [aria-label="Profile"] .nav-icon{
