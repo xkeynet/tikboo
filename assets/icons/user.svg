@@ -7,9 +7,9 @@
         stroke-linecap="round"
         stroke-linejoin="round"/>
 
-  <!-- hlava (posun dolů o 1px) -->
+  <!-- hlava (jemný posun dolů) -->
   <path d="M12 4a4 4 0 1 1 0 8a4 4 0 0 1 0-8z"
-        transform="translate(0,1)"
+        transform="translate(0,0.5)"
         fill="none"
         stroke="#ffffff"
         stroke-width="2"
