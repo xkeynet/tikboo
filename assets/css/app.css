@@ -615,27 +615,27 @@ body{
 }
 
 [aria-label="Home"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px);
+  width:24px;
+  height:24px;
+  transform: translateY(-2px);
 }
 
 [aria-label="Search"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px); 
+  width:24px;
+  height:24px;
+  transform: translateY(-2px); 
 }
 
 [aria-label="Messages"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px);  
+  width:24px;
+  height:24px;
+  transform: translateY(-2px);  
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px); 
+  width:24px;
+  height:24px;
+  transform: translateY(-2px); 
 }
 
 .stack button[aria-label="Like"] + .count{ margin-top:-2px; }
