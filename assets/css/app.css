@@ -615,14 +615,14 @@ body{
 }
 
 [aria-label="Home"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:26px;
+  height:26px;
   transform: translateY(-2px);
 }
 
 [aria-label="Search"] .nav-icon{
-  width:25px;
-  height:25px;
+  width:26px;
+  height:26px;
   transform: translateY(-2px); 
 }
 
@@ -633,8 +633,8 @@ body{
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:30px;
-  height:30px;
+  width:26px;
+  height:26px;
   transform: translateY(0px); 
 }
 
