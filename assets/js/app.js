@@ -15,23 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   const PLAYLIST = [
     { type: 'video', src: 'assets/video/swip.mp4' },
-    { type: 'video', src: 'assets/video/swip-001.mp4' },
     { type: 'video', src: 'assets/video/swipe1.mp4' },
-    { type: 'video', src: 'assets/video/swip-002.mp4' },
     { type: 'video', src: 'assets/video/swipe2.mp4' },
-    { type: 'video', src: 'assets/video/swip-003.mp4' },
     { type: 'video', src: 'assets/video/swipe3.mp4' },
-    { type: 'video', src: 'assets/video/swip-004.mp4' },
     { type: 'video', src: 'assets/video/swipe4.mp4' },
-    { type: 'video', src: 'assets/video/swip-005.mp4' },
     { type: 'video', src: 'assets/video/swipe5.mp4' },
-    { type: 'video', src: 'assets/video/swip-006.mp4' },
     { type: 'video', src: 'assets/video/swipe6.mp4' },
-    { type: 'video', src: 'assets/video/swip-007.mp4' },
     { type: 'video', src: 'assets/video/swipe7.mp4' },
-    { type: 'video', src: 'assets/video/swip-008.mp4' },
     { type: 'video', src: 'assets/video/swipe8.mp4' },
-    { type: 'video', src: 'assets/video/swip-009.mp4' },
     { type: 'video', src: 'assets/video/swipe9.mp4' },
     { type: 'video', src: 'assets/video/swipe10.mp4' }
   ];
