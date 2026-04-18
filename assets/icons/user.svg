@@ -1,21 +1,6 @@
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <g transform="scale(0.5)">
-    
-    <!-- HLAVA (posun +2 v ose Y) -->
-    <path d="M24,5A11,11,0,1,0,35,16,11,11,0,0,0,24,5Zm0,18a7,7,0,1,1,7-7A7,7,0,0,1,24,23Z"
-          fill="none"
-          stroke="#ffffff"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"/>
-
-    <!-- TĚLO (beze změny) -->
-    <path d="M41.1,34A31.3,31.3,0,0,0,24,29,32.1,32.1,0,0,0,6.9,33.9l-.9.6V43a2,2,0,0,0,2,2H40a2,2,0,0,0,2-2V34.5ZM38,41H10V36.7A28.4,28.4,0,0,1,24,33a27.5,27.5,0,0,1,14,3.8Z"
-          fill="none"
-          stroke="#ffffff"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"/>
-
+    <path d="M24,5A11,11,0,1,0,35,16,11,11,0,0,0,24,5Zm0,18a7,7,0,1,1,7-7A7,7,0,0,1,24,23ZM41.1,34A31.3,31.3,0,0,0,24,29,32.1,32.1,0,0,0,6.9,33.9l-.9.6V43a2,2,0,0,0,2,2H40a2,2,0,0,0,2-2V34.5ZM38,41H10V36.7A28.4,28.4,0,0,1,24,33a27.5,27.5,0,0,1,14,3.8Z"
+          fill="#ffffff"/>
   </g>
 </svg>
