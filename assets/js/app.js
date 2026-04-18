@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // === State / Playlist ===
   // =========================================================
   const PLAYLIST = [
-    { type: 'video', src: 'assets/video/swip.mp4' },
     { type: 'video', src: 'assets/video/swipe1.mp4' },
     { type: 'video', src: 'assets/video/swipe2.mp4' },
     { type: 'video', src: 'assets/video/swipe3.mp4' },
@@ -24,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { type: 'video', src: 'assets/video/swipe7.mp4' },
     { type: 'video', src: 'assets/video/swipe8.mp4' },
     { type: 'video', src: 'assets/video/swipe9.mp4' },
-    { type: 'video', src: 'assets/video/swipe10.mp4' }
+    { type: 'video', src: 'assets/video/swipe10.mp4' },
+    { type: 'video', src: 'assets/video/swipe11.mp4' }
   ];
 
   const refs = {
