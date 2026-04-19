@@ -25,6 +25,7 @@
     let dx = 0;
     let preparedDir = 0;
     let raf = 0;
+    let settleTimer = 0;
 
     const THRESHOLD_RATIO = 0.25;
     const MOVE_ACTIVATE_PX = 10;
@@ -43,6 +44,18 @@
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
+
+    function cancelRaf() {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    function clearSettleTimer() {
+      if (!settleTimer) return;
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    }
 
     function setLayerSideOpacity(layer, opacity) {
       const side = layer?.querySelector('.side');
@@ -73,10 +86,15 @@
 
     function resetTransformsNoAnim() {
       const height = vh();
+
+      cancelRaf();
+      clearSettleTimer();
+
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
       refs.layerNext.style.transform = `translate3d(0,${height}px,0)`;
+
       resetLayerSideOpacity(refs.layerCurrent);
       resetLayerSideOpacity(refs.layerNext);
     }
@@ -137,6 +155,31 @@
       setLayerSideOpacity(refs.layerNext, 1);
     }
 
+    function settleTransition(duration, onDone) {
+      let doneOnce = false;
+
+      const finish = () => {
+        if (doneOnce) return;
+        doneOnce = true;
+
+        clearSettleTimer();
+        refs.layerCurrent.removeEventListener('transitionend', onEnd);
+        refs.layerNext.removeEventListener('transitionend', onEnd);
+
+        onDone();
+      };
+
+      const onEnd = (e) => {
+        if (e.propertyName !== 'transform') return;
+        finish();
+      };
+
+      refs.layerCurrent.addEventListener('transitionend', onEnd);
+      refs.layerNext.addEventListener('transitionend', onEnd);
+
+      settleTimer = setTimeout(finish, duration + 80);
+    }
+
     function commit(dir) {
       if (state.isAnimating) return;
 
@@ -144,6 +187,8 @@
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
+      cancelRaf();
+      clearSettleTimer();
 
       const height = vh();
       const duration = 140;
@@ -154,15 +199,7 @@
       refs.layerCurrent.style.transform = `translate3d(0,${dir > 0 ? -height : height}px,0)`;
       refs.layerNext.style.transform = 'translate3d(0,0,0)';
 
-      let doneOnce = false;
-
-      const onDone = (e) => {
-        if (doneOnce) return;
-        if (e.propertyName !== 'transform') return;
-
-        doneOnce = true;
-        refs.layerCurrent.removeEventListener('transitionend', onDone);
-
+      settleTransition(duration, () => {
         state.index = normalizeIndex(state.index + dir);
 
         const tmpLayer = refs.layerCurrent;
@@ -179,9 +216,15 @@
         refs.imgCurrent = refs.imgNext;
         refs.imgNext = tmpI;
 
+        refs.layerCurrent.style.transition = 'none';
+        refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
+
         refs.layerNext.style.transition = 'none';
         refs.layerNext.style.transform = `translate3d(0,${height}px,0)`;
+
         preparedDir = 0;
+        nextLoadedIndex = null;
+        nextLoadedDir = 0;
 
         const currentItem = playlist[state.index];
         if (currentItem.type === 'video') {
@@ -189,11 +232,6 @@
           tryPlay(refs.videoCurrent);
         }
 
-        nextLoadedIndex = null;
-        nextLoadedDir = 0;
-
-        refs.layerCurrent.style.transition = 'none';
-        refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
         resetLayerSideOpacity(refs.layerCurrent);
         resetLayerSideOpacity(refs.layerNext);
         resetSeekUiImmediate();
@@ -207,9 +245,7 @@
         defer(() => {
           warmForwardNext();
         });
-      };
-
-      refs.layerCurrent.addEventListener('transitionend', onDone);
+      });
     }
 
     function snapBack() {
@@ -217,6 +253,8 @@
 
       state.isAnimating = true;
       resetSeekUiImmediate();
+      cancelRaf();
+      clearSettleTimer();
 
       const height = vh();
       const duration = 200;
@@ -230,29 +268,18 @@
         preparedDir < 0 ? `translate3d(0,${-height}px,0)` :
         `translate3d(0,${height}px,0)`;
 
-      let doneOnce = false;
-
-      const onDone = (e) => {
-        if (doneOnce) return;
-        if (e.propertyName !== 'transform') return;
-
-        doneOnce = true;
-        refs.layerCurrent.removeEventListener('transitionend', onDone);
-
+      settleTransition(duration, () => {
         preparedDir = 0;
         resetTransformsNoAnim();
         resetSeekUiImmediate();
 
         state.isAnimating = false;
-
         bindAutoAdvanceForCurrent();
 
         defer(() => {
           warmForwardNext();
         });
-      };
-
-      refs.layerCurrent.addEventListener('transitionend', onDone);
+      });
     }
 
     function autoAdvance() {
@@ -271,6 +298,79 @@
       commit(1);
     }
 
+    function finishGesture(cancelled) {
+      if (!dragging || state.isAnimating) return;
+
+      const totalDy = dy;
+      const totalDx = dx;
+      const endT = performance.now();
+      const dt = Math.max(1, endT - startT);
+
+      dragging = false;
+      swipeSoundUnlocked = false;
+      cancelRaf();
+
+      if (cancelled) {
+        if (preparedDir !== 0) {
+          snapBack();
+        } else {
+          dy = 0;
+          dx = 0;
+          resetLayerSideOpacity(refs.layerCurrent);
+          resetLayerSideOpacity(refs.layerNext);
+          bindAutoAdvanceForCurrent();
+        }
+        return;
+      }
+
+      const isTap =
+        Math.abs(totalDy) < TAP_MAX_MOVE &&
+        Math.abs(totalDx) < TAP_MAX_MOVE &&
+        dt < TAP_MAX_TIME;
+
+      if (preparedDir === 0) {
+        dy = 0;
+        dx = 0;
+        resetLayerSideOpacity(refs.layerCurrent);
+        resetLayerSideOpacity(refs.layerNext);
+
+        if (isTap) {
+          const v = refs.videoCurrent;
+          if (v) {
+            if (v.paused || v.ended) {
+              if (typeof ensureSoundOn === 'function') {
+                ensureSoundOn(true);
+              } else {
+                tryPlay(v);
+              }
+              showPlayOverlay(false);
+            } else {
+              v.pause();
+              stopProg();
+              showPlayOverlay(true);
+            }
+          }
+        }
+
+        bindAutoAdvanceForCurrent();
+        return;
+      }
+
+      const height = vh();
+      const threshold = Math.round(height * THRESHOLD_RATIO);
+      const vy = (lastMoveY - startY) / dt;
+      const vAbs = Math.abs(vy);
+
+      const distanceOK = Math.abs(totalDy) >= threshold;
+      const velocityOK = (Math.abs(totalDy) >= MIN_COMMIT_DY) && (vAbs >= MIN_COMMIT_VY);
+
+      if (distanceOK || velocityOK) commit(preparedDir);
+      else snapBack();
+
+      dy = 0;
+      dx = 0;
+    }
+
     document.addEventListener('touchstart', (e) => {
       if (state.isAnimating) return;
       if (!e.touches || e.touches.length !== 1) return;
@@ -287,6 +387,8 @@
       startT = performance.now();
       lastMoveY = startY;
 
+      cancelRaf();
+      clearSettleTimer();
       clearAuto();
       stopProg();
 
@@ -336,62 +438,11 @@
     }, { passive: false });
 
     document.addEventListener('touchend', () => {
-      if (!dragging || state.isAnimating) return;
+      finishGesture(false);
+    }, { passive: true });
 
-      const totalDy = dy;
-      const totalDx = dx;
-      const endT = performance.now();
-      const dt = Math.max(1, endT - startT);
-
-      dragging = false;
-      swipeSoundUnlocked = false;
-
-      const isTap =
-        Math.abs(totalDy) < TAP_MAX_MOVE &&
-        Math.abs(totalDx) < TAP_MAX_MOVE &&
-        dt < TAP_MAX_TIME;
-
-      if (preparedDir === 0) {
-        dy = 0;
-        dx = 0;
-        resetLayerSideOpacity(refs.layerCurrent);
-        resetLayerSideOpacity(refs.layerNext);
-
-        if (isTap) {
-          const v = refs.videoCurrent;
-          if (v) {
-            if (v.paused || v.ended) {
-              if (typeof ensureSoundOn === 'function') {
-                ensureSoundOn(true);
-              } else {
-                tryPlay(v);
-              }
-              showPlayOverlay(false);
-            } else {
-              v.pause();
-              stopProg();
-              showPlayOverlay(true);
-            }
-          }
-        }
-
-        bindAutoAdvanceForCurrent();
-        return;
-      }
-
-      const height = vh();
-      const threshold = Math.round(height * THRESHOLD_RATIO);
-      const vy = (lastMoveY - startY) / dt;
-      const vAbs = Math.abs(vy);
-
-      const distanceOK = Math.abs(totalDy) >= threshold;
-      const velocityOK = (Math.abs(totalDy) >= MIN_COMMIT_DY) && (vAbs >= MIN_COMMIT_VY);
-
-      if (distanceOK || velocityOK) commit(preparedDir);
-      else snapBack();
-
-      dy = 0;
-      dx = 0;
+    document.addEventListener('touchcancel', () => {
+      finishGesture(true);
     }, { passive: true });
 
     return {
