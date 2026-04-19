@@ -615,26 +615,26 @@ body{
 }
 
 [aria-label="Home"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:28px;
+  height:28px;
   transform: translateY(-2px);
 }
 
 [aria-label="Search"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:28px;
+  height:28px;
   transform: translateY(-1px); 
 }
 
 [aria-label="Messages"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:28px;
+  height:28px;
   transform: translateY(-1px);  
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:28px;
+  height:28px;
   transform: translateY(-3px); 
 }
 
