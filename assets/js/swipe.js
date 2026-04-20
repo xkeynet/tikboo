@@ -26,8 +26,6 @@
     let preparedDir = 0;
     let raf = 0;
     let settleTimer = 0;
-    let paintCommitRaf1 = 0;
-    let paintCommitRaf2 = 0;
 
     const THRESHOLD_RATIO = 0.25;
     const MOVE_ACTIVATE_PX = 10;
@@ -57,13 +55,6 @@
       if (!settleTimer) return;
       clearTimeout(settleTimer);
       settleTimer = 0;
-    }
-
-    function clearPaintCommitRafs() {
-      if (paintCommitRaf1) cancelAnimationFrame(paintCommitRaf1);
-      if (paintCommitRaf2) cancelAnimationFrame(paintCommitRaf2);
-      paintCommitRaf1 = 0;
-      paintCommitRaf2 = 0;
     }
 
     function setLayerSideOpacity(layer, opacity) {
@@ -98,7 +89,6 @@
 
       cancelRaf();
       clearSettleTimer();
-      clearPaintCommitRafs();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
@@ -165,6 +155,18 @@
       setLayerSideOpacity(refs.layerNext, 1);
     }
 
+    function flushPendingDragFrame() {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+
+      if (preparedDir !== 0) {
+        applyDragTransforms();
+        void refs.layerCurrent.offsetHeight;
+        void refs.layerNext.offsetHeight;
+      }
+    }
+
     function settleTransition(duration, onDone) {
       let doneOnce = false;
 
@@ -190,7 +192,7 @@
       settleTimer = setTimeout(finish, duration + 80);
     }
 
-    function runCommitNow(dir) {
+    function commit(dir) {
       if (state.isAnimating) return;
 
       state.isAnimating = true;
@@ -199,7 +201,6 @@
       resetSeekUiImmediate();
       cancelRaf();
       clearSettleTimer();
-      clearPaintCommitRafs();
 
       const height = vh();
       const duration = 140;
@@ -259,33 +260,6 @@
       });
     }
 
-    function commit(dir) {
-      if (state.isAnimating) return;
-
-      clearPaintCommitRafs();
-
-      refs.layerNext.style.transition = 'none';
-
-      if (dir > 0) {
-        refs.layerNext.style.transform = `translate3d(0,${Math.max(0, vh() + dy)}px,0)`;
-      } else {
-        refs.layerNext.style.transform = `translate3d(0,${Math.min(0, -vh() + dy)}px,0)`;
-      }
-
-      resetLayerSideOpacity(refs.layerNext);
-
-      void refs.layerNext.offsetHeight;
-      void refs.layerCurrent.offsetHeight;
-
-      paintCommitRaf1 = requestAnimationFrame(() => {
-        paintCommitRaf1 = 0;
-        paintCommitRaf2 = requestAnimationFrame(() => {
-          paintCommitRaf2 = 0;
-          runCommitNow(dir);
-        });
-      });
-    }
-
     function snapBack() {
       if (state.isAnimating) return;
 
@@ -293,7 +267,6 @@
       resetSeekUiImmediate();
       cancelRaf();
       clearSettleTimer();
-      clearPaintCommitRafs();
 
       const height = vh();
       const duration = 200;
@@ -347,7 +320,8 @@
 
       dragging = false;
       swipeSoundUnlocked = false;
-      cancelRaf();
+
+      flushPendingDragFrame();
 
       if (cancelled) {
         if (preparedDir !== 0) {
@@ -428,7 +402,6 @@
 
       cancelRaf();
       clearSettleTimer();
-      clearPaintCommitRafs();
       clearAuto();
       stopProg();
 
