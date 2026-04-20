@@ -24,7 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     { type: 'video', src: 'assets/video/swipe8.mp4' },
     { type: 'video', src: 'assets/video/swipe9.mp4' },
     { type: 'video', src: 'assets/video/swipe10.mp4' },
-    { type: 'video', src: 'assets/video/swipe11.mp4' }
+    { type: 'video', src: 'assets/video/swipe11.mp4' },
+    { type: 'video', src: 'assets/video/swipe12.mp4' },
+    { type: 'video', src: 'assets/video/swipe13.mp4' },
+    { type: 'video', src: 'assets/video/swipe14.mp4' },
+    { type: 'video', src: 'assets/video/swipe15.mp4' },
+    { type: 'video', src: 'assets/video/swipe16.mp4' }
   ];
 
   const refs = {
