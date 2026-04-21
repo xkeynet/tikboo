@@ -1,3 +1,16 @@
-<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14.9536 14.9458L19.5 19.5M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="800px" height="800px" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+
+<!-- TEXT: Tik -->
+<text x="20" y="140" font-family="Arial, Helvetica, sans-serif" font-size="120" fill="#000000">
+  Tik
+</text>
+
+<!-- COLORED O (TikTok style) -->
+<g transform="translate(320,40)">
+  <circle cx="60" cy="60" r="50" fill="#69c9d0"/>
+  <circle cx="70" cy="60" r="50" fill="#ee1d52" opacity="0.8"/>
+  <circle cx="65" cy="60" r="40" fill="#ffffff"/>
+</g>
+
 </svg>
