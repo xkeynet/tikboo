@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="3000" height="3000" viewBox="100 620 260 140" xmlns="http://www.w3.org/2000/svg">
+<svg width="3000" height="3000" viewBox="100 620 620 140" xmlns="http://www.w3.org/2000/svg">
   <rect width="100%" height="100%" fill="#ffffff"/>
 
   <!-- T -->
@@ -11,4 +11,14 @@
 
   <!-- k -->
   <path d="M355 649h-34.6l-29.82 29.82v-58.36h-29.39l-.09 124.35h29.67v-32.4L300 704l28.8 40.77h31.72l-41.72-59.62z" fill="#000000"/>
+
+  <!-- b -->
+  <rect x="375" y="620.36" width="29.58" height="124.45" fill="#000000"/>
+  <circle cx="430" cy="694.4" r="25.3" fill="#000000"/>
+
+  <!-- o -->
+  <circle cx="500" cy="694.4" r="25.3" fill="#000000"/>
+
+  <!-- o -->
+  <circle cx="570" cy="694.4" r="25.3" fill="#000000"/>
 </svg>
