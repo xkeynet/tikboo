@@ -1,16 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg width="800px" height="800px" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="3000" height="3000" viewBox="100 620 260 140" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#ffffff"/>
 
-<!-- TEXT: Tik -->
-<text x="20" y="140" font-family="Arial, Helvetica, sans-serif" font-size="120" fill="#000000">
-  Tik
-</text>
+  <!-- T -->
+  <path d="M119.51 620.36h93.71l-8.66 25.78H180v98.67h-30.13v-98.67h-30.36z" fill="#000000"/>
 
-<!-- COLORED O (TikTok style) -->
-<g transform="translate(320,40)">
-  <circle cx="60" cy="60" r="50" fill="#69c9d0"/>
-  <circle cx="70" cy="60" r="50" fill="#ee1d52" opacity="0.8"/>
-  <circle cx="65" cy="60" r="40" fill="#ffffff"/>
-</g>
+  <!-- i -->
+  <circle cx="233.6" cy="635.15" r="14.6" fill="#000000"/>
+  <rect x="219" y="660" width="29.58" height="84.75" fill="#000000"/>
 
+  <!-- k -->
+  <path d="M355 649h-34.6l-29.82 29.82v-58.36h-29.39l-.09 124.35h29.67v-32.4L300 704l28.8 40.77h31.72l-41.72-59.62z" fill="#000000"/>
 </svg>
