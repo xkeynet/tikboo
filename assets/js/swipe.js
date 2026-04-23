@@ -138,6 +138,12 @@
       nextLoadedDir = dir;
       preparedDir = dir;
       resetLayerSideOpacity(refs.layerNext);
+
+      if (item.type === 'video' && refs.videoNext) {
+        refs.videoNext.muted = true;
+        refs.videoNext.currentTime = 0.01;
+        tryPlay(refs.videoNext);
+      }
     }
 
     function applyDragTransforms() {
@@ -201,15 +207,6 @@
       resetSeekUiImmediate();
       cancelRaf();
       clearSettleTimer();
-
-      if (dir < 0) {
-        const nextItem = playlist[normalizeIndex(state.index + dir)];
-        if (nextItem?.type === 'video' && refs.videoNext) {
-          refs.videoNext.muted = state.isMuted;
-          tryPlay(refs.videoNext);
-          void refs.videoNext.offsetHeight;
-        }
-      }
 
       const height = vh();
       const duration = 140;
