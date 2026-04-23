@@ -71,6 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let seekActiveOffTimer = 0;
   let timeupdateBoundEl = null;
+  let progResumeRaf = 0;
+
+  function markVideoFrameReady(v) {
+    if (v?.dataset) v.dataset.frameReady = '1';
+  }
+
+  function markVideoFrameNotReady(v) {
+    if (v?.dataset) v.dataset.frameReady = '0';
+  }
+
+  function queueProgResume() {
+    if (progResumeRaf) return;
+
+    progResumeRaf = requestAnimationFrame(() => {
+      progResumeRaf = 0;
+      startProg();
+    });
+  }
 
   // =========================================================
   // === GA4 SAFE HELPER ===
@@ -134,6 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
     v.setAttribute('webkit-playsinline', '');
     v.setAttribute('disablepictureinpicture', '');
     v.setAttribute('x-webkit-airplay', 'deny');
+
+    markVideoFrameNotReady(v);
+    v.addEventListener('loadeddata', () => markVideoFrameReady(v));
+    v.addEventListener('canplay', () => markVideoFrameReady(v));
+    v.addEventListener('seeked', () => markVideoFrameReady(v));
+    v.addEventListener('playing', () => markVideoFrameReady(v));
   });
 
   refs.imgCurrent.decoding = 'async';
@@ -209,6 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function stopProg() {
     if (progRaf) cancelAnimationFrame(progRaf);
     progRaf = 0;
+
+    if (progResumeRaf) cancelAnimationFrame(progResumeRaf);
+    progResumeRaf = 0;
   }
 
   function startProg() {
@@ -324,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refs.videoCurrent.paused || refs.videoCurrent.ended) {
       tryPlay(refs.videoCurrent);
-      startProg();
+      queueProgResume();
     } else {
       refs.videoCurrent.pause();
       stopProg();
@@ -360,6 +387,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setVideoSmart(el, h264Src) {
     if (!h264Src) return;
+
+    markVideoFrameNotReady(el);
 
     const hevcSrc = deriveHevcSrc(h264Src);
     const wantHevc = USE_HEVC && hevcSrc !== h264Src;
@@ -399,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearVideo(el) {
     el.pause?.();
+    markVideoFrameNotReady(el);
     el.removeAttribute('src');
     el.load();
   }
@@ -433,14 +463,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function primeNextVideo(v) {
     v.muted = true;
-    if (v.readyState >= 3) return;
+
+    if (v.readyState >= 2 && v.videoWidth > 0) {
+      markVideoFrameReady(v);
+      return;
+    }
 
     try {
       const p = v.play();
       if (p && typeof p.then === 'function') {
-        p.then(() => { v.pause(); }).catch(() => {});
+        p.then(() => {
+          v.pause();
+          if (v.readyState >= 2 && v.videoWidth > 0) {
+            markVideoFrameReady(v);
+          }
+        }).catch(() => {});
       } else {
         v.pause();
+        if (v.readyState >= 2 && v.videoWidth > 0) {
+          markVideoFrameReady(v);
+        }
       }
     } catch (e) {}
   }
@@ -500,17 +542,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (swipeEngine) swipeEngine.autoAdvance();
       };
 
-      autoBoundVideo.onplay = () => startProg();
+      autoBoundVideo.onplay = () => queueProgResume();
       autoBoundVideo.onpause = () => stopProg();
 
       autoBoundVideo.onloadedmetadata = () => {
         if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
-        startProg();
+        markVideoFrameReady(refs.videoCurrent);
+        queueProgResume();
       };
 
-      autoBoundVideo.onseeked = () => startProg();
+      autoBoundVideo.onseeked = () => {
+        markVideoFrameReady(refs.videoCurrent);
+        queueProgResume();
+      };
 
-      startProg();
+      queueProgResume();
 
       refs.videoCurrent.addEventListener('timeupdate', updateSeekFill);
       timeupdateBoundEl = refs.videoCurrent;
@@ -565,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
           pillTouching = false;
           setSeekActive(false);
           if (wasPlayingBeforeSeek) tryPlay(refs.videoCurrent);
-          startProg();
+          queueProgResume();
           return;
         } else {
           return;
@@ -595,8 +641,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (wasPlayingBeforeSeek) {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
+        queueProgResume();
       }
-      startProg();
     }, { passive: false });
 
     seekWrap.addEventListener('touchcancel', () => {
@@ -609,8 +655,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (wasPlayingBeforeSeek) {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
+        queueProgResume();
       }
-      startProg();
     }, { passive: true });
   }
 
