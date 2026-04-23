@@ -433,15 +433,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function primeNextVideo(v) {
     v.muted = true;
-    if (v.readyState >= 3) return;
+    if (v.readyState >= 2) return;
 
     try {
-      const p = v.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => { v.pause(); }).catch(() => {});
-      } else {
-        v.pause();
-      }
+      v.load();
     } catch (e) {}
   }
 
@@ -461,6 +456,19 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(v);
       } else {
         primeNextVideo(v);
+
+        v.addEventListener('loadeddata', () => {
+          if (v.readyState >= 2) {
+            try {
+              const p = v.play();
+              if (p && typeof p.then === 'function') {
+                p.then(() => { v.pause(); }).catch(() => {});
+              } else {
+                v.pause();
+              }
+            } catch (e) {}
+          }
+        }, { once: true });
       }
 
       return;
@@ -880,4 +888,3 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
-
