@@ -217,7 +217,7 @@
         return;
       }
 
-      if (v.readyState >= 3 && v.videoWidth > 0) {
+      if (v.readyState >= 2 && v.videoWidth > 0) {
         run();
         return;
       }
@@ -534,3 +534,4 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
+
