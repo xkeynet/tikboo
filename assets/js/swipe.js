@@ -27,7 +27,6 @@
     let raf = 0;
     let settleTimer = 0;
     let nextReadyTimer = 0;
-    let nextPaintRaf = 0;
 
     const THRESHOLD_RATIO = 0.25;
     const MOVE_ACTIVATE_PX = 10;
@@ -65,12 +64,6 @@
       nextReadyTimer = 0;
     }
 
-    function clearNextPaintRaf() {
-      if (!nextPaintRaf) return;
-      cancelAnimationFrame(nextPaintRaf);
-      nextPaintRaf = 0;
-    }
-
     function setLayerSideOpacity(layer, opacity) {
       const side = layer?.querySelector('.side');
       if (!side) return;
@@ -104,7 +97,6 @@
       cancelRaf();
       clearSettleTimer();
       clearNextReadyTimer();
-      clearNextPaintRaf();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
@@ -210,7 +202,6 @@
 
     function whenNextLayerReady(run) {
       clearNextReadyTimer();
-      clearNextPaintRaf();
 
       const nextIndex = normalizeIndex(state.index + preparedDir);
       const nextItem = playlist[nextIndex];
@@ -226,6 +217,11 @@
         return;
       }
 
+      if (v.readyState >= 3 && v.videoWidth > 0) {
+        run();
+        return;
+      }
+
       let done = false;
 
       const finish = () => {
@@ -233,31 +229,16 @@
         done = true;
 
         clearNextReadyTimer();
-        clearNextPaintRaf();
+        v.removeEventListener('loadeddata', finish);
+        v.removeEventListener('canplay', finish);
+        v.removeEventListener('error', finish);
 
-        v.removeEventListener('loadeddata', onReady);
-        v.removeEventListener('canplay', onReady);
-        v.removeEventListener('error', onReady);
-
-        void refs.layerNext.offsetHeight;
-        nextPaintRaf = requestAnimationFrame(() => {
-          nextPaintRaf = 0;
-          run();
-        });
+        run();
       };
 
-      const onReady = () => {
-        finish();
-      };
-
-      if (v.readyState >= 2 && v.videoWidth > 0) {
-        finish();
-        return;
-      }
-
-      v.addEventListener('loadeddata', onReady, { once: true });
-      v.addEventListener('canplay', onReady, { once: true });
-      v.addEventListener('error', onReady, { once: true });
+      v.addEventListener('loadeddata', finish, { once: true });
+      v.addEventListener('canplay', finish, { once: true });
+      v.addEventListener('error', finish, { once: true });
 
       nextReadyTimer = setTimeout(finish, 70);
     }
@@ -275,7 +256,6 @@
         cancelRaf();
         clearSettleTimer();
         clearNextReadyTimer();
-        clearNextPaintRaf();
 
         const height = vh();
         const duration = 140;
@@ -346,7 +326,6 @@
       cancelRaf();
       clearSettleTimer();
       clearNextReadyTimer();
-      clearNextPaintRaf();
 
       const height = vh();
       const duration = 200;
@@ -483,7 +462,6 @@
       cancelRaf();
       clearSettleTimer();
       clearNextReadyTimer();
-      clearNextPaintRaf();
       clearAuto();
       stopProg();
 
