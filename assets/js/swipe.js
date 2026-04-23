@@ -202,13 +202,6 @@
       cancelRaf();
       clearSettleTimer();
 
-      const nextItem = playlist[normalizeIndex(state.index + dir)];
-      if (nextItem?.type === 'video' && refs.videoNext) {
-        refs.videoNext.muted = state.isMuted;
-        tryPlay(refs.videoNext);
-        void refs.videoNext.offsetHeight;
-      }
-
       const height = vh();
       const duration = 140;
 
