@@ -245,13 +245,10 @@
         nextLoadedIndex = null;
         nextLoadedDir = 0;
 
-        if (refs.videoNext && !refs.videoNext.paused) refs.videoNext.pause();
-
         const currentItem = playlist[state.index];
         if (currentItem.type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
           tryPlay(refs.videoCurrent);
-          requestAnimationFrame(() => tryPlay(refs.videoCurrent));
         }
 
         resetLayerSideOpacity(refs.layerCurrent);
@@ -484,3 +481,4 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
+
