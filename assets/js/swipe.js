@@ -138,12 +138,6 @@
       nextLoadedDir = dir;
       preparedDir = dir;
       resetLayerSideOpacity(refs.layerNext);
-
-      if (item.type === 'video' && refs.videoNext) {
-        refs.videoNext.muted = true;
-        refs.videoNext.currentTime = 0.01;
-        tryPlay(refs.videoNext);
-      }
     }
 
     function applyDragTransforms() {
@@ -480,3 +474,4 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
+
