@@ -730,30 +730,3 @@ body{
 .twincher-layer > img {
   pointer-events: none;
 }
-
-/* =========================================================
-   AVATAR RING – BASE (IDLE)
-   ========================================================= */
-
-.avatar-ring{
-  position:relative;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* samotný ring */
-.avatar-ring::before{
-  content:"";
-  position:absolute;
-  inset:-2px;                 /* mezera kolem avatara */
-  border-radius:999px;
-  border:2px solid #2AF0EA;  /* idle modrá */
-  pointer-events:none;
-}
-
-/* avatar zůstává nahoře */
-.avatar{
-  position:relative;
-  z-index:1;
-}
