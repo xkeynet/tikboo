@@ -26,7 +26,6 @@
     let preparedDir = 0;
     let raf = 0;
     let settleTimer = 0;
-    let nextReadyTimer = 0;
 
     const THRESHOLD_RATIO = 0.25;
     const MOVE_ACTIVATE_PX = 10;
@@ -56,12 +55,6 @@
       if (!settleTimer) return;
       clearTimeout(settleTimer);
       settleTimer = 0;
-    }
-
-    function clearNextReadyTimer() {
-      if (!nextReadyTimer) return;
-      clearTimeout(nextReadyTimer);
-      nextReadyTimer = 0;
     }
 
     function setLayerSideOpacity(layer, opacity) {
@@ -96,7 +89,6 @@
 
       cancelRaf();
       clearSettleTimer();
-      clearNextReadyTimer();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
@@ -200,122 +192,72 @@
       settleTimer = setTimeout(finish, duration + 80);
     }
 
-    function whenNextLayerReady(run) {
-      clearNextReadyTimer();
-
-      const nextIndex = normalizeIndex(state.index + preparedDir);
-      const nextItem = playlist[nextIndex];
-
-      if (!nextItem || nextItem.type !== 'video') {
-        run();
-        return;
-      }
-
-      const v = refs.videoNext;
-      if (!v) {
-        run();
-        return;
-      }
-
-      if (v.readyState >= 2 && v.videoWidth > 0) {
-        run();
-        return;
-      }
-
-      let done = false;
-
-      const finish = () => {
-        if (done) return;
-        done = true;
-
-        clearNextReadyTimer();
-        v.removeEventListener('loadeddata', finish);
-        v.removeEventListener('canplay', finish);
-        v.removeEventListener('error', finish);
-
-        run();
-      };
-
-      v.addEventListener('loadeddata', finish, { once: true });
-      v.addEventListener('canplay', finish, { once: true });
-      v.addEventListener('error', finish, { once: true });
-
-      nextReadyTimer = setTimeout(finish, 70);
-    }
-
     function commit(dir) {
       if (state.isAnimating) return;
 
-      const runCommit = () => {
-        if (state.isAnimating) return;
+      state.isAnimating = true;
+      clearAuto();
+      stopProg();
+      resetSeekUiImmediate();
+      cancelRaf();
+      clearSettleTimer();
 
-        state.isAnimating = true;
-        clearAuto();
-        stopProg();
+      const height = vh();
+      const duration = 140;
+
+      refs.layerCurrent.style.transition = `transform ${duration}ms linear`;
+      refs.layerNext.style.transition = `transform ${duration}ms linear`;
+
+      refs.layerCurrent.style.transform = `translate3d(0,${dir > 0 ? -height : height}px,0)`;
+      refs.layerNext.style.transform = 'translate3d(0,0,0)';
+
+      settleTransition(duration, () => {
+        state.index = normalizeIndex(state.index + dir);
+
+        const tmpLayer = refs.layerCurrent;
+        refs.layerCurrent = refs.layerNext;
+        refs.layerNext = tmpLayer;
+
+        if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
+
+        const tmpV = refs.videoCurrent;
+        refs.videoCurrent = refs.videoNext;
+        refs.videoNext = tmpV;
+
+        const tmpI = refs.imgCurrent;
+        refs.imgCurrent = refs.imgNext;
+        refs.imgNext = tmpI;
+
+        refs.layerCurrent.style.transition = 'none';
+        refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
+
+        refs.layerNext.style.transition = 'none';
+        refs.layerNext.style.transform = `translate3d(0,${height}px,0)`;
+
+        preparedDir = 0;
+        nextLoadedIndex = null;
+        nextLoadedDir = 0;
+
+        const currentItem = playlist[state.index];
+        if (currentItem.type === 'video') {
+          refs.videoCurrent.muted = state.isMuted;
+          tryPlay(refs.videoCurrent);
+        }
+
+        resetLayerSideOpacity(refs.layerCurrent);
+        resetLayerSideOpacity(refs.layerNext);
         resetSeekUiImmediate();
-        cancelRaf();
-        clearSettleTimer();
-        clearNextReadyTimer();
 
-        const height = vh();
-        const duration = 140;
+        syncSoundUI();
+        showPlayOverlay(false);
+        bindAutoAdvanceForCurrent();
 
-        refs.layerCurrent.style.transition = `transform ${duration}ms linear`;
-        refs.layerNext.style.transition = `transform ${duration}ms linear`;
+        state.isAnimating = false;
 
-        refs.layerCurrent.style.transform = `translate3d(0,${dir > 0 ? -height : height}px,0)`;
-        refs.layerNext.style.transform = 'translate3d(0,0,0)';
-
-        settleTransition(duration, () => {
-          state.index = normalizeIndex(state.index + dir);
-
-          const tmpLayer = refs.layerCurrent;
-          refs.layerCurrent = refs.layerNext;
-          refs.layerNext = tmpLayer;
-
-          if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
-
-          const tmpV = refs.videoCurrent;
-          refs.videoCurrent = refs.videoNext;
-          refs.videoNext = tmpV;
-
-          const tmpI = refs.imgCurrent;
-          refs.imgCurrent = refs.imgNext;
-          refs.imgNext = tmpI;
-
-          refs.layerCurrent.style.transition = 'none';
-          refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
-
-          refs.layerNext.style.transition = 'none';
-          refs.layerNext.style.transform = `translate3d(0,${height}px,0)`;
-
-          preparedDir = 0;
-          nextLoadedIndex = null;
-          nextLoadedDir = 0;
-
-          const currentItem = playlist[state.index];
-          if (currentItem.type === 'video') {
-            refs.videoCurrent.muted = state.isMuted;
-            tryPlay(refs.videoCurrent);
-          }
-
-          resetLayerSideOpacity(refs.layerCurrent);
-          resetLayerSideOpacity(refs.layerNext);
-          resetSeekUiImmediate();
-
-          syncSoundUI();
-          showPlayOverlay(false);
-          bindAutoAdvanceForCurrent();
-
-          state.isAnimating = false;
-
-          defer(() => {
-            warmForwardNext();
-          });
+        defer(() => {
+          warmForwardNext();
         });
-      };
-
-      whenNextLayerReady(runCommit);
+      });
     }
 
     function snapBack() {
@@ -325,7 +267,6 @@
       resetSeekUiImmediate();
       cancelRaf();
       clearSettleTimer();
-      clearNextReadyTimer();
 
       const height = vh();
       const duration = 200;
@@ -461,7 +402,6 @@
 
       cancelRaf();
       clearSettleTimer();
-      clearNextReadyTimer();
       clearAuto();
       stopProg();
 
