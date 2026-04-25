@@ -1,832 +1,891 @@
-/* =========================================================
-   CSS: Root / Variables
-   ======================================================== */
-:root {
-  --bg:#000;
-  --fg:#fff;
-  --muted:#888;
-  --logo:60px;
-  --headline:clamp(28px, 6.5vw, 56px);
-  --twb:#00D9FF;
-  --safeSide:16px;
-
-  /* === BOTTOM VIDEO (MATCH TWINCHER) === */
-  --navPadX:12px;
-  --navIconBox:48px;
-  --navH:78px;
-  --iconSide:32px;
-  --iconBottom:28px;
-
-  --glass: rgba(255,255,255,.06);
-  --glassStroke: rgba(255,255,255,.12);
-  --gateMuted:#A5A5A5;
-  --gateBlue:#00E5E5;
-  --gateWhite:#FFFFFF;
-  --cardMax:520px;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; background:var(--bg); color:var(--fg);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  display:grid; grid-template-rows:auto 1fr auto; min-height:100dvh;
-  position:relative; overflow:hidden;
-}
-
-/* =========================================================
-   CSS: Video Stack (DO NOT TOUCH)
-   ========================================================= */
-/* === VIDEO STACK (TWINCHER STYLE) === */
-#video-stack{
-  position:fixed;
-  inset:0;
-  overflow:hidden;
-  z-index:0;
-  background:#000;
-}
-.twincher-layer{
-  position:absolute;
-  inset:0;
-  transform:translateY(0px);
-  will-change:transform;
-  background:#000;
-  isolation:isolate; 
-}
-.twincher-layer > video,
-.twincher-layer > img{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  background:#000;
-  display:none;
-  z-index:1; 
-}
-.twincher-layer > img{
-  opacity:0;
-  transition: opacity 120ms linear;
-  -webkit-user-drag:none;
-  user-select:none;
-}
-
-/* =========================================================
-   CSS: Top UI
-   ========================================================= */
-/* === TOP LEFT LIVE === */
-.top{
-  position:fixed;
-  top:2px;
-  left:4px;
-  right:auto;
-  width:44px;
-  height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:3;
-  padding:0;
-  background:none;
-  border:0;
-}
-
-.top img{
-  width:28px;
-  height:28px;
-  object-fit:contain;
-  display:block;
-  user-select:none;
-  -webkit-user-drag:none;
-}
-
-/* === STAGE (EMPTY HERO) === */
-.stage{
-  display:grid; place-items:center;
-  padding:24px var(--safeSide);
-  text-align:center; position:relative; z-index:1;
-  padding-bottom: calc(var(--navH) + 28px);
-  pointer-events:none;
-}
-
-/* =========================================================
-   CSS: Right Column
-   ========================================================= */
-/* === SCRUBBING MODE (hide right column during seek) === */
-.side.scrubbing{
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 120ms ease;
-}
-
-/* === RIGHT SIDE ACTIONS === */
-.side{
-  position: absolute;
-  right: 6px;
-  top: 72%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  z-index: 20;
-  pointer-events: auto;
-}
-.stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
-.stack.avatar-stack{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -65px;
-  pointer-events: auto;
-}
-.avatar{
-  width:42px;
-  height:42px;
-  border-radius:999px;
-  object-fit:cover;
-  display:block;
-  user-select:none;
-  -webkit-user-drag:none;
-}
-
-.side button{
-  appearance: none;
-  background: transparent;
-  border: 0;
-  width: 48px;
-  height: 40px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform; 
-}
-.count{
-  font-size:12px;
-  font-weight:600;
-  color:#ffffff;
-  user-select:none;
-  line-height:1;
-  margin-top:0px;
-  letter-spacing:0.2px;
-}
-
-/* =========================================================
-   CSS: Bottom Nav
-   ========================================================= */
-/* === BOTTOM NAV (MATCH TWINCHER) === */
-.nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  z-index: 2;
-  background: transparent;
-  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
-  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-.nav ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.nav button {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  width: var(--navIconBox);
-  height: var(--navIconBox);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform; 
-}
-
-/* =========================================================
-   CSS: Seekbar (LAST STEP)
-   ========================================================= */
-/* === VIDEO SEEK BAR (PILL) === */
-.seek-wrap{
-  position:absolute;
-  left:var(--navPadX);
-  right:var(--navPadX);
-  bottom: calc(var(--navIconBox) - 5px);
-  top:auto;
-
-  /* huge hitbox */
-  height:36px;
-  display:none;
-  align-items:flex-end;
-  justify-content:center;
-  padding-bottom:0px;
-
-  z-index:3;
-  pointer-events:auto;
-
-  /* seek má prioritu */
-  touch-action:none;
-}
-
-.seek-pill{
-  width:100%;
-  height:3px;
-  border-radius:999px;
-  background: rgba(255,255,255,.16);
-  position:relative;
-  overflow:visible;
-
-  transition: height 140ms ease, background 140ms ease;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.seek-pill.is-active{
-  height:10px;
-  background: rgba(255,255,255,.16);
-}
-
-.seek-fill{
-  position:absolute;
-  left:0; top:0; bottom:0;
-  width:0%;
-  border-radius:999px;
-  background: rgba(255,255,255,.16);
-  transition: background 120ms ease, box-shadow 120ms ease;
-}
-
-.seek-pill.is-active .seek-fill{
-  background: rgba(255,255,255,.90);
-  box-shadow: 0 0 6px rgba(255,255,255,0.25);
-}
-
-/* === TIMER === */
-.seek-time{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%) scaleX(0.90);
-  bottom:44px;
-
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:30px;
-  font-weight:600;
-  letter-spacing:0.02em;
-  font-variant-numeric:tabular-nums;
-  color:rgba(255,255,255,.96);
-  text-shadow:0 2px 14px rgba(0,0,0,.55);
-
-  -webkit-font-smoothing:antialiased;
-  text-rendering:geometricPrecision;
-  backface-visibility:hidden;
-  will-change:opacity;
-
-  opacity:0;
-  transition:opacity 140ms ease;
-  pointer-events:none;
-  user-select:none;
-  white-space:nowrap;
-}
-
-.seek-time.is-active{ opacity:1; }
-
-.seek-time .t-cur{
-  color:rgba(255,255,255,.96);
-  font-weight:600;
-}
-
-.seek-time .t-sep{
-  color:rgba(255,255,255,.60);
-  font-weight:600;
-  font-size:0.60em;
-  letter-spacing:0;
-  padding:0 18px;
-  position:relative;
-  top:-5px;
-  transform:rotate(-5deg);
-}
-
-.seek-time .t-tot{
-  color:rgba(255,255,255,.60);
-  font-weight:600;
-}
-
-/* =========================================================
-   CSS: (Other) Profile Modal
-   ========================================================= */
-/* === PROFILE MODAL === */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:5}
-.modal-backdrop.show{display:flex}
-.modal{width:min(92vw,560px);background:var(--glass);border:1px solid var(--glassStroke);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:20px}
-.modal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 6px 12px}
-.modal-title{margin:0;font-size:18px;font-weight:700;letter-spacing:.02em}
-.modal-close{appearance:none;background:transparent;border:0;color:#fff;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
-.note{font-size:12px;color:#cbd5e1;opacity:.7;text-align:center;margin-top:6px}
-.btn{appearance:none;border:0;border-radius:999px;padding:12px 18px;font-weight:600;cursor:pointer}
-.btn.secondary{background:rgba(255,255,255,.1);color:#fff}
-.btn.primary{background:rgba(255,255,255,.1);color:#fff}
-
-/* =========================================================
-   CSS: Age Gate
-   ========================================================= */
-/* === AGE GATE OVERLAY === */
-#gateOverlay{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  background:#000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-#gateOverlay.hidden{ display:none; }
-
-.wrap{
-  height:100svh;
-  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:100%;
-}
-.card{
-  width:min(var(--cardMax), 100%);
-  height:100%;
-  max-height:calc(100svh - 48px - env(safe-area-inset-bottom));
-  text-align:center;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-.top-g{
-  flex:0 0 auto;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-/* === GATE BRAND TEXT === */
-.gate-brand{
-  font-size:36px;
-  font-weight:700;
-  color:#fff;
-  letter-spacing:0.02em;
-  margin-bottom:20px;
-  user-select:none;
-  white-space:nowrap;
-}
-
-.legalScroll{
-  flex:0 1 auto;
-  width:100%;
-  max-width:44ch;
-  max-height:34svh;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:12px 0;
-  margin:0 auto 18px;
-}
-.legal{
-  font-size:14px;
-  line-height:1.45;
-  color:var(--gateMuted);
-  opacity:0.95;
-  margin:0;
-  text-align:left;
-}
-
-/* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
-.bottom{
-  flex:0 0 auto;
-  width:100%;
-  padding-top:8px;
-  padding-bottom:4px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-/* === THE BLUE PILL === */
-.enterBtn{
-  width: fit-content;
-  max-width:320px;
-  min-width:280px;
-  margin:0 auto;
-  display:inline-flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-
-  border:0;
-  border-radius:999px;
-  padding:10px 34px;
-  font-weight:800;
-  letter-spacing:0;
-  color:#FFFFFF;
-  background:#FE2C55;
-  box-shadow:none;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.enterBtn:active{
-  transform:scale(0.98);
-  filter:brightness(0.92);
-}
-
-.enterTop{
-  font-size:14px;
-  line-height:1;
-  text-transform:none;
-  letter-spacing:0;
-  opacity:1;
-}
-
-.enterBottom{
-  font-size:14px;
-  line-height:1;
-  text-transform:none;
-  letter-spacing:0.02em;
-  opacity:1;
-}
-
-/* === CONSENT TEXT UNDER THE PILL === */
-.consent{
-  width:100%;
-  max-width:44ch;
-  margin-top:20px;
-  font-size:13px;
-  line-height:1.45;
-  color:var(--gateMuted);
-  text-align:center;
-  opacity:0.95;
-}
-.consent a{
-  color:var(--gateMuted);
-  font-weight:800;
-}
-
-.icon-heart{
-  width:32px;
-  height:32px;
-  display:block;
-  filter:brightness(0) invert(1);
-}
-
-.icon-talk{
-  width:32px;
-  height:32px;
-  display:block;
-  filter:brightness(0) invert(1);
-}
-
-.icon-bookmark{
-  width:34px;
-  height:34px;
-  display:block;
-  filter:brightness(0) invert(1);
-}
-
-.icon-share{
-  width:35px;
-  height:35px;
-  display:block;
-  filter:brightness(0) invert(1);
-  transform: translateY(3px);   
-}
-
-.icon-dots{
-  width:28px;
-  height:28px;
-  display:block;
-  filter:brightness(0) invert(1);
-  transform:translateY(-2px); 
-  opacity: 0.8; 
-}
-
-/* Tikboo LOGO EFEKT */
-.gate-brand-tikboo{
-  display:inline-block;
-  transform-origin:center;
-  will-change:transform;
-  animation:tikbooPulse 9s linear infinite;
-}
-
-/* Tikboo */
-@keyframes tikbooPulse{
-  0%,32%{ transform:translateY(0) scale(1); }
-  33%{ transform:translateY(-14px) scale(1.70); }
-  34%{ transform:translateY(6px) scale(.80); }
-  35%{ transform:translateY(-6px) scale(1.20); }
-  36%{ transform:translateY(3px) scale(.92); }
-  37%{ transform:translateY(-2px) scale(1.05); }
-  38%{ transform:translateY(0) scale(1); }
-}
-
-/* [+] JAKO TikTok */
-.add-btn{
-  position:relative;
-  width:52px;
-  height:32px;
-  border:0;
-  background:transparent;
-  padding:0;
-}
-
-/* základ pilulky */
-.pill{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:36px;
-  height:28px;
-  border-radius:8px;
-}
-
-/* střed */
-.pill-core{
-  background:#fff;
-  z-index:3;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* levá barevná */
-.pill-left{
-  background:#2af0ea;
-  transform:translate(calc(-50% - 4px),-50%);
-  z-index:1;
-}
-
-/* pravá barevná */
-.pill-right{
-  background:#fe2858;
-  transform:translate(calc(-50% + 4px),-50%);
-  z-index:1;
-}
-
-/* plus */
-.add-plus-svg{
-  width:22px;
-  height:22px;
-  display:block;
-  transform: translate(-1px, 1.6px);
-}
-
-.nav-icon{
-  display:block;
-  filter:brightness(0) invert(1);
-}
-
-[aria-label="Home"] .nav-icon{
-  width:27px;
-  height:27px;
-  transform: translateY(-2px);
-}
-
-[aria-label="Search"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px); 
-}
-
-[aria-label="Messages"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px);  
-}
-
-[aria-label="Profile"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-3px); 
-}
-
-.stack button[aria-label="Like"] + .count{ margin-top:-2px; }
-.stack button[aria-label="Talk"] + .count{ margin-top:-1px; }
-.stack button[aria-label="Bookmark"] + .count{ margin-top:-1px; }
-.stack button[aria-label="Share"] + .count{ margin-top:2px; }
-
-.count{
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
-.stage::after{
-  display:none !important;
-}
-
-.nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  z-index: 2;
-  background: transparent;
-  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
-  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  isolation: isolate;
-}
-
-.nav::before{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
-  height:43px;
-  background:rgba(0,0,0,0.2);
-  pointer-events:none;
-  z-index:-1;
-}
-
-[aria-label="Search"] .nav-icon,
-[aria-label="Search"] img,
-[aria-label="Messages"] .nav-icon,
-[aria-label="Messages"] img,
-[aria-label="Profile"] .nav-icon,
-[aria-label="Profile"] img{
-  filter: none !important;
-}
-
-#playOverlay{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:56px;
-  height:56px;
-  display:block !important;
-  object-fit:contain;
-  opacity:0;
-  pointer-events:none;
-  z-index:2;
-  transition:opacity 140ms ease;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,.25));
-  background:transparent !important;
-  backface-visibility:hidden;
-  will-change:transform, opacity; 
-}
-
-.icon-heart,
-.icon-talk,
-.icon-bookmark,
-.icon-share,
-.icon-dots{
-  opacity: 0.90;
-}
-
-.side,
-.side * {
-  pointer-events: auto !important;
-}
-
-.twincher-layer > video {
-  pointer-events: auto;
-}
-
-.twincher-layer > img {
-  pointer-events: none;
-}
-
-/* =========================================================
-   TIKBOO SWIPE ENGINE – STABILITY LAYER (DO NOT MODIFY CORE)
-   ========================================================= */
-
-/* GPU HARD LOCK – žádné flickery */
-#video-stack,
-.twincher-layer,
-.twincher-layer > video,
-.twincher-layer > img {
-  transform: translate3d(0,0,0);
-  backface-visibility: hidden;
-  will-change: transform, opacity;
-}
-
-/* zabrání white/black flash při přepnutí layeru */
-.twincher-layer {
-  contain: layout paint size style;
-}
-
-/* video nikdy neblikne při loadu */
-.twincher-layer > video {
-  opacity: 1;
-  transition: opacity 80ms linear;
-}
-
-/* image fallback stabilita */
-.twincher-layer > img {
-  will-change: opacity;
-}
-
-/* SWIPE LOCK – žádné scroll interference */
-html, body {
-  overscroll-behavior: none;
-  touch-action: manipulation;
-}
-
-/* zamezení ghost scrollu na Android */
-#video-stack {
-  overscroll-behavior-y: none;
-}
-
-/* TOUCH RESPONSE – 1:1 finger tracking */
-.twincher-layer {
-  touch-action: none;
-}
-
-/* SIDE UI – nikdy neovlivní swipe */
-.side {
-  will-change: opacity, transform;
-}
-
-/* SEEKBAR – nikdy nezpůsobí layout shift */
-.seek-wrap {
-  contain: layout paint;
-}
-
-/* SEEK aktivní stav – žádný lag */
-.seek-pill,
-.seek-fill {
-  will-change: width, height;
-}
-
-/* PLAY OVERLAY – stabilní při swapu */
-#playOverlay {
-  will-change: opacity, transform;
-}
-
-/* FIX: Android rendering glitch (Samsung/Xiaomi) */
-video {
-  image-rendering: -webkit-optimize-contrast;
-  transform: translateZ(0);
-}
-
-/* FIX: iOS video freeze prevention */
-video::-webkit-media-controls {
-  display: none !important;
-}
-
-/* HARD RESET přechodů při swipe */
-.twincher-layer,
-.twincher-layer * {
-  transition-property: transform, opacity;
-}
-
-/* zabrání micro-lagu při rychlém swipe */
-.twincher-layer {
-  will-change: transform;
-}
-
-/* žádný accidental text/image select při swipe */
-* {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* FIX: zabrání double tap zoom glitch */
-html {
-  touch-action: manipulation;
-}
+// /assets/js/app.js
+
+// === iOS SAFARI: KILL ZOOM (pinch + gesture) ===
+document.addEventListener('touchmove', (e) => {
+  if (e.scale && e.scale !== 1) e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+
+document.addEventListener('DOMContentLoaded', () => {
+  // =========================================================
+  // === State / Playlist ===
+  // =========================================================
+  const PLAYLIST = [
+    { type: 'video', src: 'assets/video/swipe1.mp4' },
+    { type: 'video', src: 'assets/video/swipe2.mp4' },
+    { type: 'video', src: 'assets/video/swipe3.mp4' },
+    { type: 'video', src: 'assets/video/swipe4.mp4' },
+    { type: 'video', src: 'assets/video/swipe5.mp4' },
+    { type: 'video', src: 'assets/video/swipe6.mp4' },
+    { type: 'video', src: 'assets/video/swipe7.mp4' },
+    { type: 'video', src: 'assets/video/swipe8.mp4' },
+    { type: 'video', src: 'assets/video/swipe9.mp4' },
+    { type: 'video', src: 'assets/video/swipe10.mp4' },
+    { type: 'video', src: 'assets/video/swipe11.mp4' },
+    { type: 'video', src: 'assets/video/swipe12.mp4' },
+    { type: 'video', src: 'assets/video/swipe13.mp4' },
+    { type: 'video', src: 'assets/video/swipe14.mp4' },
+    { type: 'video', src: 'assets/video/swipe15.mp4' },
+    { type: 'video', src: 'assets/video/swipe16.mp4' }
+  ];
+
+  const refs = {
+    layerCurrent: document.getElementById('layerCurrent'),
+    layerNext: document.getElementById('layerNext'),
+    videoCurrent: document.getElementById('videoCurrent'),
+    videoNext: document.getElementById('videoNext'),
+    imgCurrent: document.getElementById('imgCurrent'),
+    imgNext: document.getElementById('imgNext'),
+    playOverlay: document.getElementById('playOverlay')
+  };
+
+  const seekWrap = document.getElementById('seekWrap');
+  const seekPill = document.getElementById('seekPill');
+  const seekFill = document.getElementById('seekFill');
+  const seekTime = document.getElementById('seekTime');
+
+  const state = {
+    index: 0,
+    isAnimating: false,
+    isMuted: true
+  };
+
+  let swipeEngine = null;
+
+  let autoTimer = 0;
+  let autoBoundVideo = null;
+
+  let progRaf = 0;
+  let pillTouching = false;
+  let pillSeeking = false;
+  let pillStartX = 0;
+  let pillStartY = 0;
+  let pillMoved = false;
+  let wasPlayingBeforeSeek = false;
+
+  let seekRaf = 0;
+  let seekLatestX = 0;
+
+  let seekActiveOffTimer = 0;
+  let timeupdateBoundEl = null;
+
+  // =========================================================
+  // === GA4 SAFE HELPER ===
+  // =========================================================
+  function track(eventName, params = {}) {
+    if (typeof window.gtag !== 'function') return;
+
+    window.gtag('event', eventName, {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: window.location.pathname,
+      ...params
+    });
+  }
+
+  function showPlayOverlay(show) {
+    if (!refs.playOverlay) return;
+    refs.playOverlay.style.opacity = show ? '1' : '0';
+  }
+
+  function getAllSides() {
+    return [
+      refs.layerCurrent?.querySelector('.side'),
+      refs.layerNext?.querySelector('.side')
+    ].filter(Boolean);
+  }
+
+  function setAllSidesScrubbing(on) {
+    getAllSides().forEach((sideEl) => {
+      sideEl.classList.toggle('scrubbing', !!on);
+      sideEl.style.opacity = on ? '0' : '';
+      sideEl.style.pointerEvents = on ? 'none' : '';
+      sideEl.style.display = on ? 'none' : '';
+    });
+  }
+
+  function clearSeekInactiveTimer() {
+    if (seekActiveOffTimer) {
+      clearTimeout(seekActiveOffTimer);
+      seekActiveOffTimer = 0;
+    }
+  }
+
+  function queueSeekInactive() {
+    clearSeekInactiveTimer();
+
+    if (seekTime) seekTime.classList.remove('is-active');
+    setAllSidesScrubbing(false);
+
+    seekActiveOffTimer = setTimeout(() => {
+      if (seekPill) seekPill.classList.remove('is-active');
+      seekActiveOffTimer = 0;
+    }, 3000);
+  }
+
+  // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
+  [refs.videoCurrent, refs.videoNext].forEach((v) => {
+    v.preload = 'auto';
+    v.playsInline = true;
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+    v.setAttribute('disablepictureinpicture', '');
+    v.setAttribute('x-webkit-airplay', 'deny');
+  });
+
+  refs.imgCurrent.decoding = 'async';
+  refs.imgNext.decoding = 'async';
+
+  function defer(fn) {
+    setTimeout(fn, 0);
+  }
+
+  // =========================================================
+  // === Video Engine ===
+  // =========================================================
+  function updateSeekFill() {
+    const d = refs.videoCurrent.duration;
+    if (d && isFinite(d) && d > 0) {
+      const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
+      seekFill.style.width = (p * 100) + '%';
+    } else {
+      seekFill.style.width = '0%';
+    }
+  }
+
+  function syncSoundUI() {
+    /* sound UI removed intentionally */
+  }
+
+  function ensureSoundOn(shouldPlay) {
+    if (!state.isMuted) {
+      if (shouldPlay) tryPlay(refs.videoCurrent);
+      return;
+    }
+
+    state.isMuted = false;
+
+    if (PLAYLIST[state.index].type === 'video') {
+      refs.videoCurrent.muted = false;
+      tryPlay(refs.videoCurrent);
+    }
+
+    syncSoundUI();
+  }
+
+  function vh() {
+    return Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+  }
+
+  function normalizeIndex(i) {
+    const len = PLAYLIST.length;
+    return (i % len + len) % len;
+  }
+
+  function tryPlay(el) {
+    return el.play().catch(() => {});
+  }
+
+  function isInteractiveTarget(target) {
+    return !!target?.closest('button, a, input, textarea, select, label, .nav, .side, .modal, .modal-backdrop, #gateOverlay');
+  }
+
+  function clearAuto() {
+    if (autoTimer) {
+      clearTimeout(autoTimer);
+      autoTimer = 0;
+    }
+
+    if (autoBoundVideo) {
+      autoBoundVideo.onended = null;
+      autoBoundVideo.onerror = null;
+      autoBoundVideo = null;
+    }
+  }
+
+  function stopProg() {
+    if (progRaf) cancelAnimationFrame(progRaf);
+    progRaf = 0;
+  }
+
+  function startProg() {
+    stopProg();
+
+    const tick = () => {
+      progRaf = 0;
+
+      const item = PLAYLIST[state.index];
+      if (item.type !== 'video') return;
+
+      const d = refs.videoCurrent.duration;
+      if (d && isFinite(d) && d > 0) {
+        const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
+        seekFill.style.width = (p * 100) + '%';
+      } else {
+        seekFill.style.width = '0%';
+      }
+
+      if (!refs.videoCurrent.paused && !refs.videoCurrent.ended) {
+        progRaf = requestAnimationFrame(tick);
+      }
+    };
+
+    progRaf = requestAnimationFrame(tick);
+  }
+
+  function showSeek(show) {
+    if (!seekWrap) return;
+
+    seekWrap.style.display = show ? 'flex' : 'none';
+    seekWrap.setAttribute('aria-hidden', show ? 'false' : 'true');
+
+    if (!show) {
+      clearSeekInactiveTimer();
+      setSeekActive(false);
+      seekFill.style.width = '0%';
+      stopProg();
+    }
+  }
+
+  function fmtTime(sec) {
+    if (!isFinite(sec) || sec < 0) sec = 0;
+    sec = Math.floor(sec);
+
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+
+    const hh = String(h).padStart(2, '0');
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+
+    return h > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+
+  function updateSeekUIFromCurrent() {
+    const d = refs.videoCurrent.duration;
+    if (!d || !isFinite(d) || d <= 0) {
+      if (seekTime) {
+        seekTime.innerHTML = `<span class="t-cur">00:00</span><span class="t-sep"> / </span><span class="t-tot">00:00</span>`;
+      }
+      return;
+    }
+
+    const t = Math.max(0, Math.min(d, refs.videoCurrent.currentTime || 0));
+
+    if (seekTime) {
+      seekTime.innerHTML = `<span class="t-cur">${fmtTime(t)}</span><span class="t-sep"> / </span><span class="t-tot">${fmtTime(d)}</span>`;
+    }
+  }
+
+  function setSeekActive(on) {
+    if (seekPill) seekPill.classList.toggle('is-active', !!on);
+    if (seekTime) seekTime.classList.toggle('is-active', !!on);
+
+    setAllSidesScrubbing(!!on);
+
+    if (on) updateSeekUIFromCurrent();
+  }
+
+  function seekToClientX(clientX) {
+    const d = refs.videoCurrent.duration;
+    if (!d || !isFinite(d) || d <= 0) return;
+
+    const r = seekPill.getBoundingClientRect();
+    const x = Math.max(0, Math.min(r.width, clientX - r.left));
+    const t = (x / r.width) * d;
+
+    refs.videoCurrent.currentTime = t;
+
+    const p = Math.max(0, Math.min(1, t / d));
+    if (seekFill) seekFill.style.width = (p * 100) + '%';
+
+    if (seekTime) {
+      seekTime.innerHTML = `<span class="t-cur">${fmtTime(t)}</span><span class="t-sep"> / </span><span class="t-tot">${fmtTime(d)}</span>`;
+    }
+  }
+
+  function queueSeek(clientX) {
+    seekLatestX = clientX;
+    if (seekRaf) return;
+
+    seekRaf = requestAnimationFrame(() => {
+      seekRaf = 0;
+      seekToClientX(seekLatestX);
+    });
+  }
+
+  function togglePlayPause() {
+    const item = PLAYLIST[state.index];
+    if (item.type !== 'video') return;
+
+    if (refs.videoCurrent.paused || refs.videoCurrent.ended) {
+      tryPlay(refs.videoCurrent);
+      startProg();
+    } else {
+      refs.videoCurrent.pause();
+      stopProg();
+    }
+  }
+
+  function hideAll(layer) {
+    const v = layer.querySelector('video');
+    const im = layer.querySelector('img');
+
+    v.style.display = 'none';
+    im.style.display = 'none';
+    im.style.opacity = '0';
+    im.onload = null;
+    im.onerror = null;
+  }
+
+  // =========================================================
+  // === CODEC PICKER (HEVC primary, H264 fallback) ===
+  // =========================================================
+  function supportsHEVC() {
+    const v = document.createElement('video');
+    const can = v.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"');
+    return !!can && can !== 'no';
+  }
+
+  const USE_HEVC = supportsHEVC();
+
+  function deriveHevcSrc(h264Src) {
+    if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
+    return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
+  }
+
+  function setVideoSmart(el, h264Src) {
+    if (!h264Src) return;
+
+    const hevcSrc = deriveHevcSrc(h264Src);
+    const wantHevc = USE_HEVC && hevcSrc !== h264Src;
+
+    el.dataset.codecFallback = '0';
+
+    const current = el.getAttribute('src') || '';
+    const desired = wantHevc ? hevcSrc : h264Src;
+    if (current && current.endsWith(desired)) return;
+
+    if (wantHevc) {
+      el.dataset.codecFallback = 'hevc_try';
+
+      const onErr = () => {
+        el.dataset.codecFallback = '1';
+
+        const now = el.getAttribute('src') || '';
+        if (!now.endsWith(h264Src)) {
+          el.src = h264Src;
+          el.load();
+        }
+      };
+
+      el.addEventListener('error', onErr, { once: true });
+      el.src = hevcSrc;
+      el.load();
+      return;
+    }
+
+    el.src = h264Src;
+    el.load();
+  }
+
+  function setVideo(el, src) {
+    setVideoSmart(el, src);
+  }
+
+  function clearVideo(el) {
+    el.pause?.();
+    el.removeAttribute('src');
+    el.load();
+  }
+
+  function clearImage(el) {
+    el.onload = null;
+    el.onerror = null;
+    el.style.opacity = '0';
+    el.style.display = 'none';
+    el.removeAttribute('src');
+  }
+
+  function setImageSafe(el, src) {
+    el.onload = null;
+    el.onerror = null;
+    el.style.opacity = '0';
+    el.style.display = 'block';
+
+    el.onload = () => {
+      el.style.opacity = '1';
+    };
+
+    el.onerror = () => {
+      el.style.opacity = '0';
+      el.style.display = 'none';
+    };
+
+    if (el.getAttribute('src') !== src) {
+      el.src = src;
+    }
+  }
+
+  function primeNextVideo(v) {
+    v.muted = true;
+    if (v.readyState >= 2) return;
+
+    try {
+      v.load();
+    } catch (e) {}
+  }
+
+  function setLayerContent(layer, item, forNext) {
+    const v = layer.querySelector('video');
+    const im = layer.querySelector('img');
+
+    hideAll(layer);
+
+    if (item.type === 'video') {
+      im.style.display = 'none';
+      v.style.display = 'block';
+      v.muted = forNext ? true : state.isMuted;
+      setVideo(v, item.src);
+
+      if (!forNext) {
+        tryPlay(v);
+      } else {
+        primeNextVideo(v);
+
+        v.addEventListener('loadeddata', () => {
+          if (v.readyState >= 2) {
+            try {
+              const p = v.play();
+              if (p && typeof p.then === 'function') {
+                p.then(() => { v.pause(); }).catch(() => {});
+              } else {
+                v.pause();
+              }
+            } catch (e) {}
+          }
+        }, { once: true });
+      }
+
+      return;
+    }
+
+    v.style.display = 'none';
+    clearVideo(v);
+    setImageSafe(im, item.src);
+  }
+
+  function bindAutoAdvanceForCurrent() {
+    clearAuto();
+    stopProg();
+
+    const item = PLAYLIST[state.index];
+
+    if (timeupdateBoundEl) {
+      timeupdateBoundEl.removeEventListener('timeupdate', updateSeekFill);
+      timeupdateBoundEl = null;
+    }
+
+    if (item.type === 'video') {
+      showSeek(true);
+      autoBoundVideo = refs.videoCurrent;
+
+      autoBoundVideo.onended = () => {
+        if (swipeEngine) swipeEngine.autoAdvance();
+      };
+
+      autoBoundVideo.onerror = () => {
+        const flag = refs.videoCurrent?.dataset?.codecFallback;
+        if (flag === '1' || flag === 'hevc_try') {
+          refs.videoCurrent.dataset.codecFallback = '0';
+          return;
+        }
+
+        if (swipeEngine) swipeEngine.autoAdvance();
+      };
+
+      autoBoundVideo.onplay = () => startProg();
+      autoBoundVideo.onpause = () => stopProg();
+
+      autoBoundVideo.onloadedmetadata = () => {
+        if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
+        startProg();
+      };
+
+      autoBoundVideo.onseeked = () => startProg();
+
+      startProg();
+
+      refs.videoCurrent.addEventListener('timeupdate', updateSeekFill);
+      timeupdateBoundEl = refs.videoCurrent;
+    } else {
+      showSeek(false);
+      autoTimer = setTimeout(() => {
+        if (swipeEngine) swipeEngine.autoAdvance();
+      }, 3000);
+    }
+  }
+
+  // =========================================================
+  // === UI Actions ===
+  // =========================================================
+  if (seekWrap) {
+    seekWrap.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      if (PLAYLIST[state.index].type !== 'video') return;
+
+      ensureSoundOn(true);
+
+      pillTouching = true;
+      pillSeeking = false;
+      pillMoved = false;
+      pillStartX = e.touches[0].clientX;
+      pillStartY = e.touches[0].clientY;
+
+      clearSeekInactiveTimer();
+      setSeekActive(true);
+
+      wasPlayingBeforeSeek = !(refs.videoCurrent.paused || refs.videoCurrent.ended);
+      refs.videoCurrent.pause();
+      stopProg();
+
+      queueSeek(e.touches[0].clientX);
+    }, { passive: false });
+
+    seekWrap.addEventListener('touchmove', (e) => {
+      if (!pillTouching) return;
+      if (!e.touches || e.touches.length !== 1) return;
+      if (PLAYLIST[state.index].type !== 'video') return;
+
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const dx = x - pillStartX;
+      const dy2 = y - pillStartY;
+
+      if (!pillSeeking) {
+        if (Math.abs(dx) >= 2 && Math.abs(dx) >= Math.abs(dy2)) {
+          pillSeeking = true;
+        } else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
+          pillTouching = false;
+          setSeekActive(false);
+          if (wasPlayingBeforeSeek) tryPlay(refs.videoCurrent);
+          startProg();
+          return;
+        } else {
+          return;
+        }
+      }
+
+      pillMoved = pillMoved || Math.abs(dx) >= 2;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      queueSeek(x);
+    }, { passive: false });
+
+    seekWrap.addEventListener('touchend', (e) => {
+      pillTouching = false;
+      pillSeeking = false;
+
+      if (!pillMoved && e && e.changedTouches && e.changedTouches[0]) {
+        queueSeek(e.changedTouches[0].clientX);
+      }
+
+      pillMoved = false;
+
+      queueSeekInactive();
+
+      if (wasPlayingBeforeSeek) {
+        tryPlay(refs.videoCurrent);
+        showPlayOverlay(false);
+      }
+      startProg();
+    }, { passive: false });
+
+    seekWrap.addEventListener('touchcancel', () => {
+      pillTouching = false;
+      pillSeeking = false;
+      pillMoved = false;
+
+      queueSeekInactive();
+
+      if (wasPlayingBeforeSeek) {
+        tryPlay(refs.videoCurrent);
+        showPlayOverlay(false);
+      }
+      startProg();
+    }, { passive: true });
+  }
+
+  if (seekPill) {
+    seekPill.addEventListener('touchstart', (e) => {
+      if (PLAYLIST[state.index].type !== 'video') return;
+      if (!e.touches || e.touches.length !== 1) return;
+
+      ensureSoundOn(true);
+
+      pillTouching = true;
+      pillSeeking = false;
+      pillMoved = false;
+      pillStartX = e.touches[0].clientX;
+      pillStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    seekPill.addEventListener('touchmove', (e) => {
+      if (!pillTouching) return;
+      if (PLAYLIST[state.index].type !== 'video') return;
+      if (!e.touches || e.touches.length !== 1) return;
+
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const dx = x - pillStartX;
+      const dy2 = y - pillStartY;
+
+      if (!pillSeeking) {
+        if (Math.abs(dx) > Math.abs(dy2) && Math.abs(dx) > 6) pillSeeking = true;
+        else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
+          pillTouching = false;
+          return;
+        } else {
+          return;
+        }
+      }
+
+      pillMoved = true;
+      e.preventDefault();
+      e.stopPropagation();
+      seekToClientX(x);
+    }, { passive: false });
+
+    seekPill.addEventListener('touchend', (e) => {
+      if (PLAYLIST[state.index].type !== 'video') {
+        pillTouching = false;
+        pillSeeking = false;
+        return;
+      }
+
+      const wasMoved = pillMoved;
+      pillTouching = false;
+      pillSeeking = false;
+      pillMoved = false;
+
+      if (!wasMoved) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+        if (state.isMuted) {
+          ensureSoundOn(true);
+        } else {
+          togglePlayPause();
+        }
+      }
+    }, { passive: false });
+
+    seekPill.addEventListener('click', (e) => {
+      if (PLAYLIST[state.index].type !== 'video') return;
+      if (pillMoved) return;
+      e.preventDefault();
+
+      if (state.isMuted) {
+        ensureSoundOn(true);
+      } else {
+        togglePlayPause();
+      }
+    });
+  }
+
+  swipeEngine = window.initTikbooSwipe({
+    refs,
+    state,
+    playlist: PLAYLIST,
+    defer,
+    vh,
+    normalizeIndex,
+    tryPlay,
+    clearAuto,
+    stopProg,
+    bindAutoAdvanceForCurrent,
+    syncSoundUI,
+    showPlayOverlay,
+    setLayerContent,
+    ensureSoundOn,
+    isInteractiveTarget,
+    primeNextVideo
+  });
+
+  function initFirst() {
+    state.isMuted = true;
+    syncSoundUI();
+
+    setLayerContent(refs.layerCurrent, PLAYLIST[state.index], false);
+    swipeEngine.resetTransformsNoAnim();
+
+    defer(() => {
+      swipeEngine.warmForwardNext();
+    });
+
+    bindAutoAdvanceForCurrent();
+    showPlayOverlay(false);
+  }
+
+  initFirst();
+
+  const profileBtn = document.getElementById('profileBtn');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfile = document.getElementById('closeProfile');
+
+  function openProfile(source = 'unknown') {
+    if (!profileModal) return;
+
+    profileModal.classList.add('show');
+
+    track('profile_open', {
+      source
+    });
+  }
+
+  function closeProfileFn() {
+    if (!profileModal) return;
+    profileModal.classList.remove('show');
+  }
+
+  if (profileBtn) {
+    profileBtn.addEventListener('click', () => openProfile('bottom_nav'));
+  }
+
+  document.addEventListener('click', (e) => {
+    const avatarBtn = e.target.closest('.avatarBtn');
+    if (!avatarBtn) return;
+    openProfile('avatar');
+  });
+
+  document.addEventListener('click', async (e) => {
+    const shareBtn = e.target.closest('[aria-label="Share"]');
+    if (!shareBtn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shareData = {
+      title: 'Tikboo',
+      text: 'Watch this',
+      url: 'https://tikboo.com/'
+    };
+
+    try {
+      track('share_tap', {
+        source: 'side_button'
+      });
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied');
+        return;
+      }
+
+      alert(shareData.url);
+    } catch (err) {
+      console.log('Share failed:', err);
+    }
+  }, true);
+
+  if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
+
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) closeProfileFn();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (profileModal && profileModal.classList.contains('show')) closeProfileFn();
+    }
+  });
+
+  // =========================================================
+  // === Age Gate Storage ===
+  // =========================================================
+  const KEY = 'swipe_age_ok';
+  const gate = document.getElementById('gateOverlay');
+  const enterBtn = document.getElementById('enterBtn');
+
+  function hideGate() {
+    if (!gate) return;
+    gate.classList.add('hidden');
+  }
+
+  function showGate() {
+    if (!gate) return;
+    gate.classList.remove('hidden');
+  }
+
+  try {
+    if (localStorage.getItem(KEY) === '1') hideGate();
+    else showGate();
+  } catch (e) {
+    showGate();
+  }
+
+  if (enterBtn) {
+    enterBtn.addEventListener('click', function () {
+      track('age_gate_enter', {
+        gate: 'adult_enter',
+        method: 'button'
+      });
+
+      try {
+        localStorage.setItem(KEY, '1');
+      } catch (e) {}
+
+      this.textContent = 'ENTERED';
+      this.disabled = true;
+      this.style.opacity = '0.75';
+      hideGate();
+
+      if (PLAYLIST[state.index]?.type === 'video') {
+        refs.videoCurrent.muted = state.isMuted;
+        tryPlay(refs.videoCurrent);
+        showPlayOverlay(false);
+        bindAutoAdvanceForCurrent();
+      }
+    });
+  }
+});
+
+/* === KILL: disable iOS “Save Image” on current top/gate images === */
+(() => {
+  const targets = [
+    document.querySelector('.top img'),
+    document.querySelector('#gateOverlay .top-g img'),
+  ].filter(Boolean);
+
+  targets.forEach((img) => {
+    img.setAttribute('draggable', 'false');
+
+    img.style.webkitTouchCallout = 'none';
+    img.style.webkitUserSelect = 'none';
+    img.style.userSelect = 'none';
+    img.style.webkitTapHighlightColor = 'transparent';
+
+    const stop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    img.addEventListener('contextmenu', stop, { passive: false });
+    img.addEventListener('dragstart', stop, { passive: false });
+    img.addEventListener('touchstart', () => {}, { passive: true });
+  });
+})();
+
