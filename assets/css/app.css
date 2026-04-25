@@ -731,3 +731,123 @@ body{
   pointer-events: none;
 }
 
+/* =========================================================
+   CSS: Device Stability Patch / Android + Small Viewports
+   APPEND ONLY — DO NOT REMOVE ORIGINAL CSS
+   ========================================================= */
+
+/* 1) Stabilní viewport pro mobilní prohlížeče */
+html,
+body{
+  width:100%;
+  min-width:320px;
+  overscroll-behavior:none;
+}
+
+/* 2) Ochrana spodní navigace proti Android přepočtům */
+.nav{
+  padding-bottom:max(env(safe-area-inset-bottom), 0px);
+  min-height:calc(var(--navIconBox) + max(env(safe-area-inset-bottom), 0px));
+}
+
+/* 3) Seekbar drž vždy NAD spodní navigací */
+.seek-wrap{
+  position:fixed;
+  left:var(--navPadX);
+  right:var(--navPadX);
+  bottom:calc(var(--navIconBox) + max(env(safe-area-inset-bottom), 6px) - 5px);
+  z-index:30;
+}
+
+/* 4) Pravý stack nesmí padat do seekbaru ani spodní navigace */
+.side{
+  bottom:auto;
+  top:72%;
+  transform:translateY(-50%);
+  max-height:calc(100dvh - 180px);
+}
+
+/* 5) Ikony nesmí nekontrolovaně narůst na velkých Androidech */
+.nav button{
+  width:clamp(44px, 11vw, 48px);
+  height:clamp(44px, 11vw, 48px);
+}
+
+.side button{
+  width:clamp(44px, 11vw, 48px);
+  height:clamp(38px, 10vw, 40px);
+}
+
+/* 6) Spodní ikony držet v původním vizuálním rozsahu */
+[aria-label="Home"] .nav-icon{
+  width:clamp(25px, 6.8vw, 27px);
+  height:clamp(25px, 6.8vw, 27px);
+}
+
+[aria-label="Search"] .nav-icon,
+[aria-label="Messages"] .nav-icon,
+[aria-label="Profile"] .nav-icon{
+  width:clamp(24px, 6.5vw, 26px);
+  height:clamp(24px, 6.5vw, 26px);
+}
+
+/* 7) Pravé ikony držet v bezpečné velikosti */
+.icon-heart,
+.icon-talk{
+  width:clamp(30px, 8vw, 32px);
+  height:clamp(30px, 8vw, 32px);
+}
+
+.icon-bookmark{
+  width:clamp(31px, 8.2vw, 34px);
+  height:clamp(31px, 8.2vw, 34px);
+}
+
+.icon-share{
+  width:clamp(32px, 8.4vw, 35px);
+  height:clamp(32px, 8.4vw, 35px);
+}
+
+.icon-dots{
+  width:clamp(26px, 7vw, 28px);
+  height:clamp(26px, 7vw, 28px);
+}
+
+/* 8) Menší displeje / nízké Androidy */
+@media (max-height:740px){
+  .side{
+    top:69%;
+    gap:10px;
+  }
+
+  .stack.avatar-stack{
+    top:-58px;
+  }
+
+  .seek-wrap{
+    bottom:calc(var(--navIconBox) + max(env(safe-area-inset-bottom), 4px) - 3px);
+  }
+}
+
+/* 9) Vysoké telefony / větší Androidy */
+@media (min-height:850px){
+  .side{
+    top:71%;
+  }
+}
+
+/* 10) Ultra úzké displeje */
+@media (max-width:360px){
+  .nav{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .side{
+    right:4px;
+  }
+
+  .count{
+    font-size:11px;
+  }
+}
