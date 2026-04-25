@@ -81,7 +81,7 @@
       <section class="card" id="gate" data-nosnippet>
         <div class="top-g">
           <div class="age-system">
-           <div class="gate-brand"><span class="gate-brand-tikboo">Tikboo</span></div>
+            <div class="gate-brand"><span class="gate-brand-tikboo">Tikboo</span></div>
           </div>
         </div>
 
@@ -127,7 +127,7 @@
        ========================================================== -->
   <div id="video-stack" aria-hidden="true">
     <div id="layerCurrent" class="twincher-layer">
-      <video id="videoCurrent" playsinline></video>
+      <video id="videoCurrent" playsinline webkit-playsinline muted preload="auto"></video>
       <img id="playOverlay" src="/assets/icons/play.svg" alt="" />
       <img id="imgCurrent" alt="" draggable="false" />
 
@@ -162,7 +162,7 @@
         </div>
 
         <div class="stack">
-          <button id="shareBtn" aria-label="Share">
+          <button class="shareBtn" aria-label="Share">
             <img src="assets/icons/share.svg" class="icon-share" alt="">
           </button>
           <div class="count">112</div>
@@ -177,7 +177,7 @@
     </div>
 
     <div id="layerNext" class="twincher-layer">
-      <video id="videoNext" playsinline></video>
+      <video id="videoNext" playsinline webkit-playsinline muted preload="auto"></video>
       <img id="imgNext" alt="" draggable="false" />
 
       <aside class="side" aria-label="Actions">
@@ -211,7 +211,7 @@
         </div>
 
         <div class="stack">
-          <button id="shareBtn" aria-label="Share">
+          <button class="shareBtn" aria-label="Share">
             <img src="assets/icons/share.svg" class="icon-share" alt="">
           </button>
           <div class="count">112</div>
@@ -285,8 +285,8 @@
   <!-- =========================================================
        APP JS
        ========================================================== -->
+  <script src="/assets/js/swipe.js" defer></script>
   <script src="/assets/js/app.js" defer></script>
-  <script src="/assets/js/swipe.js"></script>
 
 </body>
 </html>
