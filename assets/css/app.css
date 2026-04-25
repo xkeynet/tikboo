@@ -731,3 +731,102 @@ body{
   pointer-events: none;
 }
 
+/* =========================================================
+   TIKBOO SWIPE ENGINE – STABILITY LAYER (DO NOT MODIFY CORE)
+   ========================================================= */
+
+/* GPU HARD LOCK – žádné flickery */
+#video-stack,
+.twincher-layer,
+.twincher-layer > video,
+.twincher-layer > img {
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* zabrání white/black flash při přepnutí layeru */
+.twincher-layer {
+  contain: layout paint size style;
+}
+
+/* video nikdy neblikne při loadu */
+.twincher-layer > video {
+  opacity: 1;
+  transition: opacity 80ms linear;
+}
+
+/* image fallback stabilita */
+.twincher-layer > img {
+  will-change: opacity;
+}
+
+/* SWIPE LOCK – žádné scroll interference */
+html, body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* zamezení ghost scrollu na Android */
+#video-stack {
+  overscroll-behavior-y: none;
+}
+
+/* TOUCH RESPONSE – 1:1 finger tracking */
+.twincher-layer {
+  touch-action: none;
+}
+
+/* SIDE UI – nikdy neovlivní swipe */
+.side {
+  will-change: opacity, transform;
+}
+
+/* SEEKBAR – nikdy nezpůsobí layout shift */
+.seek-wrap {
+  contain: layout paint;
+}
+
+/* SEEK aktivní stav – žádný lag */
+.seek-pill,
+.seek-fill {
+  will-change: width, height;
+}
+
+/* PLAY OVERLAY – stabilní při swapu */
+#playOverlay {
+  will-change: opacity, transform;
+}
+
+/* FIX: Android rendering glitch (Samsung/Xiaomi) */
+video {
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0);
+}
+
+/* FIX: iOS video freeze prevention */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+/* HARD RESET přechodů při swipe */
+.twincher-layer,
+.twincher-layer * {
+  transition-property: transform, opacity;
+}
+
+/* zabrání micro-lagu při rychlém swipe */
+.twincher-layer {
+  will-change: transform;
+}
+
+/* žádný accidental text/image select při swipe */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* FIX: zabrání double tap zoom glitch */
+html {
+  touch-action: manipulation;
+}
