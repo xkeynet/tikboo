@@ -10,12 +10,20 @@
   --twb:#00D9FF;
   --safeSide:16px;
 
-  /* === BOTTOM VIDEO (MATCH TWINCHER) === */
-  --navPadX:12px;
-  --navIconBox:48px;
-  --navH:78px;
-  --iconSide:32px;
-  --iconBottom:28px;
+  /* === FLUID MOBILE UI SYSTEM === */
+  --navPadX:clamp(10px, 3.2vw, 16px);
+  --navIconBox:clamp(44px, 11.5vw, 52px);
+  --navH:calc(var(--navIconBox) + env(safe-area-inset-bottom));
+  --bottomLift:clamp(0px, 1.4vh, 8px);
+
+  --sideBtnW:clamp(42px, 11vw, 48px);
+  --sideBtnH:clamp(36px, 10vw, 42px);
+  --sideIcon:clamp(28px, 7.8vw, 34px);
+  --sideGap:clamp(10px, 2.8vh, 14px);
+  --avatarSize:clamp(38px, 10vw, 42px);
+
+  --seekBottom:calc(var(--navH) + 2px);
+  --rightStackBottom:calc(var(--navH) + 74px);
 
   --glass: rgba(255,255,255,.06);
   --glassStroke: rgba(255,255,255,.12);
@@ -120,34 +128,35 @@ body{
 
 /* === RIGHT SIDE ACTIONS === */
 .side{
-  position: absolute;
-  right: 6px;
-  top: 72%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  z-index: 20;
-  pointer-events: auto;
+  position:absolute;
+  right:clamp(4px, 1.6vw, 8px);
+  top:auto;
+  bottom:var(--rightStackBottom);
+  transform:none;
+  display:flex;
+  flex-direction:column;
+  gap:var(--sideGap);
+  z-index:20;
+  pointer-events:auto;
 }
 .stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
 }
 
-/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
+/* ✅ AVATAR (fluid) — overlay above column (does NOT push the column down) */
 .stack.avatar-stack{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -65px;
-  pointer-events: auto;
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc((var(--avatarSize) + 22px) * -1);
+  pointer-events:auto;
 }
 .avatar{
-  width:42px;
-  height:42px;
+  width:var(--avatarSize);
+  height:var(--avatarSize);
   border-radius:999px;
   object-fit:cover;
   display:block;
@@ -156,27 +165,27 @@ body{
 }
 
 .side button{
-  appearance: none;
-  background: transparent;
-  border: 0;
-  width: 48px;
-  height: 40px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  appearance:none;
+  background:transparent;
+  border:0;
+  width:var(--sideBtnW);
+  height:var(--sideBtnH);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
 
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
+  -webkit-tap-highlight-color:transparent;
+  outline:none;
+  box-shadow:none;
 
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform; 
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:transform; 
 }
 .count{
-  font-size:12px;
+  font-size:clamp(11px, 2.9vw, 12px);
   font-weight:600;
   color:#ffffff;
   user-select:none;
@@ -188,49 +197,62 @@ body{
 /* =========================================================
    CSS: Bottom Nav
    ========================================================= */
-/* === BOTTOM NAV (MATCH TWINCHER) === */
+/* === BOTTOM NAV (MATCH TWINCHER / FLUID SAFE AREA) === */
 .nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  z-index: 2;
-  background: transparent;
-  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
-  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:calc(-6px + var(--bottomLift));
+  z-index:2;
+  background:transparent;
+  padding:0 var(--navPadX) env(safe-area-inset-bottom);
+  height:var(--navH);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  isolation:isolate;
 }
 .nav ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin:0;
+  padding:0;
+  list-style:none;
+  width:100%;
+  max-width:700px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 .nav button {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  width: var(--navIconBox);
-  height: var(--navIconBox);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  appearance:none;
+  background:transparent;
+  border:0;
+  width:var(--navIconBox);
+  height:var(--navIconBox);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
 
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
+  -webkit-tap-highlight-color:transparent;
+  outline:none;
+  box-shadow:none;
 
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform; 
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:transform; 
+}
+
+.nav::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:calc(var(--navIconBox) - 5px);
+  background:rgba(0,0,0,0.2);
+  pointer-events:none;
+  z-index:-1;
 }
 
 /* =========================================================
@@ -238,23 +260,21 @@ body{
    ========================================================= */
 /* === VIDEO SEEK BAR (PILL) === */
 .seek-wrap{
-  position:absolute;
+  position:fixed;
   left:var(--navPadX);
   right:var(--navPadX);
-  bottom: calc(var(--navIconBox) - 5px);
+  bottom:var(--seekBottom);
   top:auto;
 
-  /* huge hitbox */
   height:36px;
   display:none;
   align-items:flex-end;
   justify-content:center;
   padding-bottom:0px;
 
-  z-index:3;
+  z-index:30;
   pointer-events:auto;
 
-  /* seek má prioritu */
   touch-action:none;
 }
 
@@ -262,19 +282,19 @@ body{
   width:100%;
   height:3px;
   border-radius:999px;
-  background: rgba(255,255,255,.16);
+  background:rgba(255,255,255,.16);
   position:relative;
   overflow:visible;
 
-  transition: height 140ms ease, background 140ms ease;
+  transition:height 140ms ease, background 140ms ease;
 
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  transform:translateZ(0);
+  backface-visibility:hidden;
 }
 
 .seek-pill.is-active{
   height:10px;
-  background: rgba(255,255,255,.16);
+  background:rgba(255,255,255,.16);
 }
 
 .seek-fill{
@@ -282,13 +302,13 @@ body{
   left:0; top:0; bottom:0;
   width:0%;
   border-radius:999px;
-  background: rgba(255,255,255,.16);
-  transition: background 120ms ease, box-shadow 120ms ease;
+  background:rgba(255,255,255,.16);
+  transition:background 120ms ease, box-shadow 120ms ease;
 }
 
 .seek-pill.is-active .seek-fill{
-  background: rgba(255,255,255,.90);
-  box-shadow: 0 0 6px rgba(255,255,255,0.25);
+  background:rgba(255,255,255,.90);
+  box-shadow:0 0 6px rgba(255,255,255,0.25);
 }
 
 /* === TIMER === */
@@ -441,7 +461,7 @@ body{
 
 /* === THE BLUE PILL === */
 .enterBtn{
-  width: fit-content;
+  width:fit-content;
   max-width:320px;
   min-width:280px;
   margin:0 auto;
@@ -501,41 +521,41 @@ body{
 }
 
 .icon-heart{
-  width:32px;
-  height:32px;
+  width:var(--sideIcon);
+  height:var(--sideIcon);
   display:block;
   filter:brightness(0) invert(1);
 }
 
 .icon-talk{
-  width:32px;
-  height:32px;
+  width:var(--sideIcon);
+  height:var(--sideIcon);
   display:block;
   filter:brightness(0) invert(1);
 }
 
 .icon-bookmark{
-  width:34px;
-  height:34px;
+  width:calc(var(--sideIcon) + 1px);
+  height:calc(var(--sideIcon) + 1px);
   display:block;
   filter:brightness(0) invert(1);
 }
 
 .icon-share{
-  width:35px;
-  height:35px;
+  width:calc(var(--sideIcon) + 2px);
+  height:calc(var(--sideIcon) + 2px);
   display:block;
   filter:brightness(0) invert(1);
-  transform: translateY(3px);   
+  transform:translateY(3px);   
 }
 
 .icon-dots{
-  width:28px;
-  height:28px;
+  width:calc(var(--sideIcon) - 4px);
+  height:calc(var(--sideIcon) - 4px);
   display:block;
   filter:brightness(0) invert(1);
   transform:translateY(-2px); 
-  opacity: 0.8; 
+  opacity:0.8; 
 }
 
 /* Tikboo LOGO EFEKT */
@@ -560,7 +580,7 @@ body{
 /* [+] JAKO TikTok */
 .add-btn{
   position:relative;
-  width:52px;
+  width:clamp(48px, 12vw, 52px);
   height:32px;
   border:0;
   background:transparent;
@@ -606,7 +626,7 @@ body{
   width:22px;
   height:22px;
   display:block;
-  transform: translate(-1px, 1.6px);
+  transform:translate(-1px, 1.6px);
 }
 
 .nav-icon{
@@ -615,27 +635,27 @@ body{
 }
 
 [aria-label="Home"] .nav-icon{
-  width:27px;
-  height:27px;
-  transform: translateY(-2px);
+  width:clamp(25px, 6.6vw, 27px);
+  height:clamp(25px, 6.6vw, 27px);
+  transform:translateY(-2px);
 }
 
 [aria-label="Search"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px); 
+  width:clamp(24px, 6.3vw, 26px);
+  height:clamp(24px, 6.3vw, 26px);
+  transform:translateY(-1px); 
 }
 
 [aria-label="Messages"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-1px);  
+  width:clamp(24px, 6.3vw, 26px);
+  height:clamp(24px, 6.3vw, 26px);
+  transform:translateY(-1px);  
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:26px;
-  height:26px;
-  transform: translateY(-3px); 
+  width:clamp(24px, 6.3vw, 26px);
+  height:clamp(24px, 6.3vw, 26px);
+  transform:translateY(-3px); 
 }
 
 .stack button[aria-label="Like"] + .count{ margin-top:-2px; }
@@ -643,43 +663,8 @@ body{
 .stack button[aria-label="Bookmark"] + .count{ margin-top:-1px; }
 .stack button[aria-label="Share"] + .count{ margin-top:2px; }
 
-.count{
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
 .stage::after{
   display:none !important;
-}
-
-.nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  z-index: 2;
-  background: transparent;
-  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
-  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  isolation: isolate;
-}
-
-.nav::before{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
-  height:43px;
-  background:rgba(0,0,0,0.2);
-  pointer-events:none;
-  z-index:-1;
 }
 
 [aria-label="Search"] .nav-icon,
@@ -688,7 +673,7 @@ body{
 [aria-label="Messages"] img,
 [aria-label="Profile"] .nav-icon,
 [aria-label="Profile"] img{
-  filter: none !important;
+  filter:none !important;
 }
 
 #playOverlay{
@@ -715,18 +700,18 @@ body{
 .icon-bookmark,
 .icon-share,
 .icon-dots{
-  opacity: 0.90;
+  opacity:0.90;
 }
 
 .side,
 .side * {
-  pointer-events: auto !important;
+  pointer-events:auto !important;
 }
 
 .twincher-layer > video {
-  pointer-events: auto;
+  pointer-events:auto;
 }
 
 .twincher-layer > img {
-  pointer-events: none;
+  pointer-events:none;
 }
