@@ -29,10 +29,8 @@
 
     const THRESHOLD_RATIO = 0.25;
     const MOVE_ACTIVATE_PX = 10;
-
     const MIN_COMMIT_DY = 60;
     const MIN_COMMIT_VY = 0.65;
-
     const TAP_MAX_MOVE = 10;
     const TAP_MAX_TIME = 250;
 
@@ -86,7 +84,6 @@
 
     function resetTransformsNoAnim() {
       const height = vh();
-
       cancelRaf();
       clearSettleTimer();
 
@@ -101,7 +98,6 @@
 
     function warmForwardNext() {
       if (state.isAnimating || dragging) return;
-
       const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       const item = playlist[targetIndex];
@@ -142,7 +138,6 @@
 
     function applyDragTransforms() {
       const height = vh();
-
       refs.layerCurrent.style.transform = `translate3d(0,${dy}px,0)`;
 
       if (preparedDir > 0) {
@@ -151,7 +146,7 @@
         refs.layerNext.style.transform = `translate3d(0,${-height + dy}px,0)`;
       }
 
-      setLayerSideOpacity(refs.layerCurrent, 0.3);
+      setLayerSideOpacity(refs.layerCurrent, 0.4);
       setLayerSideOpacity(refs.layerNext, 1);
     }
 
@@ -159,43 +154,31 @@
       if (!raf) return;
       cancelAnimationFrame(raf);
       raf = 0;
-
-      if (preparedDir !== 0) {
-        applyDragTransforms();
-        void refs.layerCurrent.offsetHeight;
-        void refs.layerNext.offsetHeight;
-      }
+      if (preparedDir !== 0) applyDragTransforms();
     }
 
     function settleTransition(duration, onDone) {
       let doneOnce = false;
-
       const finish = () => {
         if (doneOnce) return;
         doneOnce = true;
-
         clearSettleTimer();
         refs.layerCurrent.removeEventListener('transitionend', onEnd);
         refs.layerNext.removeEventListener('transitionend', onEnd);
-
         onDone();
       };
-
       const onEnd = (e) => {
-        if (e.propertyName !== 'transform') return;
-        finish();
+        if (e.propertyName.includes('transform')) finish();
       };
-
       refs.layerCurrent.addEventListener('transitionend', onEnd);
       refs.layerNext.addEventListener('transitionend', onEnd);
-
-      settleTimer = setTimeout(finish, duration + 80);
+      settleTimer = setTimeout(finish, duration + 100); // Mírně vyšší rezerva pro mobily
     }
 
     function commit(dir) {
       if (state.isAnimating) return;
-
       state.isAnimating = true;
+      
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
@@ -203,23 +186,35 @@
       clearSettleTimer();
 
       const height = vh();
-      const duration = 140;
+      const duration = 150;
 
-      refs.layerCurrent.style.transition = `transform ${duration}ms linear`;
-      refs.layerNext.style.transition = `transform ${duration}ms linear`;
+      // Uložíme referenci na video, které nyní "zabijeme"
+      const videoToCleanup = refs.videoCurrent;
+
+      refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
 
       refs.layerCurrent.style.transform = `translate3d(0,${dir > 0 ? -height : height}px,0)`;
       refs.layerNext.style.transform = 'translate3d(0,0,0)';
 
       settleTransition(duration, () => {
+        // --- ČIŠTĚNÍ STARÉHO OBSAHU ---
+        if (videoToCleanup) {
+          videoToCleanup.pause();
+          videoToCleanup.removeAttribute('src');
+          videoToCleanup.load();
+        }
+
         state.index = normalizeIndex(state.index + dir);
 
+        // Prohození layerů v DOMu
         const tmpLayer = refs.layerCurrent;
         refs.layerCurrent = refs.layerNext;
         refs.layerNext = tmpLayer;
 
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
+        // Prohození elementů video/img
         const tmpV = refs.videoCurrent;
         refs.videoCurrent = refs.videoNext;
         refs.videoNext = tmpV;
@@ -228,9 +223,9 @@
         refs.imgCurrent = refs.imgNext;
         refs.imgNext = tmpI;
 
+        // Reset pozic pro další akci
         refs.layerCurrent.style.transition = 'none';
         refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
-
         refs.layerNext.style.transition = 'none';
         refs.layerNext.style.transform = `translate3d(0,${height}px,0)`;
 
@@ -247,7 +242,6 @@
         resetLayerSideOpacity(refs.layerCurrent);
         resetLayerSideOpacity(refs.layerNext);
         resetSeekUiImmediate();
-
         syncSoundUI();
         showPlayOverlay(false);
         bindAutoAdvanceForCurrent();
@@ -262,14 +256,13 @@
 
     function snapBack() {
       if (state.isAnimating) return;
-
       state.isAnimating = true;
       resetSeekUiImmediate();
       cancelRaf();
       clearSettleTimer();
 
       const height = vh();
-      const duration = 200;
+      const duration = 250;
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ease-out`;
       refs.layerNext.style.transition = `transform ${duration}ms ease-out`;
@@ -284,10 +277,8 @@
         preparedDir = 0;
         resetTransformsNoAnim();
         resetSeekUiImmediate();
-
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
-
         defer(() => {
           warmForwardNext();
         });
@@ -296,23 +287,19 @@
 
     function autoAdvance() {
       if (state.isAnimating || dragging) return;
-
       resetSeekUiImmediate();
       warmForwardNext();
       preparedDir = 1;
-
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       refs.layerCurrent.style.transform = 'translate3d(0,0,0)';
       refs.layerNext.style.transform = `translate3d(0,${vh()}px,0)`;
-
       void refs.layerCurrent.offsetHeight;
       commit(1);
     }
 
     function finishGesture(cancelled) {
       if (!dragging || state.isAnimating) return;
-
       const totalDy = dy;
       const totalDx = dx;
       const endT = performance.now();
@@ -320,15 +307,12 @@
 
       dragging = false;
       swipeSoundUnlocked = false;
-
       flushPendingDragFrame();
 
       if (cancelled) {
-        if (preparedDir !== 0) {
-          snapBack();
-        } else {
-          dy = 0;
-          dx = 0;
+        if (preparedDir !== 0) snapBack();
+        else {
+          dy = 0; dx = 0;
           resetLayerSideOpacity(refs.layerCurrent);
           resetLayerSideOpacity(refs.layerNext);
           bindAutoAdvanceForCurrent();
@@ -336,26 +320,17 @@
         return;
       }
 
-      const isTap =
-        Math.abs(totalDy) < TAP_MAX_MOVE &&
-        Math.abs(totalDx) < TAP_MAX_MOVE &&
-        dt < TAP_MAX_TIME;
+      const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && Math.abs(totalDx) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
 
       if (preparedDir === 0) {
-        dy = 0;
-        dx = 0;
+        dy = 0; dx = 0;
         resetLayerSideOpacity(refs.layerCurrent);
         resetLayerSideOpacity(refs.layerNext);
-
         if (isTap) {
           const v = refs.videoCurrent;
           if (v) {
             if (v.paused || v.ended) {
-              if (typeof ensureSoundOn === 'function') {
-                ensureSoundOn(true);
-              } else {
-                tryPlay(v);
-              }
+              ensureSoundOn ? ensureSoundOn(true) : tryPlay(v);
               showPlayOverlay(false);
             } else {
               v.pause();
@@ -364,7 +339,6 @@
             }
           }
         }
-
         bindAutoAdvanceForCurrent();
         return;
       }
@@ -374,14 +348,12 @@
       const vy = (lastMoveY - startY) / dt;
       const vAbs = Math.abs(vy);
 
-      const distanceOK = Math.abs(totalDy) >= threshold;
-      const velocityOK = (Math.abs(totalDy) >= MIN_COMMIT_DY) && (vAbs >= MIN_COMMIT_VY);
-
-      if (distanceOK || velocityOK) commit(preparedDir);
-      else snapBack();
-
-      dy = 0;
-      dx = 0;
+      if (Math.abs(totalDy) >= threshold || (Math.abs(totalDy) >= MIN_COMMIT_DY && vAbs >= MIN_COMMIT_VY)) {
+        commit(preparedDir);
+      } else {
+        snapBack();
+      }
+      dy = 0; dx = 0;
     }
 
     document.addEventListener('touchstart', (e) => {
@@ -394,9 +366,7 @@
       swipeSoundUnlocked = false;
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
-      dy = 0;
-      dx = 0;
-
+      dy = 0; dx = 0;
       startT = performance.now();
       lastMoveY = startY;
 
@@ -407,7 +377,6 @@
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
-
       warmForwardNext();
     }, { passive: true });
 
@@ -421,12 +390,10 @@
       const ddx = x - startX;
 
       dx = ddx;
-
-      if (Math.abs(ddx) > Math.abs(ddy)) return;
+      if (Math.abs(ddx) > Math.abs(ddy) * 1.5) return; // Ignorovat horizontální swipe
       if (Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
 
       resetSeekUiImmediate();
-
       e.preventDefault();
       dy = ddy;
       lastMoveY = y;
@@ -437,10 +404,7 @@
       }
 
       const dir = dy < 0 ? 1 : -1;
-
-      if (preparedDir !== dir || nextLoadedDir !== dir) {
-        prepareNextForDirection(dir);
-      }
+      if (preparedDir !== dir || nextLoadedDir !== dir) prepareNextForDirection(dir);
 
       if (!raf) {
         raf = requestAnimationFrame(() => {
@@ -450,25 +414,16 @@
       }
     }, { passive: false });
 
-    document.addEventListener('touchend', () => {
-      finishGesture(false);
-    }, { passive: true });
-
-    document.addEventListener('touchcancel', () => {
-      finishGesture(true);
-    }, { passive: true });
+    document.addEventListener('touchend', () => finishGesture(false), { passive: true });
+    document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
 
     return {
       autoAdvance,
       warmForwardNext,
-      prepareNextForDirection,
-      applyDragTransforms,
       commit,
       snapBack,
       resetTransformsNoAnim,
-      isDragging() {
-        return dragging;
-      }
+      isDragging() { return dragging; }
     };
   }
 
