@@ -21,6 +21,8 @@
     let startT = 0, lastMoveY = 0;
     let nextLoadedIndex = null, nextLoadedDir = 0;
     let swipeSoundUnlocked = false;
+    let lastCommitTime = 0;
+    const COMMIT_COOLDOWN = 120;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -106,6 +108,18 @@
 
     // --- BRUTAL COMMIT ENGINE ---
     function commit(dir) {
+      const now = performance.now();
+
+      if (now - lastCommitTime < COMMIT_COOLDOWN) {
+        return;
+      }
+
+      if (refs.videoNext && refs.videoNext.readyState < 2) {
+        return;
+      }
+
+      lastCommitTime = now;
+
       if (state.isAnimating) return;
       state.isAnimating = true;
       
