@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - MONSTER VERSION WITH RATE LIMITER
+// /assets/js/swipe.js - MONSTER VERSION (RESTORED EFFECTS)
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -14,10 +14,10 @@
     const MIN_COMMIT_VY = 0.40;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
-    
-    // --- RATE LIMITER CONFIG ---
-    const SWIPE_COOLDOWN = 333; // Strop 3 videa za sekundu
-    let lastCommitTime = 0;
+
+    // --- SWIPE RATE LIMITER: MAX 3 VIDEOS / SECOND ---
+    const MIN_COMMIT_INTERVAL = 333;
+    let lastCommitAt = 0;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -64,7 +64,26 @@
       setTr(refs.layerNext, height);
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ (Forward + Backward) ---
+    function warmForwardNext() {
+      if (state.isAnimating || dragging) return;
+      const height = vh();
+      const targetIndex = normalizeIndex(state.index + 1);
+      
+      if (nextLoadedIndex !== targetIndex) {
+        setLayerContent(refs.layerNext, playlist[targetIndex], true);
+        nextLoadedIndex = targetIndex;
+        
+        const vNext = refs.videoNext;
+        if (playlist[targetIndex].type === 'video' && vNext) {
+          vNext.play().then(() => vNext.pause()).catch(() => {});
+        }
+      }
+
+      refs.layerNext.style.transition = 'none';
+      setTr(refs.layerNext, height);
+      nextLoadedDir = 1;
+    }
+
     function prepareNextForDirection(dir) {
       const height = vh();
       const targetIndex = normalizeIndex(state.index + dir);
@@ -74,7 +93,6 @@
         nextLoadedIndex = targetIndex;
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          // Tichý preload - iOS Safari friendly
           vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
@@ -85,23 +103,17 @@
       preparedDir = dir;
     }
 
-    function warmForwardNext() {
-      if (state.isAnimating || dragging) return;
-      prepareNextForDirection(1); // Standardní forward preload
-    }
-
-    // --- BRUTAL COMMIT ENGINE S OCHRANOU ---
     function commit(dir) {
       const now = performance.now();
-      
-      // ZÁCHRANNÁ BRZDA: Pokud uživatel swipuje jako šílený, 
-      // nepustíme commit, aby se systém nezahltil.
-      if (state.isAnimating || (now - lastCommitTime < SWIPE_COOLDOWN)) {
-        if (!state.isAnimating) snapBack(); // Pokud jen nestíhá cooldown, vrátíme video zpět
+
+      if (now - lastCommitAt < MIN_COMMIT_INTERVAL) {
+        snapBack();
         return;
       }
 
-      lastCommitTime = now; // Záznam času úspěšného commitu
+      lastCommitAt = now;
+
+      if (state.isAnimating) return;
       state.isAnimating = true;
       
       clearAuto(); stopProg(); resetSeekUiImmediate();
@@ -152,7 +164,6 @@
         bindAutoAdvanceForCurrent();
 
         state.isAnimating = false;
-        // Po commitu hned připravíme další video
         requestAnimationFrame(() => warmForwardNext());
       }, duration + 10); 
     }
@@ -181,7 +192,8 @@
 
     function autoAdvance() {
       if (state.isAnimating || dragging) return;
-      prepareNextForDirection(1);
+      warmForwardNext();
+      preparedDir = 1;
       commit(1);
     }
 
@@ -199,12 +211,12 @@
         else {
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
           if (isTap && refs.videoCurrent) {
-             if (refs.videoCurrent.paused) { 
-               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
-               showPlayOverlay(false);
-             } else {
-               refs.videoCurrent.pause(); stopProg(); showPlayOverlay(true);
-             }
+            if (refs.videoCurrent.paused) { 
+              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
+              showPlayOverlay(false);
+            } else {
+              refs.videoCurrent.pause(); stopProg(); showPlayOverlay(true);
+            }
           }
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
@@ -231,10 +243,13 @@
       startT = performance.now();
       
       clearAuto(); stopProg();
-      resetTransformsNoAnim();
+      refs.layerCurrent.style.transition = 'none';
+      refs.layerNext.style.transition = 'none';
       
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
+      
+      warmForwardNext();
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
@@ -261,8 +276,9 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
           const height = vh();
+          
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - (progress * 0.7), 0.3); // Plynulý pokles na 30%
+          const currentOpacity = Math.max(1 - progress, 0.3);
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
