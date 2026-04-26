@@ -15,6 +15,11 @@
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
+    // --- BACKWARD SWIPE TUNING ---
+    const BACKWARD_THRESHOLD_RATIO = 0.08;
+    const BACKWARD_MIN_COMMIT_DY = 24;
+    const BACKWARD_MIN_COMMIT_VY = 0.22;
+
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
@@ -236,7 +241,12 @@
       }
 
       const vy = (lastMoveY - startY) / dt;
-      if (Math.abs(totalDy) >= vh() * THRESHOLD_RATIO || (Math.abs(totalDy) >= MIN_COMMIT_DY && Math.abs(vy) >= MIN_COMMIT_VY)) {
+      const isBackward = preparedDir === -1;
+      const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
+      const minDy = isBackward ? BACKWARD_MIN_COMMIT_DY : MIN_COMMIT_DY;
+      const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
+
+      if (Math.abs(totalDy) >= vh() * thresholdRatio || (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)) {
         commit(preparedDir);
       } else {
         snapBack();
