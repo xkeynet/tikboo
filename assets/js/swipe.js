@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - MONSTER VERSION
+// /assets/js/swipe.js - MONSTER VERSION (RESTORED EFFECTS)
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -8,10 +8,10 @@
     } = options;
 
     // --- MONSTER CONFIGURATION ---
-    const THRESHOLD_RATIO = 0.15; // Extrémně citlivé na dokončení
-    const MOVE_ACTIVATE_PX = 5;    // Okamžitá reakce na dotyk
-    const MIN_COMMIT_DY = 40;      // Kratší dráha pro potvrzení swipu
-    const MIN_COMMIT_VY = 0.40;    // Švih (velocity) má vysokou prioritu
+    const THRESHOLD_RATIO = 0.15; 
+    const MOVE_ACTIVATE_PX = 5;    
+    const MIN_COMMIT_DY = 40;      
+    const MIN_COMMIT_VY = 0.40;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
@@ -28,14 +28,25 @@
     // Pomocná pro bleskové transformace
     const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
 
+    // --- EFEKT: ZESVĚTLOVÁNÍ (OPACITY) ---
+    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost
+    function updateLayerEffects(layer, opacity) {
+      const sideMenu = layer.querySelector('.side');
+      const avatar = layer.querySelector('.avatar-box'); // Pokud máš jinou třídu, uprav zde
+      if (sideMenu) sideMenu.style.opacity = opacity;
+      if (avatar) avatar.style.opacity = opacity;
+    }
+
     function resetSeekUiImmediate() {
       if (seekPill) seekPill.classList.remove('is-active');
       if (seekTime) seekTime.classList.remove('is-active');
       document.querySelectorAll('.side').forEach(s => {
         s.classList.remove('scrubbing');
-        s.style.opacity = '';
+        s.style.opacity = '1';
         s.style.display = '';
       });
+      // Reset i pro avatary v celém dokumentu pro jistotu
+      document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
     }
 
     function resetTransformsNoAnim() {
@@ -46,14 +57,14 @@
       [refs.layerCurrent, refs.layerNext].forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
+        updateLayerEffects(l, 1); // Vrátíme viditelnost ikonám
       });
 
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
-      if (refs.layerCurrent.querySelector('.side')) refs.layerCurrent.querySelector('.side').style.opacity = '1';
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ (Eliminace černých snímků) ---
+    // --- PREDIKTIVNÍ NABÍJENÍ ---
     function warmForwardNext() {
       if (state.isAnimating || dragging) return;
       const height = vh();
@@ -63,7 +74,6 @@
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
         
-        // Safari Priming: donutíme hardware připravit první snímek dopředu
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
           vNext.play().then(() => vNext.pause()).catch(() => {});
@@ -104,23 +114,23 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 160; // Ultra-rychlý přechod
+      const duration = 160; 
       const videoToCleanup = refs.videoCurrent;
 
-      // Zapnutí GPU Turbo režimu
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
 
-      // Custom "Monster" Bezier (agresivní start)
       const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
+
+      // Při dokončení swipu ikony úplně zmizí
+      updateLayerEffects(refs.layerCurrent, 0);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
       setTr(refs.layerNext, 0);
 
       settleTimer = setTimeout(() => {
-        // Okamžitá likvidace starého obsahu pro uvolnění RAM
         if (videoToCleanup) {
           videoToCleanup.pause();
           videoToCleanup.removeAttribute('src');
@@ -129,7 +139,6 @@
 
         state.index = normalizeIndex(state.index + dir);
 
-        // Core Swap (Prohození vrstev)
         const tmpL = refs.layerCurrent; refs.layerCurrent = refs.layerNext; refs.layerNext = tmpL;
         const tmpV = refs.videoCurrent; refs.videoCurrent = refs.videoNext; refs.videoNext = tmpV;
         const tmpI = refs.imgCurrent; refs.imgCurrent = refs.imgNext; refs.imgNext = tmpI;
@@ -160,6 +169,9 @@
       
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+
+      // Vrátíme opacity ikonám zpět na 1
+      updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, preparedDir > 0 ? vh() : -vh());
@@ -216,7 +228,6 @@
       dy = 0; dx = 0;
     }
 
-    // --- OPTIMALIZOVANÉ LISTENERY ---
     document.addEventListener('touchstart', (e) => {
       if (state.isAnimating || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
@@ -230,7 +241,6 @@
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       
-      // Předběžná aktivace GPU
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
       
@@ -244,7 +254,6 @@
       const ddy = y - startY;
       const ddx = x - startX;
 
-      // Filtrování nechtěných pohybů (scroll vs swipe)
       if (Math.abs(ddx) > Math.abs(ddy) * 1.4 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
 
       e.preventDefault();
@@ -262,6 +271,14 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
           const height = vh();
+          
+          // --- VÝPOČET OPACITY EFEKTU ---
+          // Progress 0 až 1 podle toho, jak moc je odsunuto
+          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
+          const currentOpacity = 1 - progress;
+          
+          updateLayerEffects(refs.layerCurrent, currentOpacity);
+
           setTr(refs.layerCurrent, dy);
           if (preparedDir > 0) setTr(refs.layerNext, height + dy);
           else if (preparedDir < 0) setTr(refs.layerNext, -height + dy);
@@ -277,4 +294,3 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
-
