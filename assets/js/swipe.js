@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - MONSTER VERSION
+// /assets/js/swipe.js - TRUE TRIPLE-BUFFER ENGINE
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -7,272 +7,157 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    // --- MONSTER CONFIGURATION ---
-    const THRESHOLD_RATIO = 0.15; // Extrémně citlivé na dokončení
-    const MOVE_ACTIVATE_PX = 5;    // Okamžitá reakce na dotyk
-    const MIN_COMMIT_DY = 40;      // Kratší dráha pro potvrzení swipu
-    const MIN_COMMIT_VY = 0.40;    // Švih (velocity) má vysokou prioritu
-    const TAP_MAX_MOVE = 8;
-    const TAP_MAX_TIME = 220;
+    // --- CONFIGURATION ---
+    const THRESHOLD_RATIO = 0.15;
+    const DURATION = 250; // Optimální rychlost pro lidské oko a procesor
+    const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
 
     let dragging = false;
-    let startY = 0, startX = 0, dy = 0, dx = 0;
-    let preparedDir = 0, raf = 0, settleTimer = 0;
-    let startT = 0, lastMoveY = 0;
-    let nextLoadedIndex = null, nextLoadedDir = 0;
-    let swipeSoundUnlocked = false;
+    let startY = 0, dy = 0, startT = 0;
+    let raf = 0, settleTimer = 0;
 
-    const seekPill = document.getElementById('seekPill');
-    const seekTime = document.getElementById('seekTime');
+    // Správa vrstev v poli (Triple-Buffer Kolečko)
+    // Index 0: Prev, Index 1: Current, Index 2: Next
+    let stack = [
+      { container: document.getElementById('layerPrev'), video: document.getElementById('videoPrev'), img: document.getElementById('imgPrev') },
+      { container: document.getElementById('layerCurrent'), video: document.getElementById('videoCurrent'), img: document.getElementById('imgCurrent') },
+      { container: document.getElementById('layerNext'), video: document.getElementById('videoNext'), img: document.getElementById('imgNext') }
+    ];
 
-    // Pomocná pro bleskové transformace
     const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
 
-    function resetSeekUiImmediate() {
-      if (seekPill) seekPill.classList.remove('is-active');
-      if (seekTime) seekTime.classList.remove('is-active');
-      document.querySelectorAll('.side').forEach(s => {
-        s.classList.remove('scrubbing');
-        s.style.opacity = '';
-        s.style.display = '';
-      });
-    }
-
-    function resetTransformsNoAnim() {
-      const height = vh();
-      if (raf) cancelAnimationFrame(raf); raf = 0;
-      clearTimeout(settleTimer);
-
-      [refs.layerCurrent, refs.layerNext].forEach(l => {
-        l.style.transition = 'none';
-        l.style.willChange = 'auto';
-      });
-
-      setTr(refs.layerCurrent, 0);
-      setTr(refs.layerNext, height);
-      if (refs.layerCurrent.querySelector('.side')) refs.layerCurrent.querySelector('.side').style.opacity = '1';
-    }
-
-    // --- PREDIKTIVNÍ NABÍJENÍ (Eliminace černých snímků) ---
-    function warmForwardNext() {
-      if (state.isAnimating || dragging) return;
-      const height = vh();
-      const targetIndex = normalizeIndex(state.index + 1);
+    function resetPositions() {
+      const h = vh();
+      stack.forEach(s => s.container.style.transition = 'none');
+      setTr(stack[0].container, -h); // Prev
+      setTr(stack[1].container, 0);  // Current
+      setTr(stack[2].container, h);  // Next
       
-      if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
-        
-        // Safari Priming: donutíme hardware připravit první snímek dopředu
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
-      }
-
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, height);
-      nextLoadedDir = 1;
+      // Synchronizace refs pro zbytek aplikace (aby fungovaly lajky atd.)
+      refs.layerCurrent = stack[1].container;
+      refs.videoCurrent = stack[1].video;
+      refs.imgCurrent = stack[1].img;
+      refs.layerNext = stack[2].container; // Pro kompatibilitu
     }
 
-    function prepareNextForDirection(dir) {
-      const height = vh();
-      const targetIndex = normalizeIndex(state.index + dir);
+    // --- PREDIKTIVNÍ NABÍJENÍ OBOU STRAN ---
+    function preloadNeighbors() {
+      const prevIdx = normalizeIndex(state.index - 1);
+      const nextIdx = normalizeIndex(state.index + 1);
       
-      if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
-      }
-
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, dir > 0 ? height : -height);
-      nextLoadedDir = dir;
-      preparedDir = dir;
+      // Nabijeme horní šuplík
+      setLayerContent(stack[0].container, playlist[prevIdx], true);
+      // Nabijeme dolní šuplík
+      setLayerContent(stack[2].container, playlist[nextIdx], true);
     }
 
-    // --- BRUTAL COMMIT ENGINE ---
     function commit(dir) {
       if (state.isAnimating) return;
       state.isAnimating = true;
       
-      clearAuto(); stopProg(); resetSeekUiImmediate();
-      if (raf) cancelAnimationFrame(raf); raf = 0;
-      clearTimeout(settleTimer);
+      clearAuto(); stopProg();
+      const h = vh();
 
-      const height = vh();
-      const duration = 160; // Ultra-rychlý přechod
-      const videoToCleanup = refs.videoCurrent;
+      stack.forEach(s => {
+        s.container.style.transition = `transform ${DURATION}ms ${monsterCurve}`;
+      });
 
-      // Zapnutí GPU Turbo režimu
-      refs.layerCurrent.style.willChange = 'transform';
-      refs.layerNext.style.willChange = 'transform';
-
-      // Custom "Monster" Bezier (agresivní start)
-      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
-      refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
-      refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
-
-      setTr(refs.layerCurrent, dir > 0 ? -height : height);
-      setTr(refs.layerNext, 0);
+      if (dir > 0) { // Swipe UP (další video)
+        setTr(stack[1].container, -h);
+        setTr(stack[2].container, 0);
+      } else { // Swipe DOWN (předchozí video)
+        setTr(stack[1].container, h);
+        setTr(stack[0].container, 0);
+      }
 
       settleTimer = setTimeout(() => {
-        // Okamžitá likvidace starého obsahu pro uvolnění RAM
-        if (videoToCleanup) {
-          videoToCleanup.pause();
-          videoToCleanup.removeAttribute('src');
-          videoToCleanup.load();
+        // Zastavíme staré video
+        stack[1].video.pause();
+        stack[1].video.removeAttribute('src');
+        stack[1].video.load();
+
+        // ROTACE POLE (To je ta magie)
+        if (dir > 0) {
+          const first = stack.shift();
+          stack.push(first); // [Prev, Curr, Next] -> [Curr, Next, Prev]
+        } else {
+          const last = stack.pop();
+          stack.unshift(last); // [Prev, Curr, Next] -> [Next, Prev, Curr]
         }
 
         state.index = normalizeIndex(state.index + dir);
+        
+        // Fixujeme UI prvky (playOverlay se musí stěhovat do nového Current)
+        if (refs.playOverlay) stack[1].container.appendChild(refs.playOverlay);
 
-        // Core Swap (Prohození vrstev)
-        const tmpL = refs.layerCurrent; refs.layerCurrent = refs.layerNext; refs.layerNext = tmpL;
-        const tmpV = refs.videoCurrent; refs.videoCurrent = refs.videoNext; refs.videoNext = tmpV;
-        const tmpI = refs.imgCurrent; refs.imgCurrent = refs.imgNext; refs.imgNext = tmpI;
+        resetPositions();
 
-        if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
-
-        resetTransformsNoAnim();
-
+        // Start nového videa
         if (playlist[state.index].type === 'video') {
-          refs.videoCurrent.muted = state.isMuted;
-          tryPlay(refs.videoCurrent);
+          stack[1].video.muted = state.isMuted;
+          tryPlay(stack[1].video);
         }
 
-        resetSeekUiImmediate();
         syncSoundUI();
         showPlayOverlay(false);
         bindAutoAdvanceForCurrent();
-
+        
         state.isAnimating = false;
-        requestAnimationFrame(() => warmForwardNext());
-      }, duration + 10); 
+        preloadNeighbors(); // Nabijeme okolí pro další swipe
+      }, DURATION);
     }
 
     function snapBack() {
-      if (state.isAnimating) return;
-      state.isAnimating = true;
-      const duration = 200;
-      
-      refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
-      refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
-
-      setTr(refs.layerCurrent, 0);
-      setTr(refs.layerNext, preparedDir > 0 ? vh() : -vh());
-
-      settleTimer = setTimeout(() => {
-        preparedDir = 0;
-        resetTransformsNoAnim();
-        state.isAnimating = false;
-        bindAutoAdvanceForCurrent();
-        warmForwardNext();
-      }, duration);
+      const h = vh();
+      stack.forEach(s => s.container.style.transition = `transform ${DURATION}ms ease-out`);
+      setTr(stack[0].container, -h);
+      setTr(stack[1].container, 0);
+      setTr(stack[2].container, h);
+      setTimeout(() => { state.isAnimating = false; }, DURATION);
     }
 
-    function autoAdvance() {
-      if (state.isAnimating || dragging) return;
-      warmForwardNext();
-      preparedDir = 1;
-      commit(1);
-    }
-
-    function finishGesture(cancelled) {
-      if (!dragging || state.isAnimating) return;
-      const totalDy = dy;
-      const endT = performance.now();
-      const dt = Math.max(1, endT - startT);
-      
-      dragging = false;
-      swipeSoundUnlocked = false;
-
-      if (cancelled || preparedDir === 0) {
-        if (preparedDir !== 0) snapBack();
-        else {
-          const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
-          if (isTap && refs.videoCurrent) {
-             if (refs.videoCurrent.paused) { 
-               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
-               showPlayOverlay(false);
-             } else {
-               refs.videoCurrent.pause(); stopProg(); showPlayOverlay(true);
-             }
-          }
-          resetTransformsNoAnim();
-          bindAutoAdvanceForCurrent();
-        }
-        return;
-      }
-
-      const vy = (lastMoveY - startY) / dt;
-      if (Math.abs(totalDy) >= vh() * THRESHOLD_RATIO || (Math.abs(totalDy) >= MIN_COMMIT_DY && Math.abs(vy) >= MIN_COMMIT_VY)) {
-        commit(preparedDir);
-      } else {
-        snapBack();
-      }
-      dy = 0; dx = 0;
-    }
-
-    // --- OPTIMALIZOVANÉ LISTENERY ---
+    // --- LISTENERS ---
     document.addEventListener('touchstart', (e) => {
-      if (state.isAnimating || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
-
+      if (state.isAnimating || isInteractiveTarget(e.target)) return;
       dragging = true;
-      preparedDir = 0;
       startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
       startT = performance.now();
-      
-      clearAuto(); stopProg();
-      refs.layerCurrent.style.transition = 'none';
-      refs.layerNext.style.transition = 'none';
-      
-      // Předběžná aktivace GPU
-      refs.layerCurrent.style.willChange = 'transform';
-      refs.layerNext.style.willChange = 'transform';
-      
-      warmForwardNext();
+      stack.forEach(s => s.container.style.transition = 'none');
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
       if (!dragging || state.isAnimating) return;
-      const y = e.touches[0].clientY;
-      const x = e.touches[0].clientX;
-      const ddy = y - startY;
-      const ddx = x - startX;
-
-      // Filtrování nechtěných pohybů (scroll vs swipe)
-      if (Math.abs(ddx) > Math.abs(ddy) * 1.4 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
-
-      e.preventDefault();
-      dy = ddy;
-      lastMoveY = y;
-
-      if (!swipeSoundUnlocked && typeof ensureSoundOn === 'function') {
-        ensureSoundOn(true); swipeSoundUnlocked = true;
-      }
-
-      const dir = dy < 0 ? 1 : -1;
-      if (preparedDir !== dir) prepareNextForDirection(dir);
-
-      if (!raf) {
-        raf = requestAnimationFrame(() => {
-          raf = 0;
-          const height = vh();
-          setTr(refs.layerCurrent, dy);
-          if (preparedDir > 0) setTr(refs.layerNext, height + dy);
-          else if (preparedDir < 0) setTr(refs.layerNext, -height + dy);
-        });
-      }
+      dy = e.touches[0].clientY - startY;
+      
+      const h = vh();
+      setTr(stack[1].container, dy);
+      setTr(stack[0].container, -h + dy); // Táhneme horní
+      setTr(stack[2].container, h + dy);  // Táhneme spodní
+      
+      if (typeof ensureSoundOn === 'function') ensureSoundOn(true);
     }, { passive: false });
 
-    document.addEventListener('touchend', () => finishGesture(false), { passive: true });
-    document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
+    document.addEventListener('touchend', () => {
+      if (!dragging || state.isAnimating) return;
+      dragging = false;
+      const dt = performance.now() - startT;
+      
+      if (Math.abs(dy) > vh() * THRESHOLD_RATIO || (Math.abs(dy) > 50 && dt < 250)) {
+        commit(dy < 0 ? 1 : -1);
+      } else {
+        snapBack();
+      }
+      dy = 0;
+    });
 
-    return { autoAdvance, warmForwardNext, commit, resetTransformsNoAnim, isDragging() { return dragging; } };
+    // Inicializace
+    resetPositions();
+    preloadNeighbors();
+
+    return { 
+      autoAdvance: () => commit(1), 
+      isDragging: () => dragging 
+    };
   }
 
   window.initTikbooSwipe = initTikbooSwipe;
