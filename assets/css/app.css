@@ -731,29 +731,59 @@ body{
   pointer-events: none;
 }
 
-/* Triple-Buffer základní pozice */
-#layer-prev {
-  transform: translate3d(0, -100%, 0); /* Schovaný nahoře */
-  will-change: transform;
+/* --- TRIPLE BUFFER ENGINE (LOCK ZONE) --- */
+
+/* Základní kontejner, ve kterém se vše hýbe */
+#video-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
 }
 
-#layer-current {
-  transform: translate3d(0, 0, 0);      /* Uprostřed */
-  will-change: transform;
-  z-index: 2;
-}
-
-#layer-next {
-  transform: translate3d(0, 100%, 0);  /* Schovaný dole */
-  will-change: transform;
-}
-
-/* Pojistka, aby layery byly přes sebe */
-.layer {
+/* Nastavení všech tří vrstev */
+.twincher-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+/* Výchozí pozice Triple-Bufferu */
+#layerPrev {
+  transform: translate3d(0, -100%, 0); /* Schovaný nahoře */
+  z-index: 10;
+}
+
+#layerCurrent {
+  transform: translate3d(0, 0, 0);     /* Aktivní uprostřed */
+  z-index: 20;
+}
+
+#layerNext {
+  transform: translate3d(0, 100%, 0);  /* Schovaný dole */
+  z-index: 10;
+}
+
+/* Pojistka pro videa a náhledy */
+.twincher-layer video,
+.twincher-layer img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Skrytí neaktivních overlayů, aby se nepletly do cesty */
+#layerPrev #playOverlay,
+#layerNext #playOverlay {
+  display: none !important;
 }
