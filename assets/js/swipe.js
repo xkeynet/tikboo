@@ -92,6 +92,26 @@
       nextLoadedDir = 1;
     }
 
+    function warmBackwardNext() {
+      if (state.isAnimating || dragging) return;
+      const height = vh();
+      const targetIndex = normalizeIndex(state.index - 1);
+      
+      if (nextLoadedIndex !== targetIndex) {
+        setLayerContent(refs.layerNext, playlist[targetIndex], true);
+        nextLoadedIndex = targetIndex;
+        
+        const vNext = refs.videoNext;
+        if (playlist[targetIndex].type === 'video' && vNext) {
+          vNext.play().then(() => vNext.pause()).catch(() => {});
+        }
+      }
+
+      refs.layerNext.style.transition = 'none';
+      setTr(refs.layerNext, -height);
+      nextLoadedDir = -1;
+    }
+
     function prepareNextForDirection(dir) {
       const height = vh();
       const targetIndex = normalizeIndex(state.index + dir);
@@ -186,6 +206,7 @@
       if (state.isAnimating) return;
       state.isAnimating = true;
       const duration = 200;
+      const snapDir = preparedDir;
       
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
@@ -201,7 +222,8 @@
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
-        warmForwardNext();
+        if (snapDir < 0) warmBackwardNext();
+        else warmForwardNext();
       }, duration);
     }
 
@@ -269,7 +291,11 @@
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
       
-      warmForwardNext();
+      if (startY < vh() * 0.45) {
+        warmBackwardNext();
+      } else {
+        warmForwardNext();
+      }
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
