@@ -116,7 +116,6 @@
       const now = performance.now();
 
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
-        snapBack();
         return;
       }
 
