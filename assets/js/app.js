@@ -358,38 +358,39 @@ document.addEventListener('DOMContentLoaded', () => {
     return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
   }
 
-    function setVideoSmart(el, h264Src) {
+  function setVideoSmart(el, h264Src) {
     if (!h264Src) return;
 
     const hevcSrc = deriveHevcSrc(h264Src);
     const wantHevc = USE_HEVC && hevcSrc !== h264Src;
-    const desired = wantHevc ? hevcSrc : h264Src;
-
-    // CHIRURGICKÁ OPRAVA: Pokud už video tento zdroj má nebo ho právě načítá, 
-    // nesmíme volat .load(), jinak zabijeme buffer a uvidíme černou obrazovku.
-    const currentSrc = el.getAttribute('src') || '';
-    if (currentSrc.endsWith(desired)) {
-      return; 
-    }
 
     el.dataset.codecFallback = '0';
 
+    const current = el.getAttribute('src') || '';
+    const desired = wantHevc ? hevcSrc : h264Src;
+    if (current && current.endsWith(desired)) return;
+
     if (wantHevc) {
       el.dataset.codecFallback = 'hevc_try';
+
       const onErr = () => {
         el.dataset.codecFallback = '1';
-        if (!(el.getAttribute('src') || '').endsWith(h264Src)) {
+
+        const now = el.getAttribute('src') || '';
+        if (!now.endsWith(h264Src)) {
           el.src = h264Src;
           el.load();
         }
       };
+
       el.addEventListener('error', onErr, { once: true });
       el.src = hevcSrc;
-    } else {
-      el.src = h264Src;
+      el.load();
+      return;
     }
-    
-    el.load(); // Voláme load jen tehdy, když se zdroj skutečně změnil
+
+    el.src = h264Src;
+    el.load();
   }
 
   function setVideo(el, src) {
