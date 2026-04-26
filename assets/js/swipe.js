@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - MONSTER VERSION (RESTORED EFFECTS)
+// /assets/js/swipe.js - ATOMIC VERSION
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -7,7 +7,7 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    // --- MONSTER CONFIGURATION ---
+    // --- ATOMIC CONFIGURATION ---
     const THRESHOLD_RATIO = 0.15; 
     const MOVE_ACTIVATE_PX = 5;    
     const MIN_COMMIT_DY = 40;      
@@ -111,10 +111,12 @@
       const now = performance.now();
 
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
+        snapBack();
         return;
       }
 
       if (refs.videoNext && refs.videoNext.readyState < 2) {
+        snapBack();
         return;
       }
 
