@@ -27,6 +27,7 @@
     let nextLoadedIndex = null, nextLoadedDir = 0;
     let swipeSoundUnlocked = false;
     let lastCommitTime = 0;
+    let pendingCommitTimer = 0;
     const COMMIT_COOLDOWN = 120;
 
     const seekPill = document.getElementById('seekPill');
@@ -56,10 +57,18 @@
       document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
     }
 
+    function clearPendingCommit() {
+      if (pendingCommitTimer) {
+        clearTimeout(pendingCommitTimer);
+        pendingCommitTimer = 0;
+      }
+    }
+
     function resetTransformsNoAnim() {
       const height = vh();
       if (raf) cancelAnimationFrame(raf); raf = 0;
       clearTimeout(settleTimer);
+      clearPendingCommit();
 
       [refs.layerCurrent, refs.layerNext].forEach(l => {
         l.style.transition = 'none';
@@ -131,6 +140,23 @@
       preparedDir = dir;
     }
 
+    function retryBackwardCommitOnce(dir) {
+      clearPendingCommit();
+
+      pendingCommitTimer = setTimeout(() => {
+        pendingCommitTimer = 0;
+
+        if (state.isAnimating) return;
+
+        if (refs.videoNext && refs.videoNext.readyState >= 2) {
+          commit(dir);
+          return;
+        }
+
+        snapBack();
+      }, 90);
+    }
+
     // --- BRUTAL COMMIT ENGINE ---
     function commit(dir) {
       const now = performance.now();
@@ -140,10 +166,16 @@
       }
 
       if (refs.videoNext && refs.videoNext.readyState < 2) {
+        if (dir < 0) {
+          retryBackwardCommitOnce(dir);
+          return;
+        }
+
         snapBack();
         return;
       }
 
+      clearPendingCommit();
       lastCommitTime = now;
 
       if (state.isAnimating) return;
@@ -204,6 +236,8 @@
 
     function snapBack() {
       if (state.isAnimating) return;
+      clearPendingCommit();
+
       state.isAnimating = true;
       const duration = 200;
       const snapDir = preparedDir;
