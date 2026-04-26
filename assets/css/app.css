@@ -730,3 +730,26 @@ body{
 .twincher-layer > img {
   pointer-events: none;
 }
+
+/* === iOS LONG PRESS KILL (SAFE PATCH) === */
+
+/* vypne ukládání obrázků u ikon */
+.side img,
+.nav img,
+.top img,
+.avatar,
+#playOverlay {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* důležité: obrázky neberou touch → click jde přes button */
+.side img {
+  pointer-events: none;
+}
+
+/* ALE: share tlačítko musí zůstat klikatelné */
+button[aria-label="Share"] {
+  pointer-events: auto !important;
+}
