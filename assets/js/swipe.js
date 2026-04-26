@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - TRUE TRIPLE-BUFFER ENGINE
+// /assets/js/swipe.js - TRUE TRIPLE-BUFFER ENGINE (GATE-FIXED)
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -118,7 +118,13 @@
 
     // --- LISTENERS ---
     document.addEventListener('touchstart', (e) => {
-      if (state.isAnimating || isInteractiveTarget(e.target)) return;
+      // FIX: Ignorujeme dotyk, pokud míří na Age Gate nebo interaktivní prvek (tlačítka)
+      if (e.target.closest('#gateOverlay') || e.target.closest('button') || isInteractiveTarget(e.target)) {
+        return; 
+      }
+
+      if (state.isAnimating) return;
+
       dragging = true;
       startY = e.touches[0].clientY;
       startT = performance.now();
