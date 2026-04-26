@@ -124,8 +124,8 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      // Při dokončení swipu ikony úplně zmizí
-      updateLayerEffects(refs.layerCurrent, 0);
+      // Při dokončení zůstanou ikony na 30% (místo 0)
+      updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
       setTr(refs.layerNext, 0);
@@ -273,9 +273,9 @@
           const height = vh();
           
           // --- VÝPOČET OPACITY EFEKTU ---
-          // Progress 0 až 1 podle toho, jak moc je odsunuto
+          // Progress 0 až 1, ale zastavíme se na 0.3 (efekt ducha)
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = 1 - progress;
+          const currentOpacity = Math.max(1 - progress, 0.3);
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
