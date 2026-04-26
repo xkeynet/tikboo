@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - MONSTER VERSION (RESTORED EFFECTS)
+// /assets/js/swipe.js - MONSTER VERSION WITH RATE LIMITER
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -14,6 +14,10 @@
     const MIN_COMMIT_VY = 0.40;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
+    
+    // --- RATE LIMITER CONFIG ---
+    const SWIPE_COOLDOWN = 333; // Strop 3 videa za sekundu
+    let lastCommitTime = 0;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -25,14 +29,11 @@
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
-    // Pomocná pro bleskové transformace
     const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
 
-    // --- EFEKT: ZESVĚTLOVÁNÍ (OPACITY) ---
-    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost
     function updateLayerEffects(layer, opacity) {
       const sideMenu = layer.querySelector('.side');
-      const avatar = layer.querySelector('.avatar-box'); // Pokud máš jinou třídu, uprav zde
+      const avatar = layer.querySelector('.avatar-box');
       if (sideMenu) sideMenu.style.opacity = opacity;
       if (avatar) avatar.style.opacity = opacity;
     }
@@ -45,7 +46,6 @@
         s.style.opacity = '1';
         s.style.display = '';
       });
-      // Reset i pro avatary v celém dokumentu pro jistotu
       document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
     }
 
@@ -57,34 +57,14 @@
       [refs.layerCurrent, refs.layerNext].forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
-        updateLayerEffects(l, 1); // Vrátíme viditelnost ikonám
+        updateLayerEffects(l, 1);
       });
 
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ ---
-    function warmForwardNext() {
-      if (state.isAnimating || dragging) return;
-      const height = vh();
-      const targetIndex = normalizeIndex(state.index + 1);
-      
-      if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
-        
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
-      }
-
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, height);
-      nextLoadedDir = 1;
-    }
-
+    // --- PREDIKTIVNÍ NABÍJENÍ (Forward + Backward) ---
     function prepareNextForDirection(dir) {
       const height = vh();
       const targetIndex = normalizeIndex(state.index + dir);
@@ -94,6 +74,7 @@
         nextLoadedIndex = targetIndex;
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
+          // Tichý preload - iOS Safari friendly
           vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
@@ -104,9 +85,23 @@
       preparedDir = dir;
     }
 
-    // --- BRUTAL COMMIT ENGINE ---
+    function warmForwardNext() {
+      if (state.isAnimating || dragging) return;
+      prepareNextForDirection(1); // Standardní forward preload
+    }
+
+    // --- BRUTAL COMMIT ENGINE S OCHRANOU ---
     function commit(dir) {
-      if (state.isAnimating) return;
+      const now = performance.now();
+      
+      // ZÁCHRANNÁ BRZDA: Pokud uživatel swipuje jako šílený, 
+      // nepustíme commit, aby se systém nezahltil.
+      if (state.isAnimating || (now - lastCommitTime < SWIPE_COOLDOWN)) {
+        if (!state.isAnimating) snapBack(); // Pokud jen nestíhá cooldown, vrátíme video zpět
+        return;
+      }
+
+      lastCommitTime = now; // Záznam času úspěšného commitu
       state.isAnimating = true;
       
       clearAuto(); stopProg(); resetSeekUiImmediate();
@@ -124,7 +119,6 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      // Při dokončení zůstanou ikony na 30% (místo 0)
       updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
@@ -158,6 +152,7 @@
         bindAutoAdvanceForCurrent();
 
         state.isAnimating = false;
+        // Po commitu hned připravíme další video
         requestAnimationFrame(() => warmForwardNext());
       }, duration + 10); 
     }
@@ -170,7 +165,6 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
 
-      // Vrátíme opacity ikonám zpět na 1
       updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
@@ -187,8 +181,7 @@
 
     function autoAdvance() {
       if (state.isAnimating || dragging) return;
-      warmForwardNext();
-      preparedDir = 1;
+      prepareNextForDirection(1);
       commit(1);
     }
 
@@ -238,13 +231,10 @@
       startT = performance.now();
       
       clearAuto(); stopProg();
-      refs.layerCurrent.style.transition = 'none';
-      refs.layerNext.style.transition = 'none';
+      resetTransformsNoAnim();
       
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
-      
-      warmForwardNext();
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
@@ -271,11 +261,8 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
           const height = vh();
-          
-          // --- VÝPOČET OPACITY EFEKTU ---
-          // Progress 0 až 1, ale zastavíme se na 0.3 (efekt ducha)
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, 0.3);
+          const currentOpacity = Math.max(1 - (progress * 0.7), 0.3); // Plynulý pokles na 30%
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
