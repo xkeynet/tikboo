@@ -731,18 +731,18 @@ body{
   pointer-events: none;
 }
 
-/* --- TRIPLE BUFFER ENGINE (LOCK ZONE) --- */
-
-/* Základní kontejner, ve kterém se vše hýbe */
+/* --- TRIPLE BUFFER ENGINE (FIXED) --- */
 #video-stack {
-  position: relative;
+  position: absolute; /* Změna z relative na absolute pro lepší stabilitu v Safari */
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: #000;
+  z-index: 1; /* Aby byl pod navigací a age gatem */
 }
 
-/* Nastavení všech tří vrstev */
 .twincher-layer {
   position: absolute;
   top: 0;
@@ -750,40 +750,33 @@ body{
   width: 100%;
   height: 100%;
   will-change: transform;
-  display: flex;
-  flex-direction: column;
   background: #000;
-}
-
-/* Výchozí pozice Triple-Bufferu */
-#layerPrev {
-  transform: translate3d(0, -100%, 0); /* Schovaný nahoře */
-  z-index: 10;
+  /* Důležité: skryjeme vrstvy, které nejsou aktivní */
+  visibility: hidden; 
 }
 
 #layerCurrent {
-  transform: translate3d(0, 0, 0);     /* Aktivní uprostřed */
+  transform: translate3d(0, 0, 0);
   z-index: 20;
+  visibility: visible; /* Jen aktuální video je vidět */
+}
+
+#layerPrev {
+  transform: translate3d(0, -100%, 0);
+  z-index: 10;
+  visibility: visible; /* Viditelné, ale mimo obrazovku nahoře */
 }
 
 #layerNext {
-  transform: translate3d(0, 100%, 0);  /* Schovaný dole */
+  transform: translate3d(0, 100%, 0);
   z-index: 10;
+  visibility: visible; /* Viditelné, ale mimo obrazovku dole */
 }
 
-/* Pojistka pro videa a náhledy */
-.twincher-layer video,
-.twincher-layer img {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Oprava pro zobrazení videa uvnitř vrstev */
+.twincher-layer video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-/* Skrytí neaktivních overlayů, aby se nepletly do cesty */
-#layerPrev #playOverlay,
-#layerNext #playOverlay {
-  display: none !important;
+  display: block;
 }
