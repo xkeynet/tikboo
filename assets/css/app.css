@@ -422,10 +422,8 @@ body{
   display:block;
   user-select:none;
   -webkit-user-drag:none;
-  
-  margin-top:40px; /* POSUN DOLŮ */
-  margin-bottom:20px;
    
+  transform: translateY(30px); /* POSUN DOLŮ */
   animation:swipe-bounce 1.5s infinite;
 }
 
