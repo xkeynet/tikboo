@@ -423,8 +423,8 @@ body{
   user-select: none;
   -webkit-user-drag: none;
 
-  margin-top: 60px;
-  margin-bottom: 10px;
+  position: relative;
+  top: 60px;
 
   animation: swipe-bounce 1.5s infinite;
 }
