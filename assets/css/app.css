@@ -436,7 +436,7 @@ body{
   }
 
   15% {
-    transform: translate(-10px, -24px) rotate(-12deg);
+    transform: translate(10px, -24px) rotate(12deg);
     animation-timing-function: ease-out;
   }
 
