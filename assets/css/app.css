@@ -442,7 +442,7 @@ body{
 
 .legal{
   width:100%;
-  max-width:44ch;
+  max-width:56ch;   /* ← rozšíří blok */
   margin:16px auto 20px;
 
   font-size:14px;
@@ -452,8 +452,8 @@ body{
 
   text-align:center;
 
-  /* KLÍČ */
-  text-wrap:balance;
+  /* SMAŽ TOHLE: */
+  /* text-wrap: balance; */
 }
 
 /* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
