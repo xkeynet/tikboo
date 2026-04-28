@@ -436,7 +436,7 @@ body{
   }
 
   15% {
-    transform: translateY(-15px);
+    transform: translateY(-25px);
     animation-timing-function: ease-out;
   }
 
