@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === State / Playlist ===
   // =========================================================
   const PLAYLIST = [
+    { type: 'video', src: 'assets/video/swipe0.mp4' },
     { type: 'video', src: 'assets/video/swipe.mp4' },
     { type: 'video', src: 'assets/video/swipe1.mp4' },
     { type: 'video', src: 'assets/video/swipe2.mp4' },
