@@ -443,12 +443,17 @@ body{
 .legal{
   width:100%;
   max-width:44ch;
-  margin:6px auto 20px;
+  margin:16px auto 20px;
+
   font-size:14px;
   line-height:1.45;
   color:var(--gateMuted);
   opacity:0.95;
+
   text-align:center;
+
+  /* KLÍČ */
+  text-wrap:balance;
 }
 
 /* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
