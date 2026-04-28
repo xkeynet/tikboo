@@ -420,12 +420,14 @@ body{
   margin:0 auto 18px;
 }
 .legal{
+  width:100%;
+  max-width:44ch;
+  margin:32px auto 20px;
   font-size:14px;
   line-height:1.45;
   color:var(--gateMuted);
   opacity:0.95;
-  margin:0;
-  text-align:left;
+  text-align:center;
 }
 
 /* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
