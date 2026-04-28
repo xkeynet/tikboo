@@ -424,7 +424,7 @@ body{
   -webkit-user-drag: none;
 
   position: relative;
-  top: 26px;
+  top: 30px;
 
   animation: swipe-bounce 1.5s infinite;
 }
