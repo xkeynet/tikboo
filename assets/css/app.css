@@ -417,13 +417,15 @@ body{
 }
 
 .gate-logo {
-  width: 90px;
+  width: 72px;
   height: auto;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-  margin-top: 20px;
-  position: relative;
+
+  margin-top: 60px;
+  margin-bottom: 10px;
+
   animation: swipe-bounce 1.5s infinite;
 }
 
