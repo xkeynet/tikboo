@@ -426,17 +426,26 @@ body{
   position: relative;
   top: 30px;
 
-  animation: swipe-bounce 1.5s infinite;
+  animation: swipe-bounce 3s infinite;
 }
 
 @keyframes swipe-bounce {
-  0%, 100% {
+  0% {
     transform: translateY(0);
-    animation-timing-function: ease-in; /* dolů = pomalu */
+    animation-timing-function: cubic-bezier(0.9, 0, 1, 1);
   }
-  30% {
+
+  15% {
     transform: translateY(-15px);
-    animation-timing-function: cubic-bezier(0.9, 0, 1, 1); /* 🔥 rychlý výstřel nahoru */
+    animation-timing-function: ease-out;
+  }
+
+  30% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(0);
   }
 }
 
