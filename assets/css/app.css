@@ -440,9 +440,6 @@ body{
   }
 }
 
-.legalScroll{
-  display:none;
-}
 .legal{
   width:100%;
   max-width:44ch;
