@@ -432,11 +432,11 @@ body{
 @keyframes swipe-bounce {
   0%, 100% {
     transform: translateY(0);
-    animation-timing-function: ease-in;
+    animation-timing-function: ease-in; /* dolů = pomalu */
   }
   30% {
     transform: translateY(-15px);
-    animation-timing-function: ease-out;
+    animation-timing-function: cubic-bezier(0.9, 0, 1, 1); /* 🔥 rychlý výstřel nahoru */
   }
 }
 
