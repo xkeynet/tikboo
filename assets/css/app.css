@@ -416,24 +416,25 @@ body{
   white-space:nowrap;
 }
 
-.gate-logo{
-  width:72px;
-  height:auto;
-  display:block;
-  user-select:none;
-  -webkit-user-drag:none;
-  top:40px; 
-  animation:swipe-bounce 1.5s infinite;
+.gate-logo {
+  width: 72px;
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  margin-top: 20px;
+  position: relative;
+  animation: swipe-bounce 1.5s infinite;
 }
 
-@keyframes swipe-bounce{
-  0%, 100%{
-    transform:translateY(0);
-    animation-timing-function:ease-in;
+@keyframes swipe-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: ease-in;
   }
-  30%{
-    transform:translateY(-30px);
-    animation-timing-function:ease-out;
+  30% {
+    transform: translateY(-15px);
+    animation-timing-function: ease-out;
   }
 }
 
