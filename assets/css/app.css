@@ -411,14 +411,7 @@ body{
 }
 
 .legalScroll{
-  flex:0 1 auto;
-  width:100%;
-  max-width:44ch;
-  max-height:34svh;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:12px 0;
-  margin:0 auto 18px;
+  display:none;
 }
 .legal{
   width:100%;
