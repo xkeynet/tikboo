@@ -416,7 +416,7 @@ body{
 .legal{
   width:100%;
   max-width:44ch;
-  margin:12px auto 20px;
+  margin:6px auto 20px;
   font-size:14px;
   line-height:1.45;
   color:var(--gateMuted);
