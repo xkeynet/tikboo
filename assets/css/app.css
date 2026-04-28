@@ -422,8 +422,7 @@ body{
   display:block;
   user-select:none;
   -webkit-user-drag:none;
-   
-  transform: translateY(30px); /* POSUN DOLŮ */
+  top:40px; 
   animation:swipe-bounce 1.5s infinite;
 }
 
