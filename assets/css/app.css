@@ -770,3 +770,52 @@ body{
 button[aria-label="Share"] {
   pointer-events: auto !important;
 }
+
+/* =========================================================
+   LANDSCAPE LOCK — Tikboo Swipe only
+   (safe, isolated, no side effects)
+   ========================================================= */
+
+.landscape-lock {
+  display: none;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.is-swipe-page .landscape-lock {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: grid;
+    place-items: center;
+
+    background: radial-gradient(circle at center, #111 0%, #000 80%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    color: #fff;
+    text-align: center;
+    font-family: 'Sora', sans-serif;
+  }
+
+  body.is-swipe-page .landscape-lock__inner {
+    padding: 24px;
+    max-width: 260px;
+  }
+
+  body.is-swipe-page .landscape-lock__icon {
+    font-size: 42px;
+    margin-bottom: 18px;
+    opacity: 0.85;
+  }
+
+  body.is-swipe-page .landscape-lock__title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  body.is-swipe-page .landscape-lock__text {
+    font-size: 13px;
+    opacity: 0.6;
+  }
+}
