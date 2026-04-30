@@ -525,7 +525,7 @@ body{
   width:100%;
   max-width:44ch;
   margin-top:20px;
-  font-size:12px;
+  font-size:11px;
   line-height:1.35;
   color:var(--gateMuted);
   text-align:center;
@@ -822,6 +822,6 @@ button[aria-label="Share"] {
 
 #gateOverlay .consent,
 #gateOverlay .consent a{
-  font-size:12px;
+  font-size:11px;
   line-height:1.35;
 }
