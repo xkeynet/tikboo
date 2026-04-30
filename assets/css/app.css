@@ -532,7 +532,7 @@ body{
   opacity:0.95;
 }
 .consent a{
-  color:var(--gateMuted);
+  color:#000000;
   font-weight:800;
 }
 
