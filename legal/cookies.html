@@ -1,1 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cookies Policy – Tikboo</title>
 
+<style>
+:root{
+  --bg:#000;
+  --text:#A5A5A5;
+  --muted:#A5A5A5;
+  --link:#A5A5A5;
+  --rule: rgba(255,255,255,0.10);
+
+  /* mikro-rytmus pro UI (header/hr) */
+  --gap:4px;
+
+  /* ✅ JEDINÁ “VELKÁ” MEZERA – JEN MEZI SEKCEMI */
+  --section-gap:16px;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  padding:18px 14px 34px;
+  -webkit-text-size-adjust:100%;
+}
+
+.wrap{
+  max-width:44ch;
+  margin:0 auto;
+}
+
+/* ===== TOPBAR: šipka vlevo + title přesně uprostřed ===== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:0 0 20px; /* vzduch mezi title a last updated */
+}
+
+.back-slot,
+.right-slot{
+  width:34px;          /* vyvážení pro perfektní center */
+  height:28px;
+  display:flex;
+  align-items:center;
+}
+
+.back-slot{ justify-content:flex-start; }
+.right-slot{ justify-content:flex-end; } /* prázdný – jen vyvažuje */
+
+.back{
+  width:28px;
+  height:28px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* systémová caret-left (hranatá) bez ikon */
+.back::before{
+  content:"";
+  width:12px;
+  height:12px;
+
+  /* ✅ caret tvar, co se nikdy “nezlomí” */
+  border-top:2px solid #fff;
+  border-left:2px solid #fff;
+
+  /* ✅ start: míří DOPRAVA na title (caret-right) */
+  transform-origin:50% 50%;
+  transform: rotate(135deg) translateZ(0);
+
+  /* ✅ smoothness */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* po 2 sekundách: 2 kolečka + konec “zpět” (doleva) */
+.back.spin::before{
+  animation: arrowSpin 1600ms cubic-bezier(.14,.92,.18,1) forwards;
+}
+
+/* ✅ 900° = 720° (2 spiny) + 180° (otočení na “back”) */
+@keyframes arrowSpin{
+  0%   { transform: rotate(135deg) translateZ(0); }   /* doprava → title */
+  100% { transform: rotate(1035deg) translateZ(0); }  /* 135 + 900 = 1035 => doleva */
+}
+
+/* title (jen bílý) v jedné řadě se šipkou */
+.topbar h1{
+  flex:1;
+  margin:0;
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  letter-spacing:0;
+  text-align:center;
+}
+
+/* Last updated */
+.last-updated{
+  font-size:13px;
+  color:var(--muted);
+  margin:0 0 var(--gap);
+}
+
+.hr{
+  height:1px;
+  background:var(--rule);
+  margin:var(--gap) 0 var(--gap);
+}
+
+/* ✅ Sekční nadpis: mezera jen NAD, žádná POD */
+.sec-title{
+  font-weight:700;
+  color:var(--text);
+  margin:var(--section-gap) 0 0;
+  font-size:14px;
+}
+
+/* první sekce ať nezačne “moc nízko” po HR */
+#legalRender .sec-title:first-of-type{
+  margin-top: var(--gap);
+}
+
+/* ✅ Legal wall: uvnitř sekce absolutně bez mezer */
+p{ margin:0; }
+
+/* Listy také bez vertikálních mezer */
+ul{
+  margin:0;
+  padding:0;
+  list-style:disc;
+  list-style-position:inside; /* 🔑 text začíná POD tečkou */
+}
+
+li{
+  margin:0 0 4px;
+  padding:0;
+}
+
+a{
+  color:var(--link);
+  text-decoration:underline;
+  text-underline-offset:2px;
+  word-break:break-word;
+}
+
+/* Zdrojový text – skryjeme po renderu */
+#legalSource{
+  display:block;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-family:inherit;
+  color:var(--text);
+  background:transparent;
+  border:0;
+}
+
+#legalRender{
+  margin-top:18px;
+}
+
+/* footer plně šedý, kompaktní */
+.legal-footer{
+  margin-top:var(--section-gap);
+}
+
+.legal-entity{
+  font-weight:700;
+  color:var(--text);
+  margin:0;
+}
+
+.service-provider-title{
+  color:var(--text);
+  font-weight:700;
+  margin:0;
+}
+
+.legal-footer-line{
+  margin:0;
+}
+
+@media (min-width: 860px){
+  body{ font-size:14px; }
+  .topbar h1{ font-size:18px; }
+  .sec-title{ font-size:14px; }
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="topbar">
+    <div class="back-slot">
+      <!-- změň href na svou reálnou cestu zpět (např. / nebo /gate) -->
+      <a class="back" href="/"></a>
+    </div>
+
+    <h1>Cookies Policy</h1>
+
+    <div class="right-slot"></div>
+  </div>
+
+  <div class="last-updated" id="lastUpdated">Last updated: August 27, 2025</div>
+  <div class="hr"></div>
+
+  <!-- =========================================================
+       1) SEM VLOŽ SVŮJ CELÝ COOKIES POLICY TEXT (1:1) DO <pre> NÍŽE
+       2) NIC NEOBALUJ, NIC NEPŘEPISUJ, JEN VLOŽ
+       3) Skript to sám převede na krásné odstavce + UL/LI
+       ========================================================= -->
+
+  <pre id="legalSource">
+Cookies Policy
+
+1. Introduction
+This Cookies Policy explains how Tikboo uses cookies, local storage, and similar technologies on the website https://tikboo.com/ and any related pages, features, or services operated under the Tikboo name.
+This policy should be read together with our Terms and Conditions and our Privacy Policy.
+By accessing or using Tikboo, you acknowledge that cookies and similar technologies may be used as described in this Cookies Policy.
+
+2. What cookies are
+Cookies are small text files that are placed on your device by a website when you visit it.
+Cookies may allow a website to recognize your browser, remember certain information, improve functionality, maintain security, measure performance, or provide a better user experience.
+Similar technologies may include local storage, session storage, pixels, tags, scripts, and browser-based identifiers.
+
+3. Why Tikboo uses cookies
+Tikboo may use cookies and similar technologies for the following purposes:
+• To keep the website functional and secure.
+• To remember age-gate confirmation and basic user choices.
+• To maintain session-related features where applicable.
+• To understand how visitors use the website.
+• To measure traffic, performance, and technical behavior.
+• To improve Tikboo, its layout, features, and user experience.
+• To prevent abuse, fraud, automated access, or misuse of the service.
+
+4. Essential cookies
+Essential cookies are necessary for the basic operation of Tikboo.
+These cookies may be used to:
+• Remember that a user has confirmed age-gate access.
+• Maintain basic website functionality.
+• Support security, stability, and access control.
+• Prevent repeated prompts where technically appropriate.
+Essential cookies cannot always be disabled without affecting the functionality of the website.
+
+5. Analytics cookies
+Tikboo may use analytics tools, including Google Analytics or similar services, to understand how users interact with the website.
+Analytics cookies may collect technical and usage information such as:
+• Pages visited.
+• Time spent on pages.
+• Device type.
+• Browser type.
+• Operating system.
+• Approximate location derived from technical data.
+• Referring pages or traffic sources.
+• Interactions with website features.
+This information is used in aggregated or statistical form to improve Tikboo and its services.
+
+6. Local storage and similar technologies
+Tikboo may use local storage or session storage in your browser.
+These technologies may be used to remember preferences, age-gate status, interface behavior, or other technical settings that help the website function correctly.
+Unlike traditional cookies, local storage data may remain in your browser until it is cleared manually, removed by the website, or deleted by your browser settings.
+
+7. Third-party cookies and services
+Tikboo may contain links to third-party websites, embedded content, analytics tools, advertising partners, affiliate partners, or external services.
+These third parties may use their own cookies or similar technologies according to their own policies.
+Tikboo does not control the cookies used by third-party websites or services.
+You should review the privacy and cookie policies of any third-party service you access through Tikboo.
+
+8. Advertising and affiliate tracking
+Tikboo may use affiliate links, sponsored links, advertising redirects, or partner tracking technologies.
+These technologies may help identify whether a user clicked on a partner link or completed an action on a third-party website.
+Such tracking may be operated by third-party partners and may be subject to their own terms, privacy policies, and cookie policies.
+
+9. Adult content and age-gate functionality
+Because Tikboo may contain adult-oriented material, cookies or local storage may be used to remember that a visitor has confirmed that they are at least eighteen (18) years of age, or the age of majority in their jurisdiction.
+This helps reduce repeated age confirmation prompts and supports responsible access control.
+This does not replace the user’s obligation to access Tikboo only if legally permitted to do so.
+
+10. Managing cookies
+You can control or delete cookies through your browser settings.
+Most browsers allow you to:
+• View cookies stored on your device.
+• Delete cookies.
+• Block cookies from specific websites.
+• Block third-party cookies.
+• Clear local storage and site data.
+• Set your browser to refuse some or all cookies.
+If you block or delete cookies, some parts of Tikboo may not function properly.
+
+11. Browser settings
+Cookie and storage controls are usually available in your browser’s privacy or security settings.
+Because each browser is different, you should consult your browser’s help section for specific instructions.
+You may also be able to control tracking preferences through your device settings, operating system settings, or privacy tools.
+
+12. Consent
+Where required by applicable law, Tikboo may ask for your consent before placing non-essential cookies on your device.
+You may be able to withdraw or modify your consent through browser settings, cookie controls, or other tools made available on Tikboo.
+Continued use of the website may indicate acceptance of essential technologies necessary for the operation of the service.
+
+13. Changes to this Cookies Policy
+Tikboo may update this Cookies Policy from time to time to reflect legal, technical, operational, or business changes.
+Any changes will be published on this page.
+You are encouraged to review this Cookies Policy regularly to stay informed about how Tikboo uses cookies and similar technologies.
+
+14. Contact
+If you have any questions about this Cookies Policy, cookies, local storage, or similar technologies used by Tikboo, you may contact us through the contact options available on the Tikboo website.
+
+Service Provider:
+XKEYNET LLC
+361 Newbury Street
+Boston, Massachusetts 02115
+United States
+  </pre>
+
+  <!-- Sem se vykreslí krásná verze -->
+  <div id="legalRender" aria-label="Cookies Policy content"></div>
+
+</main>
+
+<script>
+(function(){
+  const src = document.getElementById('legalSource');
+  const out = document.getElementById('legalRender');
+  const lastUpdatedEl = document.getElementById('lastUpdated');
+  if(!src || !out) return;
+
+  // 1) Načti text a normalizuj newlines
+  let raw = src.textContent || "";
+  raw = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  // Vykopni nadbytečné levé odsazení (často vznikne při vložení do <pre>)
+  raw = raw.replace(/^\s+/gm, (m) => (m.length >= 2 ? "" : m));
+
+  // 2) Helpery
+  const esc = (s) => s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+  // linkify už ESCAPED text (bezpečné) – jen http(s)
+  const linkify = (escaped) => escaped.replace(
+    /(https?:\/\/[^\s<]+[^\s<\.)\],;:"'!?])/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
+
+  const isBullet = (line) => /^[•●\-–—*]\s+/.test(line);
+  const stripBullet = (line) => line.replace(/^[•●\-–—*]\s+/, "");
+
+  // Nadpisy: 1  / 1. / 1) / 2.1 / 10. ... (tolerantní)
+  const headingMatch = (line) => line.match(/^(\d+(?:\.\d+)*)(?:[.)])?\s+(.+)$/);
+
+  // 3) Rozsekání na řádky a stavový parser
+  const lines = raw.split("\n").map(l => l.trimRight());
+  const html = [];
+  let inList = false;
+
+  // Footer mód pro "Service Provider" blok
+  let inFooter = false;
+  let footerEntityDone = false;
+
+  const flushList = () => {
+    if(inList){ html.push("</ul>"); inList = false; }
+  };
+
+  // Auto-detekce "Last updated:" uvnitř textu -> přepíše horní řádek a uvnitř ho ignoruje
+  const trySetLastUpdated = (line) => {
+    const m = line.match(/^Last updated:\s*(.+)\s*$/i);
+    if(m && lastUpdatedEl){
+      lastUpdatedEl.textContent = "Last updated: " + m[1];
+      return true;
+    }
+    return false;
+  };
+
+  for(let i=0;i<lines.length;i++){
+    const lineRaw = lines[i];
+    const line = lineRaw.trim();
+
+    if(!line){
+      flushList();
+      continue;
+    }
+
+    const low = line.toLowerCase();
+    if(low === "privacy policy" || low === "terms and conditions" || low === "cookies policy"){
+      continue;
+    }
+
+    if(trySetLastUpdated(line)){
+      continue;
+    }
+
+    // Start footer bloku: "Service Provider:"
+    if(low === "service provider:" ){
+      flushList();
+      inFooter = true;
+      footerEntityDone = false;
+
+      // větší mezera před footer blokem (bez vlivu na zbytek)
+      html.push('<div class="legal-footer">');
+
+      html.push('<p class="service-provider-title">' + esc(line) + "</p>");
+      continue;
+    }
+
+    if(inFooter){
+      flushList();
+
+      if(!footerEntityDone && /^xkeynet\s+llc$/i.test(line)){
+        html.push('<div class="legal-entity">' + esc(line) + "</div>");
+        footerEntityDone = true;
+        continue;
+      }
+
+      html.push('<p class="legal-footer-line">' + esc(line) + "</p>");
+      continue;
+    }
+
+    const hm = headingMatch(line);
+    if(hm){
+      flushList();
+      const normalized = hm[1] + ". " + hm[2];
+      html.push('<div class="sec-title">' + linkify(esc(normalized)) + "</div>");
+      continue;
+    }
+
+    if(isBullet(line)){
+      if(!inList){ html.push("<ul>"); inList = true; }
+      const item = stripBullet(line).trim();
+      html.push("<li>" + linkify(esc(item)) + "</li>");
+      continue;
+    }
+
+    flushList();
+    html.push("<p>" + linkify(esc(line)) + "</p>");
+  }
+
+  flushList();
+
+  if(inFooter){
+    html.push("</div>");
+  }
+
+  src.style.display = "none";
+  out.innerHTML = html.join("\n");
+})();
+</script>
+
+<script>
+/* Arrow choreography:
+   - start: points to the title
+   - after 2s: 2 spins (720°) + ends as "back" */
+window.addEventListener("load", () => {
+  const el = document.querySelector(".back");
+  if(!el) return;
+  setTimeout(() => el.classList.add("spin"), 2000);
+});
+</script>
+
+</body>
+</html>
