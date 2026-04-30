@@ -454,8 +454,8 @@ body{
   max-width:56ch;
   margin:16px auto 20px;
 
-  font-size:14px;
-  line-height:1.45;
+  font-size:12px;
+  line-height:1.35;
   color:var(--gateMuted);
   opacity:0.95;
 
