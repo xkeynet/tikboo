@@ -819,3 +819,9 @@ button[aria-label="Share"] {
     opacity: 0.6;
   }
 }
+
+#gateOverlay .consent,
+#gateOverlay .consent a{
+  font-size:12px;
+  line-height:1.35;
+}
