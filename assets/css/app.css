@@ -383,7 +383,7 @@ body{
   width:100%;
 }
 .card{
-  width:min(78vw, 340px);
+  width:min(78vw, 420px);
   height:auto;
   max-height:none;
   text-align:center;
