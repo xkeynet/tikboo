@@ -393,7 +393,7 @@ body{
   justify-content:center;
   background:#FFFFFF;
   border:1px solid var(--glassStroke);
-  border-radius:16px;
+  border-radius:12px;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
   padding:0px 20px 20px;
 }
