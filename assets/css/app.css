@@ -527,12 +527,12 @@ body{
   margin-top:20px;
   font-size:11px;
   line-height:1.35;
-  color:var(--gateMuted);
+  color:#000000;
   text-align:center;
   opacity:0.95;
 }
 .consent a{
-  color:var(--gateMuted);
+  color:#000000;
   font-weight:800;
 }
 
