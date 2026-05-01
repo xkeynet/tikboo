@@ -451,17 +451,25 @@ body{
 
 .legal{
   width:100%;
-  max-width:56ch;
+  max-width:none;
   margin:16px auto 20px;
 
   font-size:14px;
-  line-height:1.2;
+  line-height:1.28;
+  font-weight:500;
   color:#000000;
-  opacity:0.95;
+  opacity:1;
 
   text-align:center;
-
   white-space:normal;
+
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
+}
+
+.legal span{
+  display:block;
+  white-space:nowrap;
 }
 
 /* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
@@ -818,10 +826,4 @@ button[aria-label="Share"] {
     font-size: 13px;
     opacity: 0.6;
   }
-}
-
-#gateOverlay .consent,
-#gateOverlay .consent a{
-  font-size:11px;
-  line-height:1.35;
 }
