@@ -485,11 +485,12 @@ body{
 
 /* === THE BLUE PILL === */
 .enterBtn{
-  width: fit-content;
+  width:100%;
   max-width:320px;
-  min-width:280px;
+
   margin:0 auto;
-  display:inline-flex;
+
+  display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
