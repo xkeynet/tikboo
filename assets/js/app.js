@@ -19,19 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe1.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe2.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe3.mp4' },
-    { type: 'video', src: 'assets/video/swipe4.mp4' },
-    { type: 'video', src: 'assets/video/swipe5.mp4' },
-    { type: 'video', src: 'assets/video/swipe6.mp4' },
-    { type: 'video', src: 'assets/video/swipe7.mp4' },
-    { type: 'video', src: 'assets/video/swipe8.mp4' },
-    { type: 'video', src: 'assets/video/swipe9.mp4' },
-    { type: 'video', src: 'assets/video/swipe10.mp4' },
-    { type: 'video', src: 'assets/video/swipe11.mp4' },
-    { type: 'video', src: 'assets/video/swipe12.mp4' },
-    { type: 'video', src: 'assets/video/swipe13.mp4' },
-    { type: 'video', src: 'assets/video/swipe14.mp4' },
-    { type: 'video', src: 'assets/video/swipe15.mp4' },
-    { type: 'video', src: 'assets/video/swipe16.mp4' }
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe4.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe5.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe6.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe7.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe8.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe9.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe10.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe11.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe12.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe13.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe14.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe15.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe16.mp4' }
   ];
 
   const refs = {
