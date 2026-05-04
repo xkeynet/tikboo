@@ -9,7 +9,7 @@
 
     // --- ATOMIC CONFIGURATION ---
     const THRESHOLD_RATIO = 0.15; 
-    const MOVE_ACTIVATE_PX = 5;    
+    const MOVE_ACTIVATE_PX = 3;    
     const MIN_COMMIT_DY = 40;      
     const MIN_COMMIT_VY = 0.40;    
     const TAP_MAX_MOVE = 8;
