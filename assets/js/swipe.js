@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION
+// /assets/js/swipe.js - ATOMIC BOLD VERSION 2026
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -7,18 +7,18 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    // --- ATOMIC CONFIGURATION ---
+    // --- ATOMIC CONFIGURATION: THE PRECISION ENGINE ---
     const THRESHOLD_RATIO = 0.15; 
-    const MOVE_ACTIVATE_PX = 3;    
+    const MOVE_ACTIVATE_PX = 2;    // Sníženo pro vyšší citlivost (více Apple feel)
     const MIN_COMMIT_DY = 40;      
-    const MIN_COMMIT_VY = 0.40;    
+    const MIN_COMMIT_VY = 0.35;    // Mírně upraveno pro plynulejší rychlý swipe
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
-    // --- BACKWARD SWIPE TUNING ---
-    const BACKWARD_THRESHOLD_RATIO = 0.08;
-    const BACKWARD_MIN_COMMIT_DY = 24;
-    const BACKWARD_MIN_COMMIT_VY = 0.22;
+    // --- BACKWARD SWIPE TUNING: ELIMINATING BLACK FRAMES ---
+    const BACKWARD_THRESHOLD_RATIO = 0.07; // Ještě agresivnější citlivost zpět
+    const BACKWARD_MIN_COMMIT_DY = 20;     // Dřívější uznání pohybu
+    const BACKWARD_MIN_COMMIT_VY = 0.18;   // Snazší návrat zpět
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -28,21 +28,27 @@
     let swipeSoundUnlocked = false;
     let lastCommitTime = 0;
     let pendingCommitTimer = 0;
-    const COMMIT_COOLDOWN = 120;
+    const COMMIT_COOLDOWN = 150; // Zajišťuje stabilitu mezi swipy
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
-    // Pomocná pro bleskové transformace
-    const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
+    // Pomocná pro bleskové transformace s vynucenou HW akcelerací
+    const setTr = (el, y) => { 
+      el.style.transform = `translate3d(0,${y}px,0)`; 
+    };
 
     // --- EFEKT: ZESVĚTLOVÁNÍ (OPACITY) ---
-    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost
+    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost pro "Ghost" efekt
     function updateLayerEffects(layer, opacity) {
+      if (!layer) return;
       const sideMenu = layer.querySelector('.side');
-      const avatar = layer.querySelector('.avatar-box'); // Pokud máš jinou třídu, uprav zde
+      const avatar = layer.querySelector('.avatar-box'); 
+      const bottomInfo = layer.querySelector('.bottom-info'); // Přidána i spodní info linka
+      
       if (sideMenu) sideMenu.style.opacity = opacity;
       if (avatar) avatar.style.opacity = opacity;
+      if (bottomInfo) bottomInfo.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
@@ -53,8 +59,8 @@
         s.style.opacity = '1';
         s.style.display = '';
       });
-      // Reset i pro avatary v celém dokumentu pro jistotu
       document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
+      document.querySelectorAll('.bottom-info').forEach(b => b.style.opacity = '1');
     }
 
     function clearPendingCommit() {
@@ -71,16 +77,18 @@
       clearPendingCommit();
 
       [refs.layerCurrent, refs.layerNext].forEach(l => {
-        l.style.transition = 'none';
-        l.style.willChange = 'auto';
-        updateLayerEffects(l, 1); // Vrátíme viditelnost ikonám
+        if (l) {
+          l.style.transition = 'none';
+          l.style.willChange = 'auto';
+          updateLayerEffects(l, 1); 
+        }
       });
 
-      setTr(refs.layerCurrent, 0);
-      setTr(refs.layerNext, height);
+      if (refs.layerCurrent) setTr(refs.layerCurrent, 0);
+      if (refs.layerNext) setTr(refs.layerNext, height);
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ ---
+    // --- PREDIKTIVNÍ NABÍJENÍ S "FAST-READY" LOGIKOU ---
     function warmForwardNext() {
       if (state.isAnimating || dragging) return;
       const height = vh();
@@ -92,6 +100,7 @@
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
+          vNext.currentTime = 0; // Vynucený start od začátku
           vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
@@ -112,6 +121,7 @@
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
+          vNext.currentTime = 0; 
           vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
@@ -130,6 +140,7 @@
         nextLoadedIndex = targetIndex;
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
+          vNext.currentTime = 0;
           vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
@@ -142,22 +153,20 @@
 
     function retryBackwardCommitOnce(dir) {
       clearPendingCommit();
-
+      // Pokud jedeme zpět, dáváme videu ultra-krátký čas na vzpamatování
       pendingCommitTimer = setTimeout(() => {
         pendingCommitTimer = 0;
-
         if (state.isAnimating) return;
 
         if (refs.videoNext && refs.videoNext.readyState >= 2) {
           commit(dir);
           return;
         }
-
         snapBack();
-      }, 90);
+      }, 70); // Agresivnější čas pro rychlejší reakci
     }
 
-    // --- BRUTAL COMMIT ENGINE ---
+    // --- BRUTAL COMMIT ENGINE: THE FINISH LINE ---
     function commit(dir) {
       const now = performance.now();
 
@@ -170,7 +179,6 @@
           retryBackwardCommitOnce(dir);
           return;
         }
-
         snapBack();
         return;
       }
@@ -186,17 +194,17 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 160; 
+      const duration = 180; // Optimální čas pro lidské oko
       const videoToCleanup = refs.videoCurrent;
 
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
+      // "The Apple Curve" - Maximálně plynulý dojezd
+      const monsterCurve = 'cubic-bezier(0.15, 0.85, 0.35, 1)';
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      // Při dokončení zůstanou ikony na 30% (místo 0)
       updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
@@ -205,7 +213,6 @@
       settleTimer = setTimeout(() => {
         if (videoToCleanup) {
           videoToCleanup.pause();
-
           if (dir < 0) {
             videoToCleanup.removeAttribute('src');
             videoToCleanup.load();
@@ -214,17 +221,26 @@
 
         state.index = normalizeIndex(state.index + dir);
 
+        // ATOMIC SWAP
         const tmpL = refs.layerCurrent; refs.layerCurrent = refs.layerNext; refs.layerNext = tmpL;
         const tmpV = refs.videoCurrent; refs.videoCurrent = refs.videoNext; refs.videoNext = tmpV;
         const tmpI = refs.imgCurrent; refs.imgCurrent = refs.imgNext; refs.imgNext = tmpI;
 
-        if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
+        if (refs.playOverlay && refs.layerCurrent) {
+          refs.layerCurrent.appendChild(refs.playOverlay);
+        }
 
         resetTransformsNoAnim();
 
         if (playlist[state.index].type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
-          tryPlay(refs.videoCurrent);
+          // Okamžitý pokus o přehrání pro eliminaci prodlevy
+          const playPromise = tryPlay(refs.videoCurrent);
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              showPlayOverlay(true);
+            });
+          }
         }
 
         resetSeekUiImmediate();
@@ -233,8 +249,9 @@
         bindAutoAdvanceForCurrent();
 
         state.isAnimating = false;
+        // Prediktivní příprava dalšího videa hned po dojezdu
         requestAnimationFrame(() => warmForwardNext());
-      }, duration + 10); 
+      }, duration + 15); 
     }
 
     function snapBack() {
@@ -242,13 +259,13 @@
       clearPendingCommit();
 
       state.isAnimating = true;
-      const duration = 200;
+      const duration = 220;
       const snapDir = preparedDir;
       
-      refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
-      refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+      const snapCurve = 'cubic-bezier(0.25, 1, 0.5, 1)';
+      refs.layerCurrent.style.transition = `transform ${duration}ms ${snapCurve}`;
+      refs.layerNext.style.transition = `transform ${duration}ms ${snapCurve}`;
 
-      // Vrátíme opacity ikonám zpět na 1
       updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
@@ -286,7 +303,8 @@
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
           if (isTap && refs.videoCurrent) {
              if (refs.videoCurrent.paused) { 
-               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
+               if (typeof ensureSoundOn === 'function') ensureSoundOn(true);
+               tryPlay(refs.videoCurrent);
                showPlayOverlay(false);
              } else {
                refs.videoCurrent.pause(); stopProg(); showPlayOverlay(true);
@@ -298,12 +316,14 @@
         return;
       }
 
+      // Výpočet finální rychlosti pro "Throw" efekt
       const vy = (lastMoveY - startY) / dt;
       const isBackward = preparedDir === -1;
       const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
       const minDy = isBackward ? BACKWARD_MIN_COMMIT_DY : MIN_COMMIT_DY;
       const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
 
+      // Rozhodovací matice pro commit
       if (Math.abs(totalDy) >= vh() * thresholdRatio || (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)) {
         commit(preparedDir);
       } else {
@@ -312,6 +332,7 @@
       dy = 0; dx = 0;
     }
 
+    // --- EVENT LISTENERS: THE TOUCH INTERFACE ---
     document.addEventListener('touchstart', (e) => {
       if (state.isAnimating || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
@@ -322,13 +343,14 @@
       startT = performance.now();
       
       clearAuto(); stopProg();
+      
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
-      
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
       
-      if (startY < vh() * 0.45) {
+      // Inteligentní preload podle místa dotyku
+      if (startY < vh() * 0.40) {
         warmBackwardNext();
       } else {
         warmForwardNext();
@@ -342,14 +364,16 @@
       const ddy = y - startY;
       const ddx = x - startX;
 
-      if (Math.abs(ddx) > Math.abs(ddy) * 1.4 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
+      // Ochrana proti nechtěnému horizontálnímu scrollu
+      if (Math.abs(ddx) > Math.abs(ddy) * 1.5 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
 
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       dy = ddy;
       lastMoveY = y;
 
       if (!swipeSoundUnlocked && typeof ensureSoundOn === 'function') {
-        ensureSoundOn(true); swipeSoundUnlocked = true;
+        ensureSoundOn(true); 
+        swipeSoundUnlocked = true;
       }
 
       const dir = dy < 0 ? 1 : -1;
@@ -360,10 +384,9 @@
           raf = 0;
           const height = vh();
           
-          // --- VÝPOČET OPACITY EFEKTU ---
-          // Progress 0 až 1, ale zastavíme se na 0.3 (efekt ducha)
-          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, 0.3);
+          // Dynamický výpočet opacity ikon pro luxusní pocit
+          const progress = Math.min(Math.abs(dy) / (height * 0.5), 1);
+          const currentOpacity = Math.max(1 - (progress * 1.2), 0.3);
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
@@ -377,7 +400,13 @@
     document.addEventListener('touchend', () => finishGesture(false), { passive: true });
     document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
 
-    return { autoAdvance, warmForwardNext, commit, resetTransformsNoAnim, isDragging() { return dragging; } };
+    return { 
+      autoAdvance, 
+      warmForwardNext, 
+      commit, 
+      resetTransformsNoAnim, 
+      isDragging() { return dragging; } 
+    };
   }
 
   window.initTikbooSwipe = initTikbooSwipe;
