@@ -205,8 +205,11 @@
       settleTimer = setTimeout(() => {
         if (videoToCleanup) {
           videoToCleanup.pause();
-          videoToCleanup.removeAttribute('src');
-          videoToCleanup.load();
+
+          if (dir < 0) {
+            videoToCleanup.removeAttribute('src');
+            videoToCleanup.load();
+          }
         }
 
         state.index = normalizeIndex(state.index + dir);
