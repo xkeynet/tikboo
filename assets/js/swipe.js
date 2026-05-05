@@ -33,14 +33,11 @@
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
-    // Pomocná pro bleskové transformace
     const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
 
-    // --- EFEKT: ZESVĚTLOVÁNÍ (OPACITY) ---
-    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost
     function updateLayerEffects(layer, opacity) {
       const sideMenu = layer.querySelector('.side');
-      const avatar = layer.querySelector('.avatar-box'); // Pokud máš jinou třídu, uprav zde
+      const avatar = layer.querySelector('.avatar-box');
       if (sideMenu) sideMenu.style.opacity = opacity;
       if (avatar) avatar.style.opacity = opacity;
     }
@@ -53,7 +50,6 @@
         s.style.opacity = '1';
         s.style.display = '';
       });
-      // Reset i pro avatary v celém dokumentu pro jistotu
       document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
     }
 
@@ -73,14 +69,13 @@
       [refs.layerCurrent, refs.layerNext].forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
-        updateLayerEffects(l, 1); // Vrátíme viditelnost ikonám
+        updateLayerEffects(l, 1);
       });
 
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ ---
     function warmForwardNext() {
       if (state.isAnimating || dragging) return;
       const height = vh();
@@ -157,7 +152,6 @@
       }, 90);
     }
 
-    // --- BRUTAL COMMIT ENGINE ---
     function commit(dir) {
       const now = performance.now();
 
@@ -195,7 +189,6 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      // Při dokončení zůstanou ikony na 30% (místo 0)
       updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
@@ -204,8 +197,11 @@
       settleTimer = setTimeout(() => {
         if (videoToCleanup) {
           videoToCleanup.pause();
-          videoToCleanup.removeAttribute('src');
-          videoToCleanup.load();
+
+          if (dir < 0) {
+            videoToCleanup.removeAttribute('src');
+            videoToCleanup.load();
+          }
         }
 
         state.index = normalizeIndex(state.index + dir);
@@ -220,7 +216,20 @@
 
         if (playlist[state.index].type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
+          refs.videoCurrent.playsInline = true;
+          refs.videoCurrent.preload = 'auto';
+
           tryPlay(refs.videoCurrent);
+
+          requestAnimationFrame(() => {
+            tryPlay(refs.videoCurrent);
+          });
+
+          setTimeout(() => {
+            if (refs.videoCurrent && refs.videoCurrent.paused) {
+              tryPlay(refs.videoCurrent);
+            }
+          }, 80);
         }
 
         resetSeekUiImmediate();
@@ -244,7 +253,6 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
 
-      // Vrátíme opacity ikonám zpět na 1
       updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
@@ -355,9 +363,6 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
           const height = vh();
-          
-          // --- VÝPOČET OPACITY EFEKTU ---
-          // Progress 0 až 1, ale zastavíme se na 0.3 (efekt ducha)
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
           
