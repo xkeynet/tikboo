@@ -167,12 +167,11 @@
 
       if (refs.videoNext && refs.videoNext.readyState < 2) {
         if (dir < 0) {
-          retryBackwardCommitOnce(dir);
+          // BACKWARD: pustíme commit i bez readiness
+        } else {
+          snapBack();
           return;
         }
-
-        snapBack();
-        return;
       }
 
       clearPendingCommit();
