@@ -650,20 +650,20 @@ body{
 }
 
 [aria-label="Search"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:26px;
+  height:26px;
   transform: translateY(-2px); 
 }
 
 [aria-label="Messages"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:26px;
+  height:26px;
   transform: translateY(-2px);  
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:26px;
+  height:26px;
   transform: translateY(-2px); 
 }
 
