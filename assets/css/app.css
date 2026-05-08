@@ -658,7 +658,7 @@ body{
 [aria-label="Messages"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(-2px);  
+  transform: translateY(-1px);  
 }
 
 [aria-label="Profile"] .nav-icon{
