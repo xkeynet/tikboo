@@ -632,8 +632,8 @@ body{
 
 /* plus */
 .add-plus-svg{
-  width:22px;
-  height:22px;
+  width:20px;
+  height:20px;
   display:block;
   transform: translate(-1px, 1.6px);
 }
