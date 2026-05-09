@@ -832,21 +832,3 @@ button[aria-label="Share"] {
     opacity: 0.6;
   }
 }
-
-html,
-body{
-  -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
-}
-
-img,
-svg,
-video,
-.nav,
-.side,
-.top,
-#playOverlay{
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-}
