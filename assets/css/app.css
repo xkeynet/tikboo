@@ -620,14 +620,14 @@ body{
 /* levá barevná */
 .pill-left{
   background:#2af0ea;
-  transform:translate(calc(-50% - 3px),-50%);
+  transform:translate(calc(-50% - 4px),-50%);
   z-index:1;
 }
 
 /* pravá barevná */
 .pill-right{
   background:#fe2858;
-  transform:translate(calc(-50% + 3px),-50%);
+  transform:translate(calc(-50% + 4px),-50%);
   z-index:1;
 }
 
