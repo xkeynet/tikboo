@@ -605,6 +605,7 @@ body{
   width:36px;
   height:28px;
   border-radius:8px;
+  margin-top:1px; 
 }
 
 /* střed */
