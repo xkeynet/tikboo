@@ -594,6 +594,7 @@ body{
   border:0;
   background:transparent;
   padding:0;
+  transform: translateY(0.5px); 
 }
 
 /* základ pilulky */
