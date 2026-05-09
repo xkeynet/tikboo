@@ -635,7 +635,7 @@ body{
   width:17px;
   height:17px;
   display:block;
-  transform: translate(-1px, 1px);
+  transform: translate(-1px, 0,8px);
 }
 
 .nav-icon{
