@@ -13,9 +13,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   // === State / Playlist ===
   // =========================================================
-  const FEED_URL = 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/data/videos.json';
-
-  let PLAYLIST = [];
+  const PLAYLIST = [
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe0.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe1.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe2.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe3.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe4.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe5.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe6.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe7.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe8.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe9.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe10.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe11.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe12.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe13.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe14.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe15.mp4' },
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe16.mp4' }
+  ];
 
   const refs = {
     layerCurrent: document.getElementById('layerCurrent'),
@@ -56,33 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let seekActiveOffTimer = 0;
   let timeupdateBoundEl = null;
-
-  // =========================================================
-  // === Feed Loader ===
-  // =========================================================
-  async function loadPlaylist() {
-    const res = await fetch(FEED_URL, {
-      cache: 'no-store'
-    });
-
-    if (!res.ok) {
-      throw new Error(`Feed load failed: ${res.status}`);
-    }
-
-    const data = await res.json();
-
-    PLAYLIST = data
-      .filter((item) => item && (item.hls || item.src))
-      .map((item) => ({
-        type: 'video',
-        src: item.hls || item.src,
-        id: item.id || ''
-      }));
-
-    if (!PLAYLIST.length) {
-      throw new Error('Feed is empty');
-    }
-  }
 
   // =========================================================
   // === GA4 SAFE HELPER ===
@@ -180,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.isMuted = false;
 
-    if (PLAYLIST[state.index]?.type === 'video') {
+    if (PLAYLIST[state.index].type === 'video') {
       refs.videoCurrent.muted = false;
       tryPlay(refs.videoCurrent);
     }
@@ -230,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
       progRaf = 0;
 
       const item = PLAYLIST[state.index];
-      if (!item || item.type !== 'video') return;
+      if (item.type !== 'video') return;
 
       const d = refs.videoCurrent.duration;
       if (d && isFinite(d) && d > 0) {
@@ -332,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function togglePlayPause() {
     const item = PLAYLIST[state.index];
-    if (!item || item.type !== 'video') return;
+    if (item.type !== 'video') return;
 
     if (refs.videoCurrent.paused || refs.videoCurrent.ended) {
       tryPlay(refs.videoCurrent);
@@ -548,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (seekWrap) {
     seekWrap.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length !== 1) return;
-      if (PLAYLIST[state.index]?.type !== 'video') return;
+      if (PLAYLIST[state.index].type !== 'video') return;
 
       ensureSoundOn(true);
 
@@ -571,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     seekWrap.addEventListener('touchmove', (e) => {
       if (!pillTouching) return;
       if (!e.touches || e.touches.length !== 1) return;
-      if (PLAYLIST[state.index]?.type !== 'video') return;
+      if (PLAYLIST[state.index].type !== 'video') return;
 
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
@@ -636,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (seekPill) {
     seekPill.addEventListener('touchstart', (e) => {
-      if (PLAYLIST[state.index]?.type !== 'video') return;
+      if (PLAYLIST[state.index].type !== 'video') return;
       if (!e.touches || e.touches.length !== 1) return;
 
       ensureSoundOn(true);
@@ -650,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     seekPill.addEventListener('touchmove', (e) => {
       if (!pillTouching) return;
-      if (PLAYLIST[state.index]?.type !== 'video') return;
+      if (PLAYLIST[state.index].type !== 'video') return;
       if (!e.touches || e.touches.length !== 1) return;
 
       const x = e.touches[0].clientX;
@@ -675,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekPill.addEventListener('touchend', (e) => {
-      if (PLAYLIST[state.index]?.type !== 'video') {
+      if (PLAYLIST[state.index].type !== 'video') {
         pillTouching = false;
         pillSeeking = false;
         return;
@@ -698,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekPill.addEventListener('click', (e) => {
-      if (PLAYLIST[state.index]?.type !== 'video') return;
+      if (PLAYLIST[state.index].type !== 'video') return;
       if (pillMoved) return;
       e.preventDefault();
 
@@ -710,30 +700,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function initSwipeEngine() {
-    swipeEngine = window.initTikbooSwipe({
-      refs,
-      state,
-      playlist: PLAYLIST,
-      defer,
-      vh,
-      normalizeIndex,
-      tryPlay,
-      clearAuto,
-      stopProg,
-      bindAutoAdvanceForCurrent,
-      syncSoundUI,
-      showPlayOverlay,
-      setLayerContent,
-      ensureSoundOn,
-      isInteractiveTarget,
-      primeNextVideo
-    });
-  }
+  swipeEngine = window.initTikbooSwipe({
+    refs,
+    state,
+    playlist: PLAYLIST,
+    defer,
+    vh,
+    normalizeIndex,
+    tryPlay,
+    clearAuto,
+    stopProg,
+    bindAutoAdvanceForCurrent,
+    syncSoundUI,
+    showPlayOverlay,
+    setLayerContent,
+    ensureSoundOn,
+    isInteractiveTarget,
+    primeNextVideo
+  });
 
   function initFirst() {
-    if (!PLAYLIST.length) return;
-
     state.isMuted = true;
     syncSoundUI();
 
@@ -747,6 +733,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bindAutoAdvanceForCurrent();
     showPlayOverlay(false);
   }
+
+  initFirst();
 
   const profileBtn = document.getElementById('profileBtn');
   const profileModal = document.getElementById('profileModal');
@@ -874,15 +862,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  loadPlaylist()
-    .then(() => {
-      initSwipeEngine();
-      initFirst();
-    })
-    .catch((err) => {
-      console.error('Tikboo feed failed:', err);
-    });
 });
 
 /* === KILL: disable iOS “Save Image” on current top/gate images === */
@@ -911,3 +890,4 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
+
