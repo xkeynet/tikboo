@@ -4,6 +4,7 @@ import yt_dlp
 import sys
 from botocore.config import Config
 
+# Konfigurace pro Cloudflare R2
 r2_config = Config(signature_version='s3v4')
 s3 = boto3.client(
     's3',
@@ -15,26 +16,34 @@ s3 = boto3.client(
 )
 
 def download_and_upload(url, folder):
-    print(f"🚀 Startuji: {url}")
-    print(f"📂 Cílová složka: videos/{folder}/")
+    print(f"🚀 Startuji stahování: {url}")
     
-    # Nastavení pro stahování
-    filename = "video.mp4"
-    ydl_opts = {'format': 'best', 'outtmpl': filename}
+    # Nastavení pro stahování - získáme info o videu předem
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': '%(title)s.%(ext)s', # Použije název videa z webu
+        'quiet': False
+    }
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+        info = ydl.extract_info(url, download=True)
+        filename = ydl.prepare_filename(info)
     
-    # Cesta v Cloudflare R2
+    # Cesta v Cloudflare R2 - dáváme do podsložky podle tvého výběru
     remote_path = f"videos/{folder}/{filename}"
     
-    print(f"✅ Staženo. Nahrávám na R2 do: {remote_path}")
+    print(f"✅ Staženo: {filename}")
+    print(f"📦 Nahrávám na R2: {remote_path}")
+    
     s3.upload_file(filename, 'tikboo-media', remote_path)
-    print("✨ Mise splněna! Video je v cloudu.")
+    print("✨ Mise splněna! Video je v bezpečí v cloudu.")
 
 if __name__ == "__main__":
-    # Pokud spouštíme přes robota, bere si data z argumentů, jinak se zeptá
-    url_videa = sys.argv[1] if len(sys.argv) > 1 else input("Vlož URL adresu videa: ")
-    typ_videa = sys.argv[2] if len(sys.argv) > 2 else input("Zadej složku (insta/adult): ")
-    
-    download_and_upload(url_videa, typ_videa)
+    # Robot (GitHub Actions) posílá argumenty sem:
+    if len(sys.argv) >= 3:
+        url_videa = sys.argv[1]
+        typ_videa = sys.argv[2]
+        download_and_upload(url_videa, typ_videa)
+    else:
+        print("❌ Chyba: Chybí URL nebo složka. Robot nedostal správná data.")
+        sys.exit(1)
