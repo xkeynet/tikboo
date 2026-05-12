@@ -21,7 +21,7 @@ jobs:
       - name: Nastavení Pythonu
         uses: actions/setup-python@v4
         with:
-          python-level: '3.9'
+          python-version: '3.9'
 
       - name: Instalace nástrojů
         run: |
