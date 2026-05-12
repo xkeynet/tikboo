@@ -33,7 +33,5 @@ jobs:
           R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
-          # Malý trik: spustíme náš autopilot.py a předáme mu data z formuláře
-          python autopilot.py <<EOF
-          ${{ github.event.inputs.video_url }}
-          EOF
+          # Teď předáváme oba parametry najednou jako argumenty, žádné EOF už není potřeba
+          python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}"
