@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Vlož URL videa (XNXX, Pornhub, atd.)'
+        description: 'Vlož URL videa'
         required: true
       folder:
-        description: 'Složka'
+        description: 'Složka (adult / insta)'
         required: true
         type: choice
         options:
@@ -15,14 +15,12 @@ on:
           - insta
 
 jobs:
-  update-database:
+  run-autopilot:
     runs-on: ubuntu-latest
-    # Důležité: Povolíme zápis do repozitáře
     permissions:
-      contents: write
-      
+      contents: write  # Bez tohoto řádku se nic neuloží!
     steps:
-      - name: Checkout kódu
+      - name: Checkout repozitáře
         uses: actions/checkout@v4
 
       - name: Nastavení Pythonu
@@ -30,20 +28,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Instalace (teď už jen základ)
-        run: |
-          pip install --upgrade pip
-          # yt-dlp a boto3 už nepotřebujeme, náš nový skript je čistý Python
+      - name: Spuštění skriptu
+        run: python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}"
 
-      - name: Spuštění autopilota (vytvoření embedu)
-        run: |
-          python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}"
-
-      - name: Uložení změn do db.json (Zápis do GitHubu)
+      - name: Commit a Push změn
         run: |
           git config --global user.name "TikBoo Bot"
           git config --global user.email "bot@tikboo.com"
           git add db.json
-          # Commitne jen pokud se db.json změnil, jinak nehlásí chybu
-          git commit -m "Přidáno nové video: ${{ github.event.inputs.video_url }}" || exit 0
+          # Commitne změny pouze pokud existují
+          git commit -m "Přidáno nové video: ${{ github.event.inputs.video_url }}" || echo "Žádné změny k uložení"
           git push
