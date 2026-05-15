@@ -18,16 +18,13 @@ s3 = boto3.client(
 def download_and_upload(url, folder):
     cookie_path = 'cookies.txt'
     
-    # HACK: Vynuceni 720p a mp4 formatu pro brutalni usporu mista a maximalni kompatibilitu
+    # HACK: Vynucení MP4 kontejneru, který Safari miluje
     ydl_opts = {
         'format': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
-        'outtmpl': '%(title)s.%(ext)s',
+        'outtmpl': 'video.%(ext)s', # Pojmenujeme to jednoduse, aby nebyl problem s diakritikou
         'nocheckcertificate': True,
         'quiet': True,
         'cookiefile': cookie_path if os.path.exists(cookie_path) else None,
-        'http_headers': {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        }
     }
 
     try:
@@ -35,19 +32,20 @@ def download_and_upload(url, folder):
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
         
-        # r2 pathing: videos/adult/ nebo videos/insta/
+        # Cesta v R2
         remote_path = f"videos/{folder}/{filename}"
         
-        # HEADERS HACK: inline + mp4 content type pro okamzity stream
-        s3.upload_file(
-            filename, 
-            'tikboo-media', 
-            remote_path, 
-            ExtraArgs={
-                'ContentType': 'video/mp4',
-                'ContentDisposition': 'inline'
-            }
-        )
+        # BRUTAL HACK: Vynucení hlaviček přímo při uploadu
+        # 'video/mp4' musí být přesně takhle, aby Safari vědělo, co s tím
+        with open(filename, 'rb') as data:
+            s3.put_object(
+                Bucket='tikboo-media',
+                Key=remote_path,
+                Body=data,
+                ContentType='video/mp4',
+                ContentDisposition='inline',
+                CacheControl='max-age=31536000'
+            )
 
         if os.path.exists(filename):
             os.remove(filename)
