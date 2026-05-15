@@ -17,13 +17,13 @@ s3 = boto3.client(
 )
 
 def download_and_upload(url, folder):
-    # Hack pro unikátní a krátký název souboru (swipe_čas.mp4)
-    # Tímhle se zbavíme problémů s mezerami a diakritikou v URL
-    clean_name = f"swipe_{int(time.time())}.mp4"
+    # Název bude teď čistě: adult_171576445.mp4 nebo insta_171576445.mp4
+    file_id = int(time.time())
+    clean_name = f"{folder}_{file_id}.mp4"
     
     ydl_opts = {
         'format': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
-        'outtmpl': clean_name, # Natvrdo čistý název
+        'outtmpl': clean_name,
         'nocheckcertificate': True,
         'quiet': False,
         'http_headers': {
@@ -37,7 +37,7 @@ def download_and_upload(url, folder):
         
         remote_path = f"videos/{folder}/{clean_name}"
         
-        # Nahrávání s brutálním vynucením typu videa
+        # NAHRÁVÁNÍ S FIXEM PRO SAFARI (Metadata a ContentType)
         with open(clean_name, 'rb') as data:
             s3.put_object(
                 Bucket='tikboo-media',
@@ -45,12 +45,15 @@ def download_and_upload(url, folder):
                 Body=data,
                 ContentType='video/mp4',
                 ContentDisposition='inline',
-                CacheControl='max-age=31536000'
+                CacheControl='public, max-age=31536000',
+                Metadata={
+                    'accept-ranges': 'bytes'
+                }
             )
 
         if os.path.exists(clean_name):
             os.remove(clean_name)
-        print(f"Hotovo: {remote_path}")
+        print(f"Hotovo! Uloženo jako: {remote_path}")
 
     except Exception as e:
         print(f"Chyba: {e}")
