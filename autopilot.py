@@ -1,76 +1,55 @@
-import os
-import boto3
-import yt_dlp
 import sys
-import time
-from botocore.config import Config
+import json
+import os
 
-# R2 Konfigurace
-r2_config = Config(signature_version='s3v4')
-s3 = boto3.client(
-    's3',
-    endpoint_url=os.environ.get('R2_ENDPOINT'),
-    aws_access_key_id=os.environ.get('R2_ACCESS_KEY'),
-    aws_secret_access_key=os.environ.get('R2_SECRET_KEY'),
-    config=r2_config,
-    region_name='auto'
-)
-
-def download_and_upload(url, folder):
-    # Unikátní název podle času a složky
-    file_id = int(time.time())
-    clean_name = f"{folder}_{file_id}.mp4"
+def get_universal_embed(url, folder):
+    """
+    Vezme jakoukoli URL a připraví z ní data pro embed přehrávač.
+    """
+    # Vyčistíme URL od zbytečností na konci
+    clean_url = url.split('?')[0].rstrip('/')
     
-    ydl_opts = {
-        # 720p pro iPhone a nejlepší kompatibilitu
-        'format': 'bestvideo[height<=720][vcodec^=avc1]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
-        'outtmpl': clean_name,
-        'nocheckcertificate': True,
-        
-        # --- HACKERSKÁ VSUVKA PROTI BLOKOVÁNÍ (HTTP 404) ---
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://www.google.com/',
-        },
-        # --------------------------------------------------
+    # Vygenerujeme ID jednoduše z URL (poslední část adresy)
+    # Funguje to pro 99 % stránek jako identifikátor
+    video_id = clean_url.split('/')[-1]
+    
+    # UNIVERZÁLNÍ LOGIKA:
+    # Většina pornostránek má embed linky ve formátu /embed/ID nebo /embedframe/ID
+    # Tady definujeme, jak se chovat k nejčastějším webům, zbytek vyřešíme univerzálně
+    
+    embed_url = url # Základní fallback
+    
+    if "xnxx.com" in url:
+        # Příklad: xnxx.com/video-123/název -> xnxx.com/embedframe/123
+        match = clean_url.split('video-')
+        if len(match) > 1:
+            id_only = match[1].split('/')[0]
+            embed_url = f"https://www.xnxx.com/embedframe/{id_only}"
+            
+    elif "pornhub.com" in url:
+        # Příklad: pornhub.com/view_video.php?viewkey=ph123 -> pornhub.com/embed/ph123
+        if "viewkey=" in url:
+            id_only = url.split("viewkey=")[1].split("&")[0]
+            embed_url = f"https://www.pornhub.com/embed/{id_only}"
 
-        'postprocessor_args': [
-            '-vcodec', 'libx264',
-            '-crf', '28',        # Brutální komprese (úspora peněz)
-            '-preset', 'faster',
-            '-movflags', 'faststart' # Klíčové pro okamžité spuštění v Safari
-        ],
+    elif "xhamster.com" in url:
+        # Příklad: xhamster.com/videos/video-123 -> xhamster.com/embed/video-123
+        id_only = clean_url.split('/')[-1]
+        embed_url = f"https://xhamster.com/embed/{id_only}"
+
+    # DATA PRO TVŮJ JSON (Databázi)
+    video_data = {
+        "id": video_id,
+        "source_url": url,       # Původní adresa
+        "embed_url": embed_url,   # Adresa pro tvůj swipe přehrávač
+        "folder": folder,         # Tvoje kategorie (např. 'adult')
+        "title": f"Video {video_id}",
+        "added_at": os.environ.get('GITHUB_RUN_ID', 'manual') # Kdy to bylo přidáno
     }
 
-    try:
-        print(f"Spouštím stahování s maskováním: {url}")
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        
-        remote_path = f"videos/{folder}/{clean_name}"
-        
-        # Nahrávání do R2
-        with open(clean_name, 'rb') as data:
-            s3.put_object(
-                Bucket='tikboo-media',
-                Key=remote_path,
-                Body=data,
-                ContentType='video/mp4',
-                ContentDisposition='inline',
-                CacheControl='public, max-age=31536000'
-            )
-
-        # Úklid lokálního souboru
-        if os.path.exists(clean_name):
-            os.remove(clean_name)
-        print(f"Hotovo: {remote_path}")
-
-    except Exception as e:
-        print(f"Chyba: {e}")
-        sys.exit(1)
+    print(json.dumps(video_data, indent=2))
+    return video_data
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
-        download_and_upload(sys.argv[1], sys.argv[2])
+        get_universal_embed(sys.argv[1], sys.argv[2])
