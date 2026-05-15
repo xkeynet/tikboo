@@ -127,6 +127,9 @@
        ========================================================== -->
   <div id="video-stack" aria-hidden="true">
     <div id="layerCurrent" class="twincher-layer">
+
+      <div id="db-video-wrapper" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;"></div>
+
       <video id="videoCurrent" playsinline></video>
       <img id="playOverlay" src="/assets/icons/play.svg" alt="" />
       <img id="imgCurrent" alt="" draggable="false" />
@@ -287,6 +290,43 @@
        ========================================================== -->
   <script src="/assets/js/app.js" defer></script>
   <script src="/assets/js/swipe.js"></script>
+
+  <script>
+    (async function() {
+      try {
+        const r = await fetch('db.json');
+        const db = await r.json();
+
+        if (db && db.length > 0) {
+          const video = db[db.length - 1];
+
+          if (video.type === "embed" && video.embed_url) {
+            const wrap = document.getElementById('db-video-wrapper');
+
+            wrap.style.display = 'block';
+
+            wrap.innerHTML = `
+              <iframe
+                src="${video.embed_url}"
+                style="width:100%;height:100%;border:none;"
+                allowfullscreen>
+              </iframe>
+            `;
+
+            if (document.getElementById('videoCurrent')) {
+              document.getElementById('videoCurrent').style.display = 'none';
+            }
+
+            if (document.getElementById('playOverlay')) {
+              document.getElementById('playOverlay').style.display = 'none';
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Tikboo DB Sync Error", e);
+      }
+    })();
+  </script>
 
 </body>
 </html>
