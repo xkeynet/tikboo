@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Vlož URL videa'
+        description: 'Vlož odkaz na video'
         required: true
       folder:
-        description: 'Složka (adult / insta)'
+        description: 'Kategorie (adult / insta)'
         required: true
         type: choice
         options:
@@ -15,12 +15,12 @@ on:
           - insta
 
 jobs:
-  run-autopilot:
+  update-db:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Bez tohoto řádku se nic neuloží!
+      contents: write
     steps:
-      - name: Checkout repozitáře
+      - name: Checkout kódu
         uses: actions/checkout@v4
 
       - name: Nastavení Pythonu
@@ -28,14 +28,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Spuštění skriptu
+      - name: Spuštění autopilota
         run: python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}"
 
-      - name: Commit a Push změn
+      - name: Uložení do GitHubu
         run: |
           git config --global user.name "TikBoo Bot"
           git config --global user.email "bot@tikboo.com"
           git add db.json
-          # Commitne změny pouze pokud existují
-          git commit -m "Přidáno nové video: ${{ github.event.inputs.video_url }}" || echo "Žádné změny k uložení"
+          git commit -m "Zápis videa: ${{ github.event.inputs.video_url }}" || exit 0
           git push
