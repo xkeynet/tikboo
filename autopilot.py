@@ -16,62 +16,73 @@ s3 = boto3.client(
 )
 
 def download_and_upload(url, folder):
-    print(f"🚀 Startuji stahování: {url}")
+    print(f"🚀 Startuji proces pro: {url}")
+    print(f"📁 Cílová složka: {folder}")
     
     cookie_path = 'cookies.txt'
     
-    # 2. Hackerské nastavení pro Instagram (iPhone 16 maskování)
+    # 2. Inteligentní nastavení stahování
+    # 'bestvideo+bestaudio/best' zajistí nejvyšší možnou kvalitu
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': '%(title)s.%(ext)s',
         'quiet': False,
-        'cookiefile': cookie_path if os.path.exists(cookie_path) else None,
         'nocheckcertificate': True,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'cs-CZ,cs;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Referer': 'https://www.instagram.com/',
-        }
+        'cookiefile': cookie_path if os.path.exists(cookie_path) else None,
     }
 
-    if not os.path.exists(cookie_path):
-        print("⚠️ Poznámka: cookies.txt je prázdný, zkouším pokročilé maskování iPhonu...")
+    # 3. Rozlišení logiky podle typu obsahu
+    # Pokud jde o Instagram, přidáme specifické maskování prohlížeče
+    if "instagram.com" in url:
+        print("📸 Detekován Instagram - aplikuji mobilní maskování...")
+        ydl_opts['http_headers'] = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Referer': 'https://www.instagram.com/',
+        }
+    else:
+        print("🌐 Detekován Adult/Ostatní obsah - nastavuji maximální propustnost...")
+        # Pro Adult stránky často stačí standardní UA, aby nedocházelo k chybám
+        ydl_opts['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
     try:
-        # 3. Stažení videa
+        # 4. Samotné stažení
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
         
-        # 4. Cesta v Cloudflare R2
+        # 5. Cesta v Cloudflare R2
         remote_path = f"videos/{folder}/{filename}"
         
         print(f"✅ Staženo: {filename}")
-        print(f"📦 Nahrávám na R2: {remote_path}")
+        print(f"📦 Nahrávám na Cloudflare R2...")
         
-        # 5. Upload na R2 s nastavením správného typu souboru
+        # 6. Upload s fixem pro přehrávání v prohlížeči
         s3.upload_file(
             filename, 
             'tikboo-media', 
             remote_path, 
-            ExtraArgs={'ContentType': 'video/mp4'}
+            ExtraArgs={
+                'ContentType': 'video/mp4',
+                'ContentDisposition': 'inline' # Fix pro okamžité přehrávání
+            }
         )
-        print("✨ Mise splněna! Video je v R2.")
+        print(f"✨ Hotovo! Video je dostupné v: {remote_path}")
 
-        # Úklid
+        # Úklid lokálního souboru
         if os.path.exists(filename):
             os.remove(filename)
 
     except Exception as e:
-        print(f"❌ Došlo k chybě: {str(e)}")
+        print(f"❌ Chyba v autopilotu: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
         url_videa = sys.argv[1]
-        typ_videa = sys.argv[2]
-        download_and_upload(url_videa, typ_videa)
+        typ_slozky = sys.argv[2]
+        download_and_upload(url_videa, typ_slozky)
     else:
-        print("❌ Chyba: Chybí URL nebo složka.")
+        print("❌ Chyba: Nedostatečné parametry (URL nebo složka).")
         sys.exit(1)
