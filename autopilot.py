@@ -7,24 +7,23 @@ import boto3
 from botocore.client import Config
 
 def extract_video_id(url):
-    if "viewkey=" in url:
-        match = re.search(r'viewkey=([a-zA-Z0-9]+)', url)
-        if match:
-            return match.group(1)
+    # Vyčištění odkazu a vytažení unikátního kódu Instagram videa/reels
     clean_url = url.split('?')[0].rstrip('/')
-    return clean_url.split('/')[-1]
+    video_id = clean_url.split('/')[-1]
+    # Pokud je na konci 'reels' nebo 'p', vezmeme část před tím
+    if video_id == "reels" or video_id == "p":
+        video_id = clean_url.split('/')[-2]
+    return video_id
 
 def process_pipeline(video_url, folder, custom_title):
     video_id = extract_video_id(video_url)
     raw_output = f"raw_{video_id}.mp4"
     final_output = f"ready_{video_id}.mp4"
     
-    print(f"--- KROK 1: Stahování videa {video_id} přes rezidenční proxy tunel ---")
-    # NEPRŮSTŘELNÝ TUNEL: Používáme čistou domácí IP adresu, která obchází ban GitHubu
-    proxy_server = "http://scraperapi:1c09930f3a6df78c9429ba26f25beba2@proxy-server.scraperapi.com:8001"
-    
+    print(f"--- KROK 1: Stahování Instagram videa {video_id} přes yt-dlp ---")
+    # Čisté stahování maskované za prohlížeč bez zablokovaných proxy serverů
     download_cmd = (
-        f'yt-dlp --proxy "{proxy_server}" '
+        f'yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
         f'--no-check-certificates '
         f'-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" '
         f'-o "{raw_output}" "{video_url}"'
@@ -32,6 +31,7 @@ def process_pipeline(video_url, folder, custom_title):
     subprocess.run(download_cmd, shell=True, check=True)
     
     print(f"--- KROK 2: FFmpeg transformace (Vertikální ořez + Instagram Kvalita) ---")
+    # Nekompromisní transformace na Instagram formát 720x1280 s vysokým bitrate
     ffmpeg_cmd = (
         f'ffmpeg -y -i "{raw_output}" '
         f'-vf "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280" '
@@ -104,6 +104,6 @@ if __name__ == "__main__":
         
     url_arg = sys.argv[1]
     folder_arg = sys.argv[2]
-    title_arg = sys.argv[3] if len(sys.argv) > 3 else "Premium Video"
+    title_arg = sys.argv[3] if len(sys.argv) > 3 else "Instagram Reel"
     
     process_pipeline(url_arg, folder_arg, title_arg)
