@@ -28,14 +28,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      # NOVÝ KROK: Příprava prostředí pro bleskové stahování a Instagram kvalitu
+      # CHIRURGICKÁ OPRAVA: Instalujeme nejnovější master verzi yt-dlp přímo z GitHubu
       - name: Instalace FFmpeg a Python knihoven
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install yt-dlp boto3
+          pip install --upgrade https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz boto3
 
-      # UPRAVENÝ KROK: Předáváme bezpečné klíče z GitHubu do Pythonu na pozadí
       - name: Spuštění autopilota
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
