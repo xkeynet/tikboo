@@ -21,8 +21,13 @@ def process_pipeline(video_url, folder, custom_title):
     final_output = f"ready_{video_id}.mp4"
     
     print(f"--- KROK 1: Stahování videa {video_id} přes yt-dlp ---")
-    # Stáhne nejlepší video stream do dočasného souboru
-    download_cmd = f'yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -o "{raw_output}" "{video_url}"'
+    # Chirurgické maskování za regulérní Chrome prohlížeč k proražení HTTP 410 ochrany
+    download_cmd = (
+        f'yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" '
+        f'--no-check-certificates '
+        f'-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" '
+        f'-o "{raw_output}" "{video_url}"'
+    )
     subprocess.run(download_cmd, shell=True, check=True)
     
     print(f"--- KROK 2: FFmpeg transformace (Vertikální ořez + Instagram Kvalita) ---")
@@ -49,12 +54,12 @@ def process_pipeline(video_url, folder, custom_title):
         config=Config(signature_version='s3v4')
     )
     
-    # PŘESNÁ CESTA PODLE TVÉHO SCREENSHOTU: videos/adult/ID.mp4 nebo videos/insta/ID.mp4
+    # Přesná cesta podle tvé struktury v bucketu tikboo-media
     r2_key = f"videos/{folder}/{video_id}.mp4"
     
     r2_client.upload_file(
         Filename=final_output,
-        Bucket=os.environ['R2_BUCKET_NAME'], # Zde bude v secrets uloženo: tikboo-media
+        Bucket=os.environ['R2_BUCKET_NAME'],
         Key=r2_key,
         ExtraArgs={'ContentType': 'video/mp4'}
     )
@@ -89,9 +94,8 @@ def process_pipeline(video_url, folder, custom_title):
         "type": "native_r2"
     }
     
-    # Pokud video se stejným ID už v db.json existuje, vymažeme ho, aby nevznikaly duplicity
+    # Odstranění duplicity a vložení nového videa na začátek feedu
     db_data = [item for item in db_data if item.get("id") != video_id]
-    # Vložíme nové video na první místo (na začátek feedu)
     db_data.insert(0, new_entry)
 
     with open(db_path, "w", encoding="utf-8") as f:
