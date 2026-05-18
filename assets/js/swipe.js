@@ -7,7 +7,6 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    // --- ATOMIC CONFIGURATION ---
     const THRESHOLD_RATIO = 0.15; 
     const MOVE_ACTIVATE_PX = 5;    
     const MIN_COMMIT_DY = 40;      
@@ -15,7 +14,6 @@
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
-    // --- BACKWARD SWIPE TUNING ---
     const BACKWARD_THRESHOLD_RATIO = 0.08;
     const BACKWARD_MIN_COMMIT_DY = 24;
     const BACKWARD_MIN_COMMIT_VY = 0.22;
@@ -242,7 +240,10 @@
 
         state.isAnimating = false;
 
-        requestAnimationFrame(() => warmForwardNext());
+        requestAnimationFrame(() => {
+          if (dir < 0) warmBackwardNext();
+          else warmForwardNext();
+        });
       }, duration + 10); 
     }
 
