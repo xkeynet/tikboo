@@ -33,28 +33,22 @@
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
-    // Pomocná pro bleskové transformace
     const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
 
-    // --- EFEKT: ZESVĚTLOVÁNÍ (OPACITY) ---
-    // Najde ikony a avatary v dané vrstvě a nastaví jim průhlednost
     function updateLayerEffects(layer, opacity) {
       const sideMenu = layer.querySelector('.side');
-      const avatar = layer.querySelector('.avatar-box'); // Pokud máš jinou třídu, uprav zde
       if (sideMenu) sideMenu.style.opacity = opacity;
-      if (avatar) avatar.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
       if (seekPill) seekPill.classList.remove('is-active');
       if (seekTime) seekTime.classList.remove('is-active');
+
       document.querySelectorAll('.side').forEach(s => {
         s.classList.remove('scrubbing');
         s.style.opacity = '1';
         s.style.display = '';
       });
-      // Reset i pro avatary v celém dokumentu pro jistotu
-      document.querySelectorAll('.avatar-box').forEach(a => a.style.opacity = '1');
     }
 
     function clearPendingCommit() {
@@ -66,23 +60,26 @@
 
     function resetTransformsNoAnim() {
       const height = vh();
-      if (raf) cancelAnimationFrame(raf); raf = 0;
+
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+
       clearTimeout(settleTimer);
       clearPendingCommit();
 
       [refs.layerCurrent, refs.layerNext].forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
-        updateLayerEffects(l, 1); // Vrátíme viditelnost ikonám
+        updateLayerEffects(l, 1);
       });
 
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
     }
 
-    // --- PREDIKTIVNÍ NABÍJENÍ ---
     function warmForwardNext() {
       if (state.isAnimating || dragging) return;
+
       const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
@@ -103,6 +100,7 @@
 
     function warmBackwardNext() {
       if (state.isAnimating || dragging) return;
+
       const height = vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
@@ -128,6 +126,7 @@
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
+
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
           vNext.play().then(() => vNext.pause()).catch(() => {});
@@ -157,7 +156,6 @@
       }, 90);
     }
 
-    // --- BRUTAL COMMIT ENGINE ---
     function commit(dir) {
       const now = performance.now();
 
@@ -181,8 +179,13 @@
       if (state.isAnimating) return;
       state.isAnimating = true;
       
-      clearAuto(); stopProg(); resetSeekUiImmediate();
-      if (raf) cancelAnimationFrame(raf); raf = 0;
+      clearAuto();
+      stopProg();
+      resetSeekUiImmediate();
+
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+
       clearTimeout(settleTimer);
 
       const height = vh();
@@ -193,10 +196,10 @@
       refs.layerNext.style.willChange = 'transform';
 
       const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
+
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      // Při dokončení zůstanou ikony na 30% (místo 0)
       updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
@@ -211,9 +214,17 @@
 
         state.index = normalizeIndex(state.index + dir);
 
-        const tmpL = refs.layerCurrent; refs.layerCurrent = refs.layerNext; refs.layerNext = tmpL;
-        const tmpV = refs.videoCurrent; refs.videoCurrent = refs.videoNext; refs.videoNext = tmpV;
-        const tmpI = refs.imgCurrent; refs.imgCurrent = refs.imgNext; refs.imgNext = tmpI;
+        const tmpL = refs.layerCurrent;
+        refs.layerCurrent = refs.layerNext;
+        refs.layerNext = tmpL;
+
+        const tmpV = refs.videoCurrent;
+        refs.videoCurrent = refs.videoNext;
+        refs.videoNext = tmpV;
+
+        const tmpI = refs.imgCurrent;
+        refs.imgCurrent = refs.imgNext;
+        refs.imgNext = tmpI;
 
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
@@ -230,22 +241,24 @@
         bindAutoAdvanceForCurrent();
 
         state.isAnimating = false;
+
         requestAnimationFrame(() => warmForwardNext());
       }, duration + 10); 
     }
 
     function snapBack() {
       if (state.isAnimating) return;
+
       clearPendingCommit();
 
       state.isAnimating = true;
+
       const duration = 200;
       const snapDir = preparedDir;
       
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
 
-      // Vrátíme opacity ikonám zpět na 1
       updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
@@ -256,6 +269,7 @@
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
+
         if (snapDir < 0) warmBackwardNext();
         else warmForwardNext();
       }, duration);
@@ -263,6 +277,7 @@
 
     function autoAdvance() {
       if (state.isAnimating || dragging) return;
+
       warmForwardNext();
       preparedDir = 1;
       commit(1);
@@ -270,6 +285,7 @@
 
     function finishGesture(cancelled) {
       if (!dragging || state.isAnimating) return;
+
       const totalDy = dy;
       const endT = performance.now();
       const dt = Math.max(1, endT - startT);
@@ -278,35 +294,47 @@
       swipeSoundUnlocked = false;
 
       if (cancelled || preparedDir === 0) {
-        if (preparedDir !== 0) snapBack();
-        else {
+        if (preparedDir !== 0) {
+          snapBack();
+        } else {
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
+
           if (isTap && refs.videoCurrent) {
-             if (refs.videoCurrent.paused) { 
-               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
-               showPlayOverlay(false);
-             } else {
-               refs.videoCurrent.pause(); stopProg(); showPlayOverlay(true);
-             }
+            if (refs.videoCurrent.paused) { 
+              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
+              showPlayOverlay(false);
+            } else {
+              refs.videoCurrent.pause();
+              stopProg();
+              showPlayOverlay(true);
+            }
           }
+
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
         }
+
         return;
       }
 
       const vy = (lastMoveY - startY) / dt;
       const isBackward = preparedDir === -1;
+
       const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
       const minDy = isBackward ? BACKWARD_MIN_COMMIT_DY : MIN_COMMIT_DY;
       const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
 
-      if (Math.abs(totalDy) >= vh() * thresholdRatio || (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)) {
+      if (
+        Math.abs(totalDy) >= vh() * thresholdRatio ||
+        (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
+      ) {
         commit(preparedDir);
       } else {
         snapBack();
       }
-      dy = 0; dx = 0;
+
+      dy = 0;
+      dx = 0;
     }
 
     document.addEventListener('touchstart', (e) => {
@@ -314,11 +342,14 @@
 
       dragging = true;
       preparedDir = 0;
+
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
       startT = performance.now();
       
-      clearAuto(); stopProg();
+      clearAuto();
+      stopProg();
+
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       
@@ -334,39 +365,47 @@
 
     document.addEventListener('touchmove', (e) => {
       if (!dragging || state.isAnimating) return;
+
       const y = e.touches[0].clientY;
       const x = e.touches[0].clientX;
+
       const ddy = y - startY;
       const ddx = x - startX;
 
       if (Math.abs(ddx) > Math.abs(ddy) * 1.4 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
 
       e.preventDefault();
+
       dy = ddy;
+      dx = ddx;
       lastMoveY = y;
 
       if (!swipeSoundUnlocked && typeof ensureSoundOn === 'function') {
-        ensureSoundOn(true); swipeSoundUnlocked = true;
+        ensureSoundOn(true);
+        swipeSoundUnlocked = true;
       }
 
       const dir = dy < 0 ? 1 : -1;
+
       if (preparedDir !== dir) prepareNextForDirection(dir);
 
       if (!raf) {
         raf = requestAnimationFrame(() => {
           raf = 0;
+
           const height = vh();
-          
-          // --- VÝPOČET OPACITY EFEKTU ---
-          // Progress 0 až 1, ale zastavíme se na 0.3 (efekt ducha)
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
           setTr(refs.layerCurrent, dy);
-          if (preparedDir > 0) setTr(refs.layerNext, height + dy);
-          else if (preparedDir < 0) setTr(refs.layerNext, -height + dy);
+
+          if (preparedDir > 0) {
+            setTr(refs.layerNext, height + dy);
+          } else if (preparedDir < 0) {
+            setTr(refs.layerNext, -height + dy);
+          }
         });
       }
     }, { passive: false });
@@ -374,9 +413,16 @@
     document.addEventListener('touchend', () => finishGesture(false), { passive: true });
     document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
 
-    return { autoAdvance, warmForwardNext, commit, resetTransformsNoAnim, isDragging() { return dragging; } };
+    return {
+      autoAdvance,
+      warmForwardNext,
+      commit,
+      resetTransformsNoAnim,
+      isDragging() {
+        return dragging;
+      }
+    };
   }
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
-
