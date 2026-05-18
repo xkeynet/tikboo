@@ -11,15 +11,42 @@ def clean_filename(text):
     return text.replace(' ', '%20')
 
 def download_video(url, output_path):
-    response = requests.get(url, stream=True)
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    response = requests.get(
+        url,
+        headers=headers,
+        stream=True,
+        allow_redirects=True,
+        timeout=60
+    )
 
     if response.status_code != 200:
-        raise Exception(f"Download failed: {response.status_code}")
+        raise Exception(f"Download failed: HTTP {response.status_code}")
+
+    content_type = response.headers.get("Content-Type", "").lower()
+    print(f"Content-Type: {content_type}")
 
     with open(output_path, "wb") as file:
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:
                 file.write(chunk)
+
+    file_size = os.path.getsize(output_path)
+    print(f"Downloaded size: {file_size} bytes")
+
+    if file_size < 500000:
+        os.remove(output_path)
+        raise Exception("Downloaded file is too small. This is probably not a real MP4 video.")
+
+    with open(output_path, "rb") as file:
+        header = file.read(32)
+
+    if b"ftyp" not in header:
+        os.remove(output_path)
+        raise Exception("Downloaded file is not a valid MP4 file.")
 
 def upload_to_r2(local_file, r2_key):
     endpoint = os.environ["R2_ENDPOINT"]
@@ -44,14 +71,12 @@ def upload_to_r2(local_file, r2_key):
     )
 
 def process_pipeline(video_url, folder, custom_title):
-
     if not custom_title or custom_title.strip() == "":
         custom_title = f"Video_{int(time.time())}"
 
     print(f"--- Processing: {custom_title} ---")
 
     safe_title = clean_filename(custom_title)
-
     local_filename = f"{safe_title}.mp4"
 
     print("⬇ Downloading video...")
@@ -62,7 +87,7 @@ def process_pipeline(video_url, folder, custom_title):
     print("☁ Uploading to Cloudflare R2...")
     upload_to_r2(local_filename, r2_key)
 
-    public_url = os.environ["R2_PUBLIC_URL"]
+    public_url = os.environ["R2_PUBLIC_URL"].rstrip("/")
     final_cdn_url = f"{public_url}/{r2_key}"
 
     db_path = "db.json"
@@ -76,7 +101,7 @@ def process_pipeline(video_url, folder, custom_title):
             db_data = []
 
     new_entry = {
-        "id": safe_title.replace('%20', '_'),
+        "id": safe_title.replace("%20", "_"),
         "source_url": video_url,
         "video_url": final_cdn_url,
         "folder": folder,
@@ -97,7 +122,6 @@ def process_pipeline(video_url, folder, custom_title):
     print(final_cdn_url)
 
 if __name__ == "__main__":
-
     if len(sys.argv) < 3:
         print("Missing parameters.")
         sys.exit(1)
