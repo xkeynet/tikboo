@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Vlož přímý odkaz na MP4 video'
+        description: 'Vlož odkaz na video nebo přímý MP4'
         required: true
       folder:
         description: 'Kategorie (adult / insta)'
@@ -41,9 +41,9 @@ jobs:
           python-version: '3.12'
 
       - name: Instalace knihoven
-        run: pip install requests boto3
+        run: pip install requests boto3 yt-dlp
 
-      - name: Stažení MP4 a upload do R2
+      - name: Stažení videa a upload do R2
         run: python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}" "${{ github.event.inputs.title }}"
 
       - name: Uložení db.json do GitHubu
