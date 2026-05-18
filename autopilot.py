@@ -1,77 +1,111 @@
+import os
 import sys
 import json
-import os
 import re
+import subprocess
+import boto3
+from botocore.client import Config
 
-def get_universal_embed(url, folder):
-    # Vyčištění URL
-    clean_url = url.split('?')[0].rstrip('/')
-    # Získání ID z konce URL
-    video_id = clean_url.split('/')[-1]
-    
-    embed_url = url  # Základní link, pokud nic jiného netrefíme
-    
-    # Detekce známých webů
-    if "xnxx.com" in url:
-        match = re.search(r'video-([\d\w]+)', url)
+def extract_video_id(url):
+    # Vyčistí URL a vytáhne unikátní ID videa pro název souboru
+    if "viewkey=" in url:
+        match = re.search(r'viewkey=([a-zA-Z0-9]+)', url)
         if match:
-            embed_url = f"https://www.xnxx.com/embedframe/{match.group(1)}"
-    elif "pornhub.com" in url:
-        if "viewkey=" in url:
-            id_only = url.split("viewkey=")[1].split("&")[0]
-            embed_url = f"https://www.pornhub.com/embed/{id_only}"
-    elif "xhamster.com" in url:
-        embed_url = f"https://xhamster.com/embed/{video_id}"
+            return match.group(1)
+    clean_url = url.split('?')[0].rstrip('/')
+    return clean_url.split('/')[-1]
 
-    # Generování ID, pokud neexistuje, nebo použití původního
-    final_id = video_id if video_id else os.urandom(4).hex()
-
-    return {
-        "id": final_id,
-        "source_url": url,
-        "embed_url": embed_url,
-        "folder": folder,
-        "title": f"Video {final_id}",
-        "type": "embed"
-    }
-
-def update_db(new_video):
-    db_file = 'db.json'
-    data = []
+def process_pipeline(video_url, folder, custom_title):
+    video_id = extract_video_id(video_url)
+    raw_output = f"raw_{video_id}.mp4"
+    final_output = f"ready_{video_id}.mp4"
     
-    # Načtení stávající databáze s ošetřením chyb
-    if os.path.exists(db_file):
+    print(f"--- KROK 1: Stahování videa {video_id} přes yt-dlp ---")
+    # Stáhne nejlepší video stream do dočasného souboru
+    download_cmd = f'yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -o "{raw_output}" "{video_url}"'
+    subprocess.run(download_cmd, shell=True, check=True)
+    
+    print(f"--- KROK 2: FFmpeg transformace (Vertikální ořez + Instagram Kvalita) ---")
+    # Přesný ořez na 720x1280 (poměr stran pro mobilní swipe), vysoký bitrate 2500k a bleskový start streamu
+    ffmpeg_cmd = (
+        f'ffmpeg -y -i "{raw_output}" '
+        f'-vf "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280" '
+        f'-vcodec libx264 -profile:v high -level 4.1 -pix_fmt yuv420p '
+        f'-b:v 2500k -maxrate 3000k -bufsize 5000k -movflags +faststart '
+        f'"{final_output}"'
+    )
+    subprocess.run(ffmpeg_cmd, shell=True, check=True)
+    
+    # Smazání surového videa z disku
+    if os.path.exists(raw_output):
+        os.remove(raw_output)
+
+    print(f"--- KROK 3: Nahrávání na Cloudflare R2 do složky videos/{folder}/ ---")
+    r2_client = boto3.client(
+        's3',
+        endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
+        aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+        config=Config(signature_version='s3v4')
+    )
+    
+    # PŘESNÁ CESTA PODLE TVÉHO SCREENSHOTU: videos/adult/ID.mp4 nebo videos/insta/ID.mp4
+    r2_key = f"videos/{folder}/{video_id}.mp4"
+    
+    r2_client.upload_file(
+        Filename=final_output,
+        Bucket=os.environ['R2_BUCKET_NAME'], # Zde bude v secrets uloženo: tikboo-media
+        Key=r2_key,
+        ExtraArgs={'ContentType': 'video/mp4'}
+    )
+    
+    # Smazání hotového videa z disku běžce po úspěšném uploadu
+    if os.path.exists(final_output):
+        os.remove(final_output)
+
+    # Poskládání finální veřejné adresy přes tvou custom CDN doménu
+    cdn_domain = os.environ.get('CF_CUSTOM_DOMAIN', 'cdn.tikboo.com').replace('https://', '').replace('http://', '')
+    final_cdn_url = f"https://{cdn_domain}/{r2_key}"
+    print(f"🚀 Video nahráno. Veřejný odkaz: {final_cdn_url}")
+
+    print(f"--- KROK 4: Zápis čistých dat do db.json ---")
+    db_path = "db.json"
+    db_data = []
+    
+    if os.path.exists(db_path):
         try:
-            with open(db_file, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
-                if content:
-                    data = json.loads(content)
-        except Exception as e:
-            print(f"Chyba při čtení DB: {e}")
-            data = []
+            with open(db_path, "r", encoding="utf-8") as f:
+                db_data = json.load(f)
+        except Exception:
+            db_data = []
 
-    # Přísná kontrola duplicity podle ID
-    if any(item.get('id') == new_video['id'] for item in data):
-        print(f"Upozornění: Video {new_video['id']} už v db.json existuje.")
-        return
-
-    # Přidání záznamu do seznamu
-    data.append(new_video)
+    # Struktura pro tvůj web s nativní R2 URL místo hnusného embedu
+    new_entry = {
+        "id": video_id,
+        "source_url": video_url,
+        "video_url": final_cdn_url,
+        "folder": folder,
+        "title": custom_title if custom_title else f"Video {video_id}",
+        "type": "native_r2"
+    }
     
-    # Zápis zpět do souboru s odsazením pro čitelnost
-    try:
-        with open(db_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        print(f"Úspěch: Video {new_video['id']} uloženo do db.json.")
-    except Exception as e:
-        print(f"Kritická chyba zápisu: {e}")
-        sys.exit(1)
+    # Pokud video se stejným ID už v db.json existuje, vymažeme ho, aby nevznikaly duplicity
+    db_data = [item for item in db_data if item.get("id") != video_id]
+    # Vložíme nové video na první místo (na začátek feedu)
+    db_data.insert(0, new_entry)
+
+    with open(db_path, "w", encoding="utf-8") as f:
+        json.dump(db_data, f, indent=2, ensure_ascii=False)
+        
+    print("🎯 db.json byla aktualizována a je připravena k pushnutí.")
 
 if __name__ == "__main__":
-    # Kontrola, zda byly předány oba argumenty (URL a Složka)
-    if len(sys.argv) >= 3:
-        video_entry = get_universal_embed(sys.argv[1], sys.argv[2])
-        update_db(video_entry)
-    else:
-        print("Chyba: Skript vyžaduje 2 argumenty: URL a název složky.")
+    if len(sys.argv) < 3:
+        print("Chyba: Chybí parametry skriptu.")
         sys.exit(1)
+        
+    url_arg = sys.argv[1]
+    folder_arg = sys.argv[2]
+    title_arg = sys.argv[3] if len(sys.argv) > 3 else "Premium Video"
+    
+    process_pipeline(url_arg, folder_arg, title_arg)
