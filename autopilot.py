@@ -3,6 +3,7 @@ import sys
 import json
 import re
 import time
+import subprocess
 import requests
 import boto3
 
@@ -10,7 +11,28 @@ def clean_filename(text):
     text = re.sub(r'[^\w\s\.-]', '', text)
     return text.replace(' ', '%20')
 
-def download_video(url, output_path):
+def is_direct_mp4_url(url):
+    return ".mp4" in url.lower().split("?")[0]
+
+def validate_mp4(output_path):
+    if not os.path.exists(output_path):
+        raise Exception("Video file was not created.")
+
+    file_size = os.path.getsize(output_path)
+    print(f"Downloaded size: {file_size} bytes")
+
+    if file_size < 500000:
+        os.remove(output_path)
+        raise Exception("Downloaded file is too small. This is probably not a real MP4 video.")
+
+    with open(output_path, "rb") as file:
+        header = file.read(64)
+
+    if b"ftyp" not in header:
+        os.remove(output_path)
+        raise Exception("Downloaded file is not a valid MP4 file.")
+
+def download_direct_mp4(url, output_path):
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
@@ -34,19 +56,45 @@ def download_video(url, output_path):
             if chunk:
                 file.write(chunk)
 
-    file_size = os.path.getsize(output_path)
-    print(f"Downloaded size: {file_size} bytes")
+    validate_mp4(output_path)
 
-    if file_size < 500000:
+def download_with_ytdlp(url, output_path):
+    temp_template = "downloaded_video.%(ext)s"
+
+    command = [
+        "yt-dlp",
+        "-f", "mp4/best[ext=mp4]/best",
+        "--merge-output-format", "mp4",
+        "-o", temp_template,
+        url
+    ]
+
+    print("Running yt-dlp...")
+    subprocess.run(command, check=True)
+
+    downloaded_file = None
+
+    for filename in os.listdir("."):
+        if filename.startswith("downloaded_video.") and filename.endswith(".mp4"):
+            downloaded_file = filename
+            break
+
+    if not downloaded_file:
+        raise Exception("yt-dlp did not create an MP4 file.")
+
+    if os.path.exists(output_path):
         os.remove(output_path)
-        raise Exception("Downloaded file is too small. This is probably not a real MP4 video.")
 
-    with open(output_path, "rb") as file:
-        header = file.read(32)
+    os.rename(downloaded_file, output_path)
+    validate_mp4(output_path)
 
-    if b"ftyp" not in header:
-        os.remove(output_path)
-        raise Exception("Downloaded file is not a valid MP4 file.")
+def download_video(url, output_path):
+    if is_direct_mp4_url(url):
+        print("⬇ Direct MP4 detected.")
+        download_direct_mp4(url, output_path)
+    else:
+        print("⬇ Page URL detected. Using yt-dlp.")
+        download_with_ytdlp(url, output_path)
 
 def upload_to_r2(local_file, r2_key):
     endpoint = os.environ["R2_ENDPOINT"]
