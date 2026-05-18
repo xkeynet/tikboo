@@ -3,7 +3,6 @@ import sys
 import json
 import re
 import subprocess
-import requests
 import boto3
 from botocore.client import Config
 
@@ -15,53 +14,23 @@ def extract_video_id(url):
     clean_url = url.split('?')[0].rstrip('/')
     return clean_url.split('/')[-1]
 
-def get_direct_video_url(video_url):
-    # Chirurgické vytažení přímého MP4 linku přes nezávislé API, které obchází Cloudflare/IP bany
-    print("[Liso API] Dekóduji přímý odkaz na video...")
-    api_url = f"https://api.v03.su/api/raw?url={video_url}"
-    try:
-        response = requests.get(api_url, timeout=15)
-        if response.status_code == 200:
-            data = response.json()
-            # Hledáme nejvyšší dostupnou kvalitu (1080p -> 720p -> nejlepší dostupná)
-            formats = data.get("formats", [])
-            if formats:
-                # Seřadíme od nejvyšší kvality
-                formats.sort(key=lambda x: int(x.get("quality", 0)) if str(x.get("quality", "")).isdigit() else 0, reverse=True)
-                direct_url = formats[0].get("url")
-                if direct_url:
-                    return direct_url
-            
-            # Záložní pokus o získání single streamu
-            direct_url = data.get("url")
-            if direct_url:
-                return direct_url
-        raise Exception(f"API vrátilo status kód {response.status_code}")
-    except Exception as e:
-        print(f"[Liso API] Selhal primární dekodér, zkouším záložní tunel... {str(e)}")
-        # Alternativní API pro absolutní jistotu funkčnosti
-        alt_api = f"https://api.savefrom.to/api/convert?url={video_url}"
-        alt_response = requests.get(alt_api, timeout=15).json()
-        if alt_response.get("url"):
-            return alt_response.get("url")
-        raise Exception("Všechny stahovací tunely byly zablokovány.")
-
 def process_pipeline(video_url, folder, custom_title):
     video_id = extract_video_id(video_url)
     raw_output = f"raw_{video_id}.mp4"
     final_output = f"ready_{video_id}.mp4"
     
-    # 1. KROK: Získání přímého MP4 odkazu bez návštěvy webu Pornhubu
-    direct_mp4_url = get_direct_video_url(video_url)
+    print(f"--- KROK 1: Stahování videa {video_id} přes rezidenční proxy tunel ---")
+    # NEPRŮSTŘELNÝ TUNEL: Používáme čistou domácí IP adresu, která obchází ban GitHubu
+    proxy_server = "http://scraperapi:1c09930f3a6df78c9429ba26f25beba2@proxy-server.scraperapi.com:8001"
     
-    print(f"--- KROK 1: Stahování čistého streamu ze zabezpečeného tunelu ---")
-    # Stáhneme přímo čistý video soubor, žádný scraping stránky se nekoná
-    with requests.get(direct_mp4_url, stream=True, timeout=30) as r:
-        r.raise_for_status()
-        with open(raw_output, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-                
+    download_cmd = (
+        f'yt-dlp --proxy "{proxy_server}" '
+        f'--no-check-certificates '
+        f'-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" '
+        f'-o "{raw_output}" "{video_url}"'
+    )
+    subprocess.run(download_cmd, shell=True, check=True)
+    
     print(f"--- KROK 2: FFmpeg transformace (Vertikální ořez + Instagram Kvalita) ---")
     ffmpeg_cmd = (
         f'ffmpeg -y -i "{raw_output}" '
