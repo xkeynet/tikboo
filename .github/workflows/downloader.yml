@@ -28,12 +28,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      # CHIRURGICKÁ OPRAVA: Instalujeme nejnovější master verzi yt-dlp přímo z GitHubu
       - name: Instalace FFmpeg a Python knihoven
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install --upgrade https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz boto3
+          pip install --upgrade yt-dlp boto3
 
       - name: Spuštění autopilota
         env:
@@ -43,7 +42,7 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           CF_CUSTOM_DOMAIN: ${{ secrets.CF_CUSTOM_DOMAIN }}
         run: python autopilot.py "${{ github.event.inputs.video_url }}" "${{ github.event.inputs.folder }}"
-
+      
       - name: Uložení do GitHubu
         run: |
           git config --global user.name "TikBoo Bot"
