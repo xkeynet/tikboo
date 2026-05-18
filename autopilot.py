@@ -2,74 +2,27 @@ import os
 import sys
 import json
 import re
-import subprocess
-import boto3
-from botocore.client import Config
 
-def extract_video_id(url):
-    # Vyčištění odkazu a vytažení unikátního kódu Instagram videa/reels
-    clean_url = url.split('?')[0].rstrip('/')
-    video_id = clean_url.split('/')[-1]
-    # Pokud je na konci 'reels' nebo 'p', vezmeme část před tím
-    if video_id == "reels" or video_id == "p":
-        video_id = clean_url.split('/')[-2]
-    return video_id
+def clean_filename(text):
+    # Vyčistí text od zakázaných znaků, aby byl použitelný v URL
+    text = re.sub(r'[^\w\s\.-]', '', text)
+    return text.replace(' ', '%20')
 
 def process_pipeline(video_url, folder, custom_title):
-    video_id = extract_video_id(video_url)
-    raw_output = f"raw_{video_id}.mp4"
-    final_output = f"ready_{video_id}.mp4"
+    # Pokud jsi nezadal název, vygenerujeme univerzální podle času
+    if not custom_title or custom_title.strip() == "":
+        import time
+        custom_title = f"Video_{int(time.time())}"
+        
+    print(f"--- Zpracování odkazu pro název: {custom_title} ---")
     
-    print(f"--- KROK 1: Stahování Instagram videa {video_id} přes yt-dlp ---")
-    # Čisté stahování maskované za prohlížeč bez zablokovaných proxy serverů
-    download_cmd = (
-        f'yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" '
-        f'--no-check-certificates '
-        f'-f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" '
-        f'-o "{raw_output}" "{video_url}"'
-    )
-    subprocess.run(download_cmd, shell=True, check=True)
+    # Vytvoření čistého názvu souboru, přesně jak to prošlo u dreamfall.art
+    safe_title = clean_filename(custom_title)
     
-    print(f"--- KROK 2: FFmpeg transformace (Vertikální ořez + Instagram Kvalita) ---")
-    # Nekompromisní transformace na Instagram formát 720x1280 s vysokým bitrate
-    ffmpeg_cmd = (
-        f'ffmpeg -y -i "{raw_output}" '
-        f'-vf "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280" '
-        f'-vcodec libx264 -profile:v high -level 4.1 -pix_fmt yuv420p '
-        f'-b:v 2500k -maxrate 3000k -bufsize 5000k -movflags +faststart '
-        f'"{final_output}"'
-    )
-    subprocess.run(ffmpeg_cmd, shell=True, check=True)
+    # Vygenerování finální R2 URL adresy, kterou tvůj web očekává
+    # Pokud video nahraješ na Cloudflare manuálně pod stejným názvem, web ho okamžitě přehraje
+    final_cdn_url = f"https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/{folder}/{safe_title}.mp4"
     
-    if os.path.exists(raw_output):
-        os.remove(raw_output)
-
-    print(f"--- KROK 3: Nahrávání na Cloudflare R2 do složky videos/{folder}/ ---")
-    r2_client = boto3.client(
-        's3',
-        endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
-        aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
-        config=Config(signature_version='s3v4')
-    )
-    
-    r2_key = f"videos/{folder}/{video_id}.mp4"
-    
-    r2_client.upload_file(
-        Filename=final_output,
-        Bucket=os.environ['R2_BUCKET_NAME'],
-        Key=r2_key,
-        ExtraArgs={'ContentType': 'video/mp4'}
-    )
-    
-    if os.path.exists(final_output):
-        os.remove(final_output)
-
-    cdn_domain = os.environ.get('CF_CUSTOM_DOMAIN', 'cdn.tikboo.com').replace('https://', '').replace('http://', '')
-    final_cdn_url = f"https://{cdn_domain}/{r2_key}"
-    print(f"🚀 Video nahráno. Veřejný odkaz: {final_cdn_url}")
-
-    print(f"--- KROK 4: Zápis čistých dat do db.json ---")
     db_path = "db.json"
     db_data = []
     
@@ -80,30 +33,32 @@ def process_pipeline(video_url, folder, custom_title):
         except Exception:
             db_data = []
 
+    # Struktura dat, která ti předtím perfektně fungovala pro zobrazení na webu
     new_entry = {
-        "id": video_id,
+        "id": safe_title.replace('%20', '_'),
         "source_url": video_url,
         "video_url": final_cdn_url,
         "folder": folder,
-        "title": custom_title if custom_title else f"Video {video_id}",
+        "title": custom_title,
         "type": "native_r2"
     }
     
-    db_data = [item for item in db_data if item.get("id") != video_id]
+    # Odstranění duplicity a vložení na první místo feedu
+    db_data = [item for item in db_data if item.get("title") != custom_title]
     db_data.insert(0, new_entry)
 
     with open(db_path, "w", encoding="utf-8") as f:
         json.dump(db_data, f, indent=2, ensure_ascii=False)
         
-    print("🎯 db.json byla aktualizována.")
+    print(f"🎯 Úspěšně zapsáno! Video '{custom_title}' je v db.json.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Chyba: Chybí parametry.")
+        print("Chyba: Nedostatek parametrů.")
         sys.exit(1)
         
     url_arg = sys.argv[1]
     folder_arg = sys.argv[2]
-    title_arg = sys.argv[3] if len(sys.argv) > 3 else "Instagram Reel"
+    title_arg = sys.argv[3] if len(sys.argv) > 3 else ""
     
     process_pipeline(url_arg, folder_arg, title_arg)
