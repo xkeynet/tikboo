@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Vlož odkaz na video'
+        description: 'Vlož odkaz na Instagram video'
         required: true
       folder:
         description: 'Kategorie (adult / insta)'
         required: true
         type: choice
         options:
-          - adult
           - insta
+          - adult
 
 jobs:
   update-db:
