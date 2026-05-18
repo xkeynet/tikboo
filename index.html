@@ -291,35 +291,44 @@
   <script src="/assets/js/swipe.js" defer></script>
   <script src="/assets/js/app.js" defer></script>
 
-  <script>
+    <script>
     (async function() {
       try {
         const r = await fetch('db.json');
         const db = await r.json();
 
         if (db && db.length > 0) {
-          const video = db[db.length - 1];
+          // ZMĚNA: Bereme první (nejnovější) video ze začátku pole db[0]
+          const video = db[0]; 
+          const wrap = document.getElementById('db-video-wrapper');
+          const nativePlayer = document.getElementById('videoCurrent');
+          const playOverlay = document.getElementById('playOverlay');
 
-          if (video.type === "embed" && video.embed_url) {
-            const wrap = document.getElementById('db-video-wrapper');
-
-            wrap.style.display = 'block';
-
-            wrap.innerHTML = `
-              <iframe
-                src="${video.embed_url}"
-                style="width:100%;height:100%;border:none;"
-                allowfullscreen>
-              </iframe>
-            `;
-
-            if (document.getElementById('videoCurrent')) {
-              document.getElementById('videoCurrent').style.display = 'none';
+          // --- VARIANT A: NATÍVNÍ VIDEO Z CLOUDFLARE R2 ---
+          if (video.type === "native_r2" && video.video_url) {
+            if (nativePlayer) {
+              // Vstříkneme správný odkaz z tvého Cloudflare do vestavěného přehrávače
+              nativePlayer.src = video.video_url;
+              nativePlayer.style.display = 'block';
+              nativePlayer.load(); // Znovu načíst video s novým zdrojem
             }
-
-            if (document.getElementById('playOverlay')) {
-              document.getElementById('playOverlay').style.display = 'none';
+            if (wrap) wrap.style.display = 'none'; // Skryjeme iframe wrapper
+          } 
+          
+          // --- VARIANTA B: EMBED ODKAZ (Záloha) ---
+          elif (video.type === "embed" && video.embed_url) {
+            if (wrap) {
+              wrap.style.display = 'block';
+              wrap.innerHTML = `
+                <iframe
+                  src="${video.embed_url}"
+                  style="width:100%;height:100%;border:none;"
+                  allowfullscreen>
+                </iframe>
+              `;
             }
+            if (nativePlayer) nativePlayer.style.display = 'none';
+            if (playOverlay) playOverlay.style.display = 'none';
           }
         }
       } catch (e) {
