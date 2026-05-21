@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === State / Playlist ===
   // =========================================================
   const PLAYLIST = [
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/GeorginaRodriguez.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/getting-ready.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/abigail.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/interview-kayley.mp4' },
