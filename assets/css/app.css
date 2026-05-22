@@ -832,3 +832,120 @@ button[aria-label="Share"] {
     opacity: 0.6;
   }
 }
+
+/* =========================================================
+   TIKBOO RESPONSIVE SHIELD PATCH
+   appended at END of app.css only
+   ========================================================= */
+
+/* =========================================================
+   PATCH 01 — SMALL DEVICE SHIELD
+   ========================================================= */
+
+@media (max-width: 390px), (max-height: 760px) {
+
+  :root{
+    --navIconBox:44px;
+    --navPadX:10px;
+  }
+
+  .side{
+    right:4px;
+    top:68%;
+    gap:10px;
+  }
+
+  .stack.avatar-stack{
+    top:-56px;
+  }
+
+  .avatar{
+    width:38px;
+    height:38px;
+  }
+
+  .side button{
+    width:44px;
+    height:36px;
+  }
+
+  .icon-heart,
+  .icon-talk{
+    width:29px;
+    height:29px;
+  }
+
+  .icon-bookmark{
+    width:30px;
+    height:30px;
+  }
+
+  .icon-share{
+    width:31px;
+    height:31px;
+  }
+
+  .icon-dots{
+    width:25px;
+    height:25px;
+  }
+
+  .count{
+    font-size:11px;
+  }
+
+  .seek-time{
+    bottom:40px;
+    font-size:26px;
+  }
+}
+
+/* =========================================================
+   PATCH 02 — HEIGHT CLASS SHIELD
+   ========================================================= */
+
+/* hodně nízké displeje */
+@media (max-height: 700px){
+
+  .side{
+    top:66%;
+    gap:8px;
+  }
+
+  .stack.avatar-stack{
+    top:-52px;
+  }
+
+  .seek-time{
+    font-size:24px;
+    bottom:38px;
+  }
+}
+
+/* vysoké Androidy */
+@media (min-height: 850px) and (max-width: 430px){
+
+  .side{
+    top:71%;
+  }
+}
+
+/* =========================================================
+   PATCH 03 — SAFE AREA SHIELD
+   ========================================================= */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+
+  .top{
+    top:calc(env(safe-area-inset-top) + 2px);
+    left:calc(env(safe-area-inset-left) + 4px);
+  }
+
+  .nav{
+    padding-bottom:max(env(safe-area-inset-bottom), 0px);
+  }
+
+  .seek-wrap{
+    bottom:calc(var(--navIconBox) - 5px + env(safe-area-inset-bottom));
+  }
+}
