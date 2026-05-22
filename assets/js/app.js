@@ -85,6 +85,51 @@ document.addEventListener('DOMContentLoaded', () => {
   let timeupdateBoundEl = null;
 
   // =========================================================
+  // === HIDDEN PRELOAD BUFFERS ===
+  // =========================================================
+  const preloadPrev = document.createElement('video');
+  const preloadNext = document.createElement('video');
+
+  [preloadPrev, preloadNext].forEach((v) => {
+    v.preload = 'auto';
+    v.muted = true;
+    v.playsInline = true;
+
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+
+    v.style.position = 'absolute';
+    v.style.width = '1px';
+    v.style.height = '1px';
+    v.style.opacity = '0';
+    v.style.pointerEvents = 'none';
+
+    document.body.appendChild(v);
+  });
+
+  function warmMemoryBuffers() {
+    const prevIndex = normalizeIndex(state.index - 1);
+    const nextIndex = normalizeIndex(state.index + 1);
+
+    const prevItem = PLAYLIST[prevIndex];
+    const nextItem = PLAYLIST[nextIndex];
+
+    if (prevItem?.type === 'video') {
+      if (preloadPrev.src !== prevItem.src) {
+        preloadPrev.src = prevItem.src;
+        preloadPrev.load();
+      }
+    }
+
+    if (nextItem?.type === 'video') {
+      if (preloadNext.src !== nextItem.src) {
+        preloadNext.src = nextItem.src;
+        preloadNext.load();
+      }
+    }
+  }
+
+  // =========================================================
   // === GA4 SAFE HELPER ===
   // =========================================================
   function track(eventName, params = {}) {
