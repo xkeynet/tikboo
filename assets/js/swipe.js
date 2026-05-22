@@ -187,7 +187,7 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 160; 
+      const duration = 130; 
       const videoToCleanup = refs.videoCurrent;
 
       refs.layerCurrent.style.willChange = 'transform';
