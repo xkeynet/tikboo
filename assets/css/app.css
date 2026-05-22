@@ -832,3 +832,59 @@ button[aria-label="Share"] {
     opacity: 0.6;
   }
 }
+
+/* =========================================================
+   TIKBOO — PHASE 01
+   non-master small devices only
+   SAFE APPEND PATCH
+   ========================================================= */
+
+body.device-non-master.device-small .side{
+  top:69%;
+  right:4px;
+  gap:10px;
+}
+
+body.device-non-master.device-small .stack.avatar-stack{
+  top:-58px;
+}
+
+body.device-non-master.device-small .avatar{
+  width:38px;
+  height:38px;
+}
+
+body.device-non-master.device-small .side button{
+  width:44px;
+  height:36px;
+}
+
+body.device-non-master.device-small .icon-heart,
+body.device-non-master.device-small .icon-talk{
+  width:29px;
+  height:29px;
+}
+
+body.device-non-master.device-small .icon-bookmark{
+  width:30px;
+  height:30px;
+}
+
+body.device-non-master.device-small .icon-share{
+  width:31px;
+  height:31px;
+}
+
+body.device-non-master.device-small .icon-dots{
+  width:25px;
+  height:25px;
+}
+
+body.device-non-master.device-small .count{
+  font-size:11px;
+}
+
+body.device-non-master.device-small .seek-time{
+  font-size:26px;
+  bottom:40px;
+}
