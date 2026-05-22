@@ -26,7 +26,7 @@
     let swipeSoundUnlocked = false;
     let lastCommitTime = 0;
     let pendingCommitTimer = 0;
-    const COMMIT_COOLDOWN = 120;
+    const COMMIT_COOLDOWN = 80;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
