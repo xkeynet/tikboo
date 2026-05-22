@@ -244,7 +244,7 @@
           if (dir < 0) warmBackwardNext();
           else warmForwardNext();
         });
-      }, duration + 10); 
+      }, duration); 
     }
 
     function snapBack() {
