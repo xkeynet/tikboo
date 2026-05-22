@@ -241,8 +241,13 @@
         state.isAnimating = false;
 
         requestAnimationFrame(() => {
-          if (dir < 0) warmBackwardNext();
-          else warmForwardNext();
+          if (dir < 0) {
+            warmBackwardNext();
+            setTimeout(() => warmForwardNext(), 80);
+          } else {
+            warmForwardNext();
+            setTimeout(() => warmBackwardNext(), 80);
+          }
         });
       }, duration + 10); 
     }
