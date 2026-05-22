@@ -783,6 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     defer(() => {
       swipeEngine.warmForwardNext();
+      warmMemoryBuffers();
     });
 
     bindAutoAdvanceForCurrent();
