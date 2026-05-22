@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
   [refs.videoCurrent, refs.videoNext].forEach((v) => {
-    v.preload = 'auto';
+    v.preload = 'metadata';
     v.playsInline = true;
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
