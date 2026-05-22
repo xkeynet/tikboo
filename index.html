@@ -288,6 +288,28 @@
   <!-- =========================================================
        APP JS
        ========================================================== -->
+
+  <!-- DEVICE VIRTUAL VIEWPORT SYSTEM — diagnostics only -->
+  <script>
+  (function(){
+
+    const MASTER_W = 430;
+    const MASTER_H = 932;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const scaleX = vw / MASTER_W;
+    const scaleY = vh / MASTER_H;
+
+    document.documentElement.style.setProperty('--vw-scale', scaleX);
+    document.documentElement.style.setProperty('--vh-scale', scaleY);
+
+    document.body.classList.add('device-runtime-ready');
+
+  })();
+  </script>
+
   <script src="/assets/js/swipe.js" defer></script>
   <script src="/assets/js/app.js" defer></script>
 
@@ -360,4 +382,4 @@
   </script>
 
   </body>
-  </html>  
+  </html>
