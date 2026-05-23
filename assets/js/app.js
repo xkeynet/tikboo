@@ -49,12 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const refs = {
+    layerPrev: document.getElementById('layerPrev'),
     layerCurrent: document.getElementById('layerCurrent'),
     layerNext: document.getElementById('layerNext'),
+
+    videoPrev: document.getElementById('videoPrev'),
     videoCurrent: document.getElementById('videoCurrent'),
     videoNext: document.getElementById('videoNext'),
+
+    imgPrev: document.getElementById('imgPrev'),
     imgCurrent: document.getElementById('imgCurrent'),
     imgNext: document.getElementById('imgNext'),
+
     playOverlay: document.getElementById('playOverlay')
   };
 
