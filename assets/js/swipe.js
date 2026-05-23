@@ -65,12 +65,13 @@
       clearTimeout(settleTimer);
       clearPendingCommit();
 
-      [refs.layerCurrent, refs.layerNext].forEach(l => {
+      [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
         updateLayerEffects(l, 1);
       });
 
+      if (refs.layerPrev) setTr(refs.layerPrev, -height);
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
     }
