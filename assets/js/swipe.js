@@ -38,6 +38,27 @@
       if (sideMenu) sideMenu.style.opacity = opacity;
     }
 
+    function keepNextVideoPassive(video) {
+      if (!video) return;
+
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+
+      try {
+        video.pause();
+      } catch (_) {}
+
+      try {
+        video.currentTime = 0;
+      } catch (_) {}
+
+      try {
+        video.load();
+      } catch (_) {}
+    }
+
     function resetSeekUiImmediate() {
       if (seekPill) seekPill.classList.remove('is-active');
       if (seekTime) seekTime.classList.remove('is-active');
@@ -87,7 +108,7 @@
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
+          keepNextVideoPassive(vNext);
         }
       }
 
@@ -108,7 +129,7 @@
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
+          keepNextVideoPassive(vNext);
         }
       }
 
@@ -127,7 +148,7 @@
 
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
+          keepNextVideoPassive(vNext);
         }
       }
 
@@ -190,6 +211,16 @@
       const duration = 130; 
       const videoToCleanup = refs.videoCurrent;
 
+      if (refs.videoNext) {
+        refs.videoNext.muted = true;
+        refs.videoNext.loop = true;
+        refs.videoNext.playsInline = true;
+
+        try {
+          refs.videoNext.pause();
+        } catch (_) {}
+      }
+
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
 
@@ -230,6 +261,8 @@
 
         if (playlist[state.index].type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
+          refs.videoCurrent.loop = true;
+          refs.videoCurrent.playsInline = true;
           tryPlay(refs.videoCurrent);
         }
 
