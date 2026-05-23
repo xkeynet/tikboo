@@ -53,10 +53,12 @@
       try {
         video.currentTime = 0;
       } catch (_) {}
+    }
 
-      try {
-        video.load();
-      } catch (_) {}
+    function resetPreparedNext() {
+      nextLoadedIndex = null;
+      nextLoadedDir = 0;
+      preparedDir = 0;
     }
 
     function resetSeekUiImmediate() {
@@ -102,7 +104,7 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
-      if (nextLoadedIndex !== targetIndex) {
+      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== 1) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
         
@@ -123,7 +125,7 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
-      if (nextLoadedIndex !== targetIndex) {
+      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== -1) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
         
@@ -142,7 +144,7 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index + dir);
       
-      if (nextLoadedIndex !== targetIndex) {
+      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== dir) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
 
@@ -255,6 +257,8 @@
         refs.imgCurrent = refs.imgNext;
         refs.imgNext = tmpI;
 
+        resetPreparedNext();
+
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
         resetTransformsNoAnim();
@@ -299,7 +303,7 @@
       setTr(refs.layerNext, preparedDir > 0 ? vh() : -vh());
 
       settleTimer = setTimeout(() => {
-        preparedDir = 0;
+        resetPreparedNext();
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
@@ -344,6 +348,7 @@
             }
           }
 
+          resetPreparedNext();
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
         }
