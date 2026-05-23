@@ -22,7 +22,9 @@
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
     let startT = 0, lastMoveY = 0;
-    let nextLoadedIndex = null, nextLoadedDir = 0;
+    let nextLoadedIndex = null;
+    let prevLoadedIndex = null;
+    let nextLoadedDir = 0;
     let swipeSoundUnlocked = false;
     let lastCommitTime = 0;
     let pendingCommitTimer = 0;
@@ -31,9 +33,13 @@
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
-    const setTr = (el, y) => { el.style.transform = `translate3d(0,${y}px,0)`; };
+    const setTr = (el, y) => {
+      if (!el) return;
+      el.style.transform = `translate3d(0,${y}px,0)`;
+    };
 
     function updateLayerEffects(layer, opacity) {
+      if (!layer) return;
       const sideMenu = layer.querySelector('.side');
       if (sideMenu) sideMenu.style.opacity = opacity;
     }
@@ -71,25 +77,27 @@
         updateLayerEffects(l, 1);
       });
 
-      if (refs.layerPrev) setTr(refs.layerPrev, -height);
+      setTr(refs.layerPrev, -height);
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
     }
 
-    function warmForwardNext() {
-      if (state.isAnimating || dragging) return;
+    function prewarmVideo(videoEl, item) {
+      if (!videoEl || !item || item.type !== 'video') return;
 
+      videoEl.play().then(() => {
+        videoEl.pause();
+      }).catch(() => {});
+    }
+
+    function prepareForwardLayer() {
       const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
-        
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
+        prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
 
       refs.layerNext.style.transition = 'none';
@@ -97,48 +105,44 @@
       nextLoadedDir = 1;
     }
 
-    function warmBackwardNext() {
-      if (state.isAnimating || dragging) return;
+    function prepareBackwardLayer() {
+      if (!refs.layerPrev || !refs.videoPrev) return;
 
       const height = vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
-      if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
-        
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
+      if (prevLoadedIndex !== targetIndex) {
+        setLayerContent(refs.layerPrev, playlist[targetIndex], true);
+        prevLoadedIndex = targetIndex;
+        prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
 
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, -height);
+      refs.layerPrev.style.transition = 'none';
+      setTr(refs.layerPrev, -height);
       nextLoadedDir = -1;
     }
 
-    function prepareNextForDirection(dir) {
-      const height = vh();
-      const targetIndex = normalizeIndex(state.index + dir);
-      
-      if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
+    function warmForwardNext() {
+      if (state.isAnimating) return;
+      prepareForwardLayer();
+    }
 
-        const vNext = refs.videoNext;
-        if (playlist[targetIndex].type === 'video' && vNext) {
-          vNext.play().then(() => vNext.pause()).catch(() => {});
-        }
+    function warmBackwardNext() {
+      if (state.isAnimating) return;
+      prepareBackwardLayer();
+    }
+
+    function prepareNextForDirection(dir) {
+      if (dir > 0) {
+        prepareForwardLayer();
+      } else {
+        prepareBackwardLayer();
       }
 
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, dir > 0 ? height : -height);
-      nextLoadedDir = dir;
       preparedDir = dir;
     }
 
-    function retryBackwardCommitOnce(dir) {
+    function retryCommitOnce(dir) {
       clearPendingCommit();
 
       pendingCommitTimer = setTimeout(() => {
@@ -146,7 +150,9 @@
 
         if (state.isAnimating) return;
 
-        if (refs.videoNext && refs.videoNext.readyState >= 2) {
+        const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
+
+        if (targetVideo && targetVideo.readyState >= 2) {
           commit(dir);
           return;
         }
@@ -162,13 +168,18 @@
         return;
       }
 
-      if (refs.videoNext && refs.videoNext.readyState < 2) {
-        if (dir < 0) {
-          retryBackwardCommitOnce(dir);
-          return;
-        }
+      const targetIndex = normalizeIndex(state.index + dir);
+      const targetItem = playlist[targetIndex];
+      const targetLayer = dir > 0 ? refs.layerNext : refs.layerPrev;
+      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
 
+      if (!targetLayer) {
         snapBack();
+        return;
+      }
+
+      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 2) {
+        retryCommitOnce(dir);
         return;
       }
 
@@ -189,41 +200,75 @@
 
       const height = vh();
       const duration = 130; 
-      const videoToCleanup = refs.videoCurrent;
+      const videoToPause = refs.videoCurrent;
 
       refs.layerCurrent.style.willChange = 'transform';
-      refs.layerNext.style.willChange = 'transform';
+      targetLayer.style.willChange = 'transform';
 
       const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
-      refs.layerNext.style.transition = `transform ${duration}ms ${monsterCurve}`;
+      targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
       updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
-      setTr(refs.layerNext, 0);
+      setTr(targetLayer, 0);
 
       settleTimer = setTimeout(() => {
-        if (videoToCleanup) {
-          videoToCleanup.pause();
-          videoToCleanup.removeAttribute('src');
-          videoToCleanup.load();
+        if (videoToPause) {
+          videoToPause.pause();
         }
 
-        state.index = normalizeIndex(state.index + dir);
+        state.index = targetIndex;
 
-        const tmpL = refs.layerCurrent;
-        refs.layerCurrent = refs.layerNext;
-        refs.layerNext = tmpL;
+        if (dir > 0) {
+          const oldPrevLayer = refs.layerPrev;
+          const oldPrevVideo = refs.videoPrev;
+          const oldPrevImg = refs.imgPrev;
 
-        const tmpV = refs.videoCurrent;
-        refs.videoCurrent = refs.videoNext;
-        refs.videoNext = tmpV;
+          const oldCurrentLayer = refs.layerCurrent;
+          const oldCurrentVideo = refs.videoCurrent;
+          const oldCurrentImg = refs.imgCurrent;
 
-        const tmpI = refs.imgCurrent;
-        refs.imgCurrent = refs.imgNext;
-        refs.imgNext = tmpI;
+          refs.layerCurrent = refs.layerNext;
+          refs.videoCurrent = refs.videoNext;
+          refs.imgCurrent = refs.imgNext;
+
+          refs.layerPrev = oldCurrentLayer;
+          refs.videoPrev = oldCurrentVideo;
+          refs.imgPrev = oldCurrentImg;
+
+          refs.layerNext = oldPrevLayer;
+          refs.videoNext = oldPrevVideo;
+          refs.imgNext = oldPrevImg;
+
+          prevLoadedIndex = normalizeIndex(state.index - 1);
+          nextLoadedIndex = null;
+        } else {
+          const oldNextLayer = refs.layerNext;
+          const oldNextVideo = refs.videoNext;
+          const oldNextImg = refs.imgNext;
+
+          const oldCurrentLayer = refs.layerCurrent;
+          const oldCurrentVideo = refs.videoCurrent;
+          const oldCurrentImg = refs.imgCurrent;
+
+          refs.layerCurrent = refs.layerPrev;
+          refs.videoCurrent = refs.videoPrev;
+          refs.imgCurrent = refs.imgPrev;
+
+          refs.layerNext = oldCurrentLayer;
+          refs.videoNext = oldCurrentVideo;
+          refs.imgNext = oldCurrentImg;
+
+          refs.layerPrev = oldNextLayer;
+          refs.videoPrev = oldNextVideo;
+          refs.imgPrev = oldNextImg;
+
+          nextLoadedIndex = normalizeIndex(state.index + 1);
+          prevLoadedIndex = null;
+        }
 
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
@@ -257,14 +302,20 @@
 
       const duration = 200;
       const snapDir = preparedDir;
+      const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
       
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
-      refs.layerNext.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+      if (targetLayer) {
+        targetLayer.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+      }
 
       updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
-      setTr(refs.layerNext, preparedDir > 0 ? vh() : -vh());
+
+      if (targetLayer) {
+        setTr(targetLayer, preparedDir > 0 ? vh() : -vh());
+      }
 
       settleTimer = setTimeout(() => {
         preparedDir = 0;
@@ -354,9 +405,11 @@
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
+      if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
       
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
+      if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
       if (startY < vh() * 0.45) {
         warmBackwardNext();
@@ -398,15 +451,18 @@
           const height = vh();
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
+          const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
           setTr(refs.layerCurrent, dy);
 
-          if (preparedDir > 0) {
-            setTr(refs.layerNext, height + dy);
-          } else if (preparedDir < 0) {
-            setTr(refs.layerNext, -height + dy);
+          if (targetLayer) {
+            if (preparedDir > 0) {
+              setTr(targetLayer, height + dy);
+            } else if (preparedDir < 0) {
+              setTr(targetLayer, -height + dy);
+            }
           }
         });
       }
@@ -418,6 +474,7 @@
     return {
       autoAdvance,
       warmForwardNext,
+      warmBackwardNext,
       commit,
       resetTransformsNoAnim,
       isDragging() {
