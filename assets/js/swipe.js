@@ -38,29 +38,6 @@
       if (sideMenu) sideMenu.style.opacity = opacity;
     }
 
-    function keepNextVideoPassive(video) {
-      if (!video) return;
-
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.preload = 'auto';
-
-      try {
-        video.pause();
-      } catch (_) {}
-
-      try {
-        video.currentTime = 0;
-      } catch (_) {}
-    }
-
-    function resetPreparedNext() {
-      nextLoadedIndex = null;
-      nextLoadedDir = 0;
-      preparedDir = 0;
-    }
-
     function resetSeekUiImmediate() {
       if (seekPill) seekPill.classList.remove('is-active');
       if (seekTime) seekTime.classList.remove('is-active');
@@ -104,13 +81,13 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
-      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== 1) {
+      if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          keepNextVideoPassive(vNext);
+          vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
 
@@ -125,13 +102,13 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
-      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== -1) {
+      if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
         
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          keepNextVideoPassive(vNext);
+          vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
 
@@ -144,13 +121,13 @@
       const height = vh();
       const targetIndex = normalizeIndex(state.index + dir);
       
-      if (nextLoadedIndex !== targetIndex || nextLoadedDir !== dir) {
+      if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
 
         const vNext = refs.videoNext;
         if (playlist[targetIndex].type === 'video' && vNext) {
-          keepNextVideoPassive(vNext);
+          vNext.play().then(() => vNext.pause()).catch(() => {});
         }
       }
 
@@ -213,16 +190,6 @@
       const duration = 130; 
       const videoToCleanup = refs.videoCurrent;
 
-      if (refs.videoNext) {
-        refs.videoNext.muted = true;
-        refs.videoNext.loop = true;
-        refs.videoNext.playsInline = true;
-
-        try {
-          refs.videoNext.pause();
-        } catch (_) {}
-      }
-
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
 
@@ -257,16 +224,12 @@
         refs.imgCurrent = refs.imgNext;
         refs.imgNext = tmpI;
 
-        resetPreparedNext();
-
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
         resetTransformsNoAnim();
 
         if (playlist[state.index].type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
-          refs.videoCurrent.loop = true;
-          refs.videoCurrent.playsInline = true;
           tryPlay(refs.videoCurrent);
         }
 
@@ -303,7 +266,7 @@
       setTr(refs.layerNext, preparedDir > 0 ? vh() : -vh());
 
       settleTimer = setTimeout(() => {
-        resetPreparedNext();
+        preparedDir = 0;
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
@@ -348,7 +311,6 @@
             }
           }
 
-          resetPreparedNext();
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
         }
