@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === State / Playlist ===
   // =========================================================
   const PLAYLIST = [
+    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Sun%E2%80%99s.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Afternoon.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/haha.mp4' },
     { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/motorbikes.mp4' },
