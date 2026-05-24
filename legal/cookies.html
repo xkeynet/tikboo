@@ -353,11 +353,19 @@ Email: support@tikboo.com
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
-  // linkify už ESCAPED text (bezpečné) – jen http(s)
-  const linkify = (escaped) => escaped.replace(
-    /(https?:\/\/[^\s<]+[^\s<\.)\],;:"'!?])/g,
-    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-  );
+  // linkify už ESCAPED text (bezpečné) – http + email
+  const linkify = (escaped) => escaped
+    .replace(
+      /(https?:\/\/[^\s<]+[^\s<\.)\],;:"'!?])/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    )
+    .replace(
+      /(^|[\s>])([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/gi,
+      '$1<a href="mailto:$2">$2</a>'
+    );
+
+  const isBullet = (line) => /^[•●\-–—*]\s+/.test(line);
+  const stripBullet = (line) => line.replace(/^[•●\-–—*]\s+/, "");
 
   const isBullet = (line) => /^[•●\-–—*]\s+/.test(line);
   const stripBullet = (line) => line.replace(/^[•●\-–—*]\s+/, "");
