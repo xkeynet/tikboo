@@ -289,8 +289,8 @@
         state.isAnimating = false;
 
         requestAnimationFrame(() => {
-          if (dir < 0) warmBackwardNext();
-          else warmForwardNext();
+          warmForwardNext();
+          warmBackwardNext();
         });
       }, duration); 
     }
