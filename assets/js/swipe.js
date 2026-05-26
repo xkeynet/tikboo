@@ -85,11 +85,10 @@
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
-      videoEl.play().then(() => {
-        if (videoEl !== refs.videoCurrent) {
-          videoEl.pause();
-        }
-      }).catch(() => {});
+      if (videoEl !== refs.videoCurrent) {
+        videoEl.pause();
+        videoEl.currentTime = 0;
+      }
     }
 
     function prepareForwardLayer() {
