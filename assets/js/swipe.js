@@ -86,7 +86,9 @@
       if (!videoEl || !item || item.type !== 'video') return;
 
       videoEl.play().then(() => {
-        videoEl.pause();
+        if (videoEl !== refs.videoCurrent) {
+          videoEl.pause();
+        }
       }).catch(() => {});
     }
 
