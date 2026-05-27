@@ -7,16 +7,16 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    const THRESHOLD_RATIO = 0.15; 
-    const MOVE_ACTIVATE_PX = 5;    
-    const MIN_COMMIT_DY = 40;      
-    const MIN_COMMIT_VY = 0.40;    
+    const THRESHOLD_RATIO = 0.11; 
+    const MOVE_ACTIVATE_PX = 3;    
+    const MIN_COMMIT_DY = 28;      
+    const MIN_COMMIT_VY = 0.28;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
-    const BACKWARD_THRESHOLD_RATIO = 0.08;
-    const BACKWARD_MIN_COMMIT_DY = 24;
-    const BACKWARD_MIN_COMMIT_VY = 0.22;
+    const BACKWARD_THRESHOLD_RATIO = 0.06;
+    const BACKWARD_MIN_COMMIT_DY = 18;
+    const BACKWARD_MIN_COMMIT_VY = 0.16;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
