@@ -28,6 +28,10 @@
     let swipeSoundUnlocked = false;
     let lastCommitTime = 0;
     let pendingCommitTimer = 0;
+    let queuedDir = 0;
+    let queueHasStart = false;
+    let queueStartY = 0;
+    let queueStartX = 0;
     const COMMIT_COOLDOWN = 80;
 
     const seekPill = document.getElementById('seekPill');
@@ -60,6 +64,13 @@
         clearTimeout(pendingCommitTimer);
         pendingCommitTimer = 0;
       }
+    }
+
+    function resetQueue() {
+      queuedDir = 0;
+      queueHasStart = false;
+      queueStartY = 0;
+      queueStartX = 0;
     }
 
     function resetTransformsNoAnim() {
@@ -287,9 +298,17 @@
 
         state.isAnimating = false;
 
+        const queued = queuedDir;
+        resetQueue();
+
         requestAnimationFrame(() => {
           warmForwardNext();
           warmBackwardNext();
+
+          if (queued !== 0 && !state.isAnimating) {
+            preparedDir = queued;
+            commit(queued);
+          }
         });
       }, duration); 
     }
@@ -298,6 +317,7 @@
       if (state.isAnimating) return;
 
       clearPendingCommit();
+      resetQueue();
 
       state.isAnimating = true;
 
@@ -392,7 +412,15 @@
     }
 
     document.addEventListener('touchstart', (e) => {
-      if (state.isAnimating || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+      if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+
+      if (state.isAnimating) {
+        queueHasStart = true;
+        queueStartY = e.touches[0].clientY;
+        queueStartX = e.touches[0].clientX;
+        queuedDir = 0;
+        return;
+      }
 
       dragging = true;
       preparedDir = 0;
@@ -421,7 +449,20 @@
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
-      if (state.isAnimating) return;
+      if (state.isAnimating) {
+        if (!queueHasStart || !e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+
+        const qy = e.touches[0].clientY;
+        const qx = e.touches[0].clientX;
+
+        const qdy = qy - queueStartY;
+        const qdx = qx - queueStartX;
+
+        if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < MOVE_ACTIVATE_PX) return;
+
+        queuedDir = qdy < 0 ? 1 : -1;
+        return;
+      }
 
       if (!dragging) {
         if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
