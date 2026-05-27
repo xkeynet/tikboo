@@ -534,19 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(v);
       } else {
         primeNextVideo(v);
-
-        v.addEventListener('loadeddata', () => {
-          if (v.readyState >= 2) {
-            try {
-              const p = v.play();
-              if (p && typeof p.then === 'function') {
-                p.then(() => { v.pause(); }).catch(() => {});
-              } else {
-                v.pause();
-              }
-            } catch (e) {}
-          }
-        }, { once: true });
       }
 
       return;
