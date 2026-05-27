@@ -783,31 +783,12 @@ document.addEventListener('DOMContentLoaded', () => {
     primeNextVideo
   });
 
-  function hasAgeOk() {
-    try {
-      return localStorage.getItem('swipe_age_ok') === '1';
-    } catch (e) {
-    return false;
-    }
-  }
-
   function initFirst() {
     state.isMuted = true;
     syncSoundUI();
 
     setLayerContent(refs.layerCurrent, PLAYLIST[state.index], false);
     swipeEngine.resetTransformsNoAnim();
-
-    if (!hasAgeOk() && PLAYLIST[state.index]?.type === 'video') {
-      refs.videoCurrent.loop = true;
-      refs.videoCurrent.muted = true;
-
-      try {
-        refs.videoCurrent.currentTime = 0;
-      } catch (e) {}
-
-      tryPlay(refs.videoCurrent);
-    }
 
     defer(() => {
       swipeEngine.warmForwardNext();
@@ -939,15 +920,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hideGate();
 
       if (PLAYLIST[state.index]?.type === 'video') {
-        refs.videoCurrent.loop = false;
         refs.videoCurrent.muted = state.isMuted;
-
-        try {
-        refs.videoCurrent.currentTime = 0;
-        } catch (e) {}
-
         tryPlay(refs.videoCurrent);
-
         showPlayOverlay(false);
         bindAutoAdvanceForCurrent();
       }
