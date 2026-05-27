@@ -278,6 +278,19 @@
         if (playlist[state.index].type === 'video') {
           refs.videoCurrent.muted = state.isMuted;
           tryPlay(refs.videoCurrent);
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (
+                refs.videoCurrent &&
+                playlist[state.index].type === 'video' &&
+                (refs.videoCurrent.paused || refs.videoCurrent.readyState < 2)
+              ) {
+                refs.videoCurrent.muted = state.isMuted;
+                tryPlay(refs.videoCurrent);
+              }
+            });
+          });
         }
 
         resetSeekUiImmediate();
