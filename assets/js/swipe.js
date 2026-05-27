@@ -400,6 +400,7 @@
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
       startT = performance.now();
+      lastMoveY = startY;
       
       clearAuto();
       stopProg();
@@ -420,7 +421,30 @@
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
-      if (!dragging || state.isAnimating) return;
+      if (state.isAnimating) return;
+
+      if (!dragging) {
+        if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+
+        dragging = true;
+        preparedDir = 0;
+
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        startT = performance.now();
+        lastMoveY = startY;
+
+        clearAuto();
+        stopProg();
+
+        refs.layerCurrent.style.transition = 'none';
+        refs.layerNext.style.transition = 'none';
+        if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
+
+        refs.layerCurrent.style.willChange = 'transform';
+        refs.layerNext.style.willChange = 'transform';
+        if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
+      }
 
       const y = e.touches[0].clientY;
       const x = e.touches[0].clientX;
