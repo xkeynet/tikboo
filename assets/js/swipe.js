@@ -18,6 +18,8 @@
     const BACKWARD_MIN_COMMIT_DY = 18;
     const BACKWARD_MIN_COMMIT_VY = 0.16;
 
+    const DIRECTION_FLIP_DAMPING_PX = 12;
+
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
@@ -506,7 +508,9 @@
         swipeSoundUnlocked = true;
       }
 
-      const dir = dy < 0 ? 1 : -1;
+      const rawDir = dy < 0 ? 1 : -1;
+      const isDirectionFlip = preparedDir !== 0 && preparedDir !== rawDir;
+      const dir = isDirectionFlip && Math.abs(dy) < DIRECTION_FLIP_DAMPING_PX ? preparedDir : rawDir;
 
       if (preparedDir !== dir) prepareNextForDirection(dir);
 
