@@ -269,7 +269,7 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 130; 
+      const duration = 120; 
       const videoToPause = refs.videoCurrent;
 
       refs.layerCurrent.style.willChange = 'transform';
