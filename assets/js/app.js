@@ -1,5 +1,7 @@
 // /assets/js/app.js
 
+import { PLAYLIST } from './data/playlist.js';
+
 // === iOS SAFARI: KILL ZOOM (pinch + gesture) ===
 document.addEventListener('touchmove', (e) => {
   if (e.scale && e.scale !== 1) e.preventDefault();
@@ -11,67 +13,8 @@ document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: fa
 
 document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
-  // === State / Playlist ===
+  // === State ===
   // =========================================================
-  const PLAYLIST = [
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/10.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/9.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/8.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/7.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/6.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/5.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/4.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/TOP.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/12.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/1.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/2.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/3.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/baby.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Crazy.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/haha.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Fav.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Last.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/sunone.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Sun%E2%80%99s.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Afternoon.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/motorbikes.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Powerpuff.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/ReturnGirls.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/GiannaBellucci.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Millennial.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/GeorginaRodriguez.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/getting-ready.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/abigail.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/interview-kayley.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/tikboo-test-0002.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/tikboo-test-0001.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Video%20by%20dreamfall.art.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe0.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Tereza.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Pracka%20.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe1.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe2.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe3.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Sunday.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe4.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe5.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/Beach.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe6.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe7.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe8.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe9.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe10.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/LA.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe11.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe12.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe13.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe14.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/MiamiBeach.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe15.mp4' },
-    { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/swipe16.mp4' }
-  ];
-
   const refs = {
     layerPrev: document.getElementById('layerPrev'),
     layerCurrent: document.getElementById('layerCurrent'),
@@ -967,4 +910,3 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
-
