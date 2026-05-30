@@ -137,6 +137,32 @@
       nextLoadedDir = -1;
     }
 
+    function preparePredictiveLayerDuringCommit(dir) {
+      const height = vh();
+      const predictiveIndex = normalizeIndex(state.index + (dir * 2));
+      const predictiveItem = playlist[predictiveIndex];
+
+      if (dir > 0) {
+        if (!refs.layerPrev || !refs.videoPrev) return null;
+
+        refs.layerPrev.style.transition = 'none';
+        setLayerContent(refs.layerPrev, predictiveItem, true);
+        prewarmVideo(refs.videoPrev, predictiveItem);
+        setTr(refs.layerPrev, height);
+
+        return predictiveIndex;
+      }
+
+      if (!refs.layerNext || !refs.videoNext) return null;
+
+      refs.layerNext.style.transition = 'none';
+      setLayerContent(refs.layerNext, predictiveItem, true);
+      prewarmVideo(refs.videoNext, predictiveItem);
+      setTr(refs.layerNext, -height);
+
+      return predictiveIndex;
+    }
+
     function warmForwardNext() {
       if (state.isAnimating) return;
       prepareForwardLayer();
@@ -216,6 +242,7 @@
       const height = vh();
       const duration = 130; 
       const videoToPause = refs.videoCurrent;
+      const predictiveLoadedIndex = preparePredictiveLayerDuringCommit(dir);
 
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
@@ -259,7 +286,7 @@
           refs.imgNext = oldPrevImg;
 
           prevLoadedIndex = normalizeIndex(state.index - 1);
-          nextLoadedIndex = null;
+          nextLoadedIndex = predictiveLoadedIndex;
         } else {
           const oldNextLayer = refs.layerNext;
           const oldNextVideo = refs.videoNext;
@@ -282,7 +309,7 @@
           refs.imgPrev = oldNextImg;
 
           nextLoadedIndex = normalizeIndex(state.index + 1);
-          prevLoadedIndex = null;
+          prevLoadedIndex = predictiveLoadedIndex;
         }
 
         if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
