@@ -19,6 +19,7 @@
     const BACKWARD_MIN_COMMIT_VY = 0.16;
 
     const DIRECTION_FLIP_DAMPING_PX = 12;
+    const QUEUE_MOVE_ACTIVATE_PX = 2;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -452,17 +453,32 @@
 
     document.addEventListener('touchmove', (e) => {
       if (state.isAnimating) {
-        if (!queueHasStart || !e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+        if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
         const qy = e.touches[0].clientY;
         const qx = e.touches[0].clientX;
 
+        if (!queueHasStart) {
+          queueHasStart = true;
+          queueStartY = qy;
+          queueStartX = qx;
+          queuedDir = 0;
+          return;
+        }
+
         const qdy = qy - queueStartY;
         const qdx = qx - queueStartX;
 
-        if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < MOVE_ACTIVATE_PX) return;
+        if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < QUEUE_MOVE_ACTIVATE_PX) return;
 
-        queuedDir = qdy < 0 ? 1 : -1;
+        const nextQueuedDir = qdy < 0 ? 1 : -1;
+
+        if (queuedDir !== 0 && queuedDir !== nextQueuedDir) {
+          queueStartY = qy;
+          queueStartX = qx;
+        }
+
+        queuedDir = nextQueuedDir;
         return;
       }
 
