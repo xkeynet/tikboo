@@ -1,6 +1,9 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/a.mp4' },
+  { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/b.mp4' },
+  { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/c.mp4' },
   { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/POV.mp4' },
   { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/54.mp4' },
   { type: 'video', src: 'https://pub-dcf634f0c29b4449bae68897ac703aff.r2.dev/videos/insta/55.mp4' },
