@@ -272,6 +272,11 @@
       const duration = 120; 
       const videoToPause = refs.videoCurrent;
 
+      if (targetItem?.type === 'video' && targetVideo) {
+        targetVideo.muted = state.isMuted;
+        tryPlay(targetVideo);
+      }
+
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
