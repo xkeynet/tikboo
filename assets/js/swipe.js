@@ -278,7 +278,7 @@
         setTimeout(() => {
           if (!state.isAnimating) return;
           tryPlay(targetVideo);
-        }, 20);
+        }, 15);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
