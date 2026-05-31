@@ -274,7 +274,11 @@
 
       if (targetItem?.type === 'video' && targetVideo) {
         targetVideo.muted = state.isMuted;
-        tryPlay(targetVideo);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          tryPlay(targetVideo);
+        }, 45);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
