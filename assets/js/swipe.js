@@ -37,6 +37,9 @@
     let queueStartX = 0;
     let memoryForwardIndex = null;
     let memoryBackwardIndex = null;
+    let activeCommitDir = 0;
+    let activeCommitTargetIndex = null;
+    let activeCommitVideoToPause = null;
     const COMMIT_COOLDOWN = 80;
 
     const seekPill = document.getElementById('seekPill');
@@ -95,6 +98,12 @@
       queueHasStart = false;
       queueStartY = 0;
       queueStartX = 0;
+    }
+
+    function resetActiveCommit() {
+      activeCommitDir = 0;
+      activeCommitTargetIndex = null;
+      activeCommitVideoToPause = null;
     }
 
     function warmMemoryVideo(videoEl, item) {
@@ -231,6 +240,106 @@
       }, 90);
     }
 
+    function finishCommit(dir, targetIndex, videoToPause) {
+      if (videoToPause) {
+        videoToPause.pause();
+      }
+
+      state.index = targetIndex;
+
+      if (dir > 0) {
+        const oldPrevLayer = refs.layerPrev;
+        const oldPrevVideo = refs.videoPrev;
+        const oldPrevImg = refs.imgPrev;
+
+        const oldCurrentLayer = refs.layerCurrent;
+        const oldCurrentVideo = refs.videoCurrent;
+        const oldCurrentImg = refs.imgCurrent;
+
+        refs.layerCurrent = refs.layerNext;
+        refs.videoCurrent = refs.videoNext;
+        refs.imgCurrent = refs.imgNext;
+
+        refs.layerPrev = oldCurrentLayer;
+        refs.videoPrev = oldCurrentVideo;
+        refs.imgPrev = oldCurrentImg;
+
+        refs.layerNext = oldPrevLayer;
+        refs.videoNext = oldPrevVideo;
+        refs.imgNext = oldPrevImg;
+
+        prevLoadedIndex = normalizeIndex(state.index - 1);
+        nextLoadedIndex = null;
+      } else {
+        const oldNextLayer = refs.layerNext;
+        const oldNextVideo = refs.videoNext;
+        const oldNextImg = refs.imgNext;
+
+        const oldCurrentLayer = refs.layerCurrent;
+        const oldCurrentVideo = refs.videoCurrent;
+        const oldCurrentImg = refs.imgCurrent;
+
+        refs.layerCurrent = refs.layerPrev;
+        refs.videoCurrent = refs.videoPrev;
+        refs.imgCurrent = refs.imgPrev;
+
+        refs.layerNext = oldCurrentLayer;
+        refs.videoNext = oldCurrentVideo;
+        refs.imgNext = oldCurrentImg;
+
+        refs.layerPrev = oldNextLayer;
+        refs.videoPrev = oldNextVideo;
+        refs.imgPrev = oldNextImg;
+
+        nextLoadedIndex = normalizeIndex(state.index + 1);
+        prevLoadedIndex = null;
+      }
+
+      if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
+
+      resetTransformsNoAnim();
+
+      if (playlist[state.index].type === 'video') {
+        refs.videoCurrent.muted = state.isMuted;
+        tryPlay(refs.videoCurrent);
+      }
+
+      resetSeekUiImmediate();
+      syncSoundUI();
+      showPlayOverlay(false);
+      bindAutoAdvanceForCurrent();
+
+      state.isAnimating = false;
+      resetActiveCommit();
+
+      const queued = queuedDir;
+      resetQueue();
+
+      requestAnimationFrame(() => {
+        warmForwardNext();
+        warmBackwardNext();
+
+        if (queued !== 0 && !state.isAnimating) {
+          preparedDir = queued;
+          commit(queued);
+        }
+      });
+    }
+
+    function interruptActiveCommit() {
+      if (!state.isAnimating || activeCommitDir === 0 || activeCommitTargetIndex === null) return false;
+
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+      clearPendingCommit();
+
+      finishCommit(activeCommitDir, activeCommitTargetIndex, activeCommitVideoToPause);
+      return true;
+    }
+
     function commit(dir) {
       const now = performance.now();
 
@@ -272,6 +381,10 @@
       const duration = 120; 
       const videoToPause = refs.videoCurrent;
 
+      activeCommitDir = dir;
+      activeCommitTargetIndex = targetIndex;
+      activeCommitVideoToPause = videoToPause;
+
       if (targetItem?.type === 'video' && targetVideo) {
         targetVideo.muted = state.isMuted;
 
@@ -295,88 +408,7 @@
       setTr(targetLayer, 0);
 
       settleTimer = setTimeout(() => {
-        if (videoToPause) {
-          videoToPause.pause();
-        }
-
-        state.index = targetIndex;
-
-        if (dir > 0) {
-          const oldPrevLayer = refs.layerPrev;
-          const oldPrevVideo = refs.videoPrev;
-          const oldPrevImg = refs.imgPrev;
-
-          const oldCurrentLayer = refs.layerCurrent;
-          const oldCurrentVideo = refs.videoCurrent;
-          const oldCurrentImg = refs.imgCurrent;
-
-          refs.layerCurrent = refs.layerNext;
-          refs.videoCurrent = refs.videoNext;
-          refs.imgCurrent = refs.imgNext;
-
-          refs.layerPrev = oldCurrentLayer;
-          refs.videoPrev = oldCurrentVideo;
-          refs.imgPrev = oldCurrentImg;
-
-          refs.layerNext = oldPrevLayer;
-          refs.videoNext = oldPrevVideo;
-          refs.imgNext = oldPrevImg;
-
-          prevLoadedIndex = normalizeIndex(state.index - 1);
-          nextLoadedIndex = null;
-        } else {
-          const oldNextLayer = refs.layerNext;
-          const oldNextVideo = refs.videoNext;
-          const oldNextImg = refs.imgNext;
-
-          const oldCurrentLayer = refs.layerCurrent;
-          const oldCurrentVideo = refs.videoCurrent;
-          const oldCurrentImg = refs.imgCurrent;
-
-          refs.layerCurrent = refs.layerPrev;
-          refs.videoCurrent = refs.videoPrev;
-          refs.imgCurrent = refs.imgPrev;
-
-          refs.layerNext = oldCurrentLayer;
-          refs.videoNext = oldCurrentVideo;
-          refs.imgNext = oldCurrentImg;
-
-          refs.layerPrev = oldNextLayer;
-          refs.videoPrev = oldNextVideo;
-          refs.imgPrev = oldNextImg;
-
-          nextLoadedIndex = normalizeIndex(state.index + 1);
-          prevLoadedIndex = null;
-        }
-
-        if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
-
-        resetTransformsNoAnim();
-
-        if (playlist[state.index].type === 'video') {
-          refs.videoCurrent.muted = state.isMuted;
-          tryPlay(refs.videoCurrent);
-        }
-
-        resetSeekUiImmediate();
-        syncSoundUI();
-        showPlayOverlay(false);
-        bindAutoAdvanceForCurrent();
-
-        state.isAnimating = false;
-
-        const queued = queuedDir;
-        resetQueue();
-
-        requestAnimationFrame(() => {
-          warmForwardNext();
-          warmBackwardNext();
-
-          if (queued !== 0 && !state.isAnimating) {
-            preparedDir = queued;
-            commit(queued);
-          }
-        });
+        finishCommit(dir, targetIndex, videoToPause);
       }, duration); 
     }
 
@@ -482,11 +514,15 @@
       if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
       if (state.isAnimating) {
-        queueHasStart = true;
-        queueStartY = e.touches[0].clientY;
-        queueStartX = e.touches[0].clientX;
-        queuedDir = 0;
-        return;
+        const interrupted = interruptActiveCommit();
+
+        if (!interrupted || state.isAnimating) {
+          queueHasStart = true;
+          queueStartY = e.touches[0].clientY;
+          queueStartX = e.touches[0].clientX;
+          queuedDir = 0;
+          return;
+        }
       }
 
       dragging = true;
@@ -563,10 +599,6 @@
         refs.layerCurrent.style.transition = 'none';
         refs.layerNext.style.transition = 'none';
         if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-
-        refs.layerCurrent.style.willChange = 'transform';
-        refs.layerNext.style.willChange = 'transform';
-        if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       }
 
       const y = e.touches[0].clientY;
