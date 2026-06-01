@@ -369,14 +369,13 @@
         resetQueue();
 
         requestAnimationFrame(() => {
-          if (queued !== 0 && !state.isAnimating) {
-            prepareNextForDirection(queued);
-            commit(queued);
-            return;
-          }
-
           warmForwardNext();
           warmBackwardNext();
+
+          if (queued !== 0 && !state.isAnimating) {
+            preparedDir = queued;
+            commit(queued);
+          }
         });
       }, duration); 
     }
