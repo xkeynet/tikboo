@@ -358,6 +358,18 @@
           tryPlay(refs.videoCurrent);
         }
 
+        setTimeout(() => {
+          if (state.isAnimating || dragging) return;
+          if (playlist[state.index]?.type !== 'video') return;
+          if (!refs.videoCurrent || refs.videoCurrent.ended) return;
+
+          refs.videoCurrent.muted = state.isMuted;
+
+          if (refs.videoCurrent.paused) {
+            tryPlay(refs.videoCurrent);
+          }
+        }, 120);
+
         resetSeekUiImmediate();
         syncSoundUI();
         showPlayOverlay(false);
