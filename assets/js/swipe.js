@@ -20,6 +20,7 @@
 
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
+    const MAX_MOVE_STEP_PX = 120;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -611,7 +612,15 @@
 
       e.preventDefault();
 
-      dy = ddy;
+      const previousDy = dy;
+      const nextDy = ddy;
+
+      if (Math.abs(nextDy - previousDy) > MAX_MOVE_STEP_PX) {
+        dy = previousDy + Math.sign(nextDy - previousDy) * MAX_MOVE_STEP_PX;
+      } else {
+        dy = nextDy;
+      }
+
       dx = ddx;
       lastMoveY = y;
 
