@@ -40,7 +40,7 @@
     let activeCommitDir = 0;
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
-    const COMMIT_COOLDOWN = 80;
+    const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
