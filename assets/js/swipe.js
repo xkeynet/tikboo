@@ -41,6 +41,7 @@
     let activeCommitDir = 0;
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
+    let playbackGuardTimer = 0;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -94,6 +95,13 @@
       }
     }
 
+    function clearPlaybackGuard() {
+      if (playbackGuardTimer) {
+        clearTimeout(playbackGuardTimer);
+        playbackGuardTimer = 0;
+      }
+    }
+
     function resetQueue() {
       queuedDir = 0;
       queueHasStart = false;
@@ -105,6 +113,30 @@
       activeCommitDir = 0;
       activeCommitTargetIndex = null;
       activeCommitVideoToPause = null;
+    }
+
+    function guardCurrentPlayback(reason) {
+      clearPlaybackGuard();
+
+      playbackGuardTimer = setTimeout(() => {
+        playbackGuardTimer = 0;
+
+        if (state.isAnimating || dragging) return;
+
+        const item = playlist[state.index];
+        const video = refs.videoCurrent;
+
+        if (!item || item.type !== 'video' || !video) return;
+
+        video.muted = state.isMuted;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+
+        if (video.paused || video.readyState < 2) {
+          tryPlay(video);
+        }
+      }, 70);
     }
 
     function warmMemoryVideo(videoEl, item) {
@@ -303,6 +335,7 @@
       if (playlist[state.index].type === 'video') {
         refs.videoCurrent.muted = state.isMuted;
         tryPlay(refs.videoCurrent);
+        guardCurrentPlayback('finishCommit');
       }
 
       resetSeekUiImmediate();
@@ -364,6 +397,7 @@
       }
 
       clearPendingCommit();
+      clearPlaybackGuard();
       lastCommitTime = now;
 
       if (state.isAnimating) return;
@@ -443,6 +477,7 @@
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
+        guardCurrentPlayback('snapBack');
 
         if (snapDir < 0) warmBackwardNext();
         else warmForwardNext();
@@ -477,7 +512,9 @@
             if (refs.videoCurrent.paused) { 
               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
               showPlayOverlay(false);
+              guardCurrentPlayback('tapPlay');
             } else {
+              clearPlaybackGuard();
               refs.videoCurrent.pause();
               stopProg();
               showPlayOverlay(true);
@@ -661,6 +698,18 @@
 
     document.addEventListener('touchend', () => finishGesture(false), { passive: true });
     document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        guardCurrentPlayback('visible');
+      } else {
+        clearPlaybackGuard();
+      }
+    }, { passive: true });
+
+    window.addEventListener('pageshow', () => {
+      guardCurrentPlayback('pageshow');
+    }, { passive: true });
 
     return {
       autoAdvance,
