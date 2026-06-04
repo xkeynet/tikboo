@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.type !== 'video') return;
 
     autoBoundVideo = refs.videoCurrent;
-    autoBoundVideo.loop = true;
+    autoBoundVideo.loop = false;
     autoBoundVideo.muted = true;
     autoBoundVideo.onended = null;
     autoBoundVideo.onerror = null;
@@ -553,6 +553,16 @@ document.addEventListener('DOMContentLoaded', () => {
     autoBoundVideo.onpause = null;
     autoBoundVideo.onloadedmetadata = null;
     autoBoundVideo.onseeked = null;
+
+    autoBoundVideo.ontimeupdate = () => {
+      const d = autoBoundVideo.duration;
+      if (!d || !isFinite(d) || d <= 0) return;
+
+      if (d - autoBoundVideo.currentTime <= 0.12) {
+        autoBoundVideo.currentTime = 0.02;
+        tryPlay(autoBoundVideo);
+      }
+    };
 
     refs.videoCurrent.muted = true;
     tryPlay(refs.videoCurrent);
