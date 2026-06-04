@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = autoBoundVideo.duration;
       if (!d || !isFinite(d) || d <= 0) return;
 
-      if (d - autoBoundVideo.currentTime <= 0.20) {
+      if (d - autoBoundVideo.currentTime <= 0.30) {
         autoBoundVideo.currentTime = 0.02;
         tryPlay(autoBoundVideo);
       }
