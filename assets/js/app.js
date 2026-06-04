@@ -61,6 +61,31 @@ document.addEventListener('DOMContentLoaded', () => {
   let seekActiveOffTimer = 0;
   let timeupdateBoundEl = null;
 
+  let ageGateUnlocked = false;
+
+  // =========================================================
+  // === Age Gate Storage ===
+  // =========================================================
+  const KEY = 'swipe_age_ok';
+  const gate = document.getElementById('gateOverlay');
+  const enterBtn = document.getElementById('enterBtn');
+
+  function hideGate() {
+    if (!gate) return;
+    gate.classList.add('hidden');
+  }
+
+  function showGate() {
+    if (!gate) return;
+    gate.classList.remove('hidden');
+  }
+
+  try {
+    ageGateUnlocked = localStorage.getItem(KEY) === '1';
+  } catch (e) {
+    ageGateUnlocked = false;
+  }
+
   // =========================================================
   // === HIDDEN PRELOAD BUFFERS ===
   // =========================================================
@@ -195,6 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function ensureSoundOn(shouldPlay) {
+    if (!ageGateUnlocked) {
+      if (shouldPlay) tryPlay(refs.videoCurrent);
+      return;
+    }
+
     if (!state.isMuted) {
       if (shouldPlay) tryPlay(refs.videoCurrent);
       return;
@@ -500,9 +530,43 @@ document.addEventListener('DOMContentLoaded', () => {
     setImageSafe(im, item.src);
   }
 
+  function bindPreviewLoopForCurrent() {
+    clearAuto();
+    stopProg();
+
+    if (timeupdateBoundEl) {
+      timeupdateBoundEl.removeEventListener('timeupdate', updateSeekFill);
+      timeupdateBoundEl = null;
+    }
+
+    showSeek(false);
+
+    const item = PLAYLIST[state.index];
+    if (item.type !== 'video') return;
+
+    autoBoundVideo = refs.videoCurrent;
+    autoBoundVideo.loop = true;
+    autoBoundVideo.muted = true;
+    autoBoundVideo.onended = null;
+    autoBoundVideo.onerror = null;
+    autoBoundVideo.onplay = null;
+    autoBoundVideo.onpause = null;
+    autoBoundVideo.onloadedmetadata = null;
+    autoBoundVideo.onseeked = null;
+
+    refs.videoCurrent.muted = true;
+    tryPlay(refs.videoCurrent);
+    showPlayOverlay(false);
+  }
+
   function bindAutoAdvanceForCurrent() {
     clearAuto();
     stopProg();
+
+    if (!ageGateUnlocked) {
+      bindPreviewLoopForCurrent();
+      return;
+    }
 
     const item = PLAYLIST[state.index];
 
@@ -514,6 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.type === 'video') {
       showSeek(true);
       autoBoundVideo = refs.videoCurrent;
+      autoBoundVideo.loop = false;
 
       autoBoundVideo.onended = () => {
         if (swipeEngine) swipeEngine.autoAdvance();
@@ -556,6 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   if (seekWrap) {
     seekWrap.addEventListener('touchstart', (e) => {
+      if (!ageGateUnlocked) return;
       if (!e.touches || e.touches.length !== 1) return;
       if (PLAYLIST[state.index].type !== 'video') return;
 
@@ -578,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekWrap.addEventListener('touchmove', (e) => {
+      if (!ageGateUnlocked) return;
       if (!pillTouching) return;
       if (!e.touches || e.touches.length !== 1) return;
       if (PLAYLIST[state.index].type !== 'video') return;
@@ -610,6 +677,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekWrap.addEventListener('touchend', (e) => {
+      if (!ageGateUnlocked) return;
+
       pillTouching = false;
       pillSeeking = false;
 
@@ -629,6 +698,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekWrap.addEventListener('touchcancel', () => {
+      if (!ageGateUnlocked) return;
+
       pillTouching = false;
       pillSeeking = false;
       pillMoved = false;
@@ -645,6 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (seekPill) {
     seekPill.addEventListener('touchstart', (e) => {
+      if (!ageGateUnlocked) return;
       if (PLAYLIST[state.index].type !== 'video') return;
       if (!e.touches || e.touches.length !== 1) return;
 
@@ -658,6 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     seekPill.addEventListener('touchmove', (e) => {
+      if (!ageGateUnlocked) return;
       if (!pillTouching) return;
       if (PLAYLIST[state.index].type !== 'video') return;
       if (!e.touches || e.touches.length !== 1) return;
@@ -684,6 +757,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekPill.addEventListener('touchend', (e) => {
+      if (!ageGateUnlocked) return;
+
       if (PLAYLIST[state.index].type !== 'video') {
         pillTouching = false;
         pillSeeking = false;
@@ -707,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     seekPill.addEventListener('click', (e) => {
+      if (!ageGateUnlocked) return;
       if (PLAYLIST[state.index].type !== 'video') return;
       if (pillMoved) return;
       e.preventDefault();
@@ -738,20 +814,54 @@ document.addEventListener('DOMContentLoaded', () => {
     primeNextVideo
   });
 
+  function activatePreviewMode() {
+    ageGateUnlocked = false;
+
+    state.index = 0;
+    state.isMuted = true;
+
+    refs.videoCurrent.loop = true;
+    refs.videoCurrent.muted = true;
+
+    bindPreviewLoopForCurrent();
+    showGate();
+  }
+
+  function activateFullFeed() {
+    ageGateUnlocked = true;
+
+    refs.videoCurrent.loop = false;
+    refs.videoCurrent.muted = state.isMuted;
+
+    hideGate();
+
+    if (PLAYLIST[state.index]?.type === 'video') {
+      tryPlay(refs.videoCurrent);
+      showPlayOverlay(false);
+    }
+
+    defer(() => {
+      swipeEngine.warmForwardNext();
+      swipeEngine.warmBackwardNext();
+      warmMemoryBuffers();
+    });
+
+    bindAutoAdvanceForCurrent();
+  }
+
   function initFirst() {
     state.isMuted = true;
     syncSoundUI();
 
     setLayerContent(refs.layerCurrent, PLAYLIST[state.index], false);
     swipeEngine.resetTransformsNoAnim();
-
-    defer(() => {
-      swipeEngine.warmForwardNext();
-      warmMemoryBuffers();
-    });
-
-    bindAutoAdvanceForCurrent();
     showPlayOverlay(false);
+
+    if (ageGateUnlocked) {
+      activateFullFeed();
+    } else {
+      activatePreviewMode();
+    }
   }
 
   initFirst();
@@ -761,6 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeProfile = document.getElementById('closeProfile');
 
   function openProfile(source = 'unknown') {
+    if (!ageGateUnlocked) return;
     if (!profileModal) return;
 
     profileModal.classList.add('show');
@@ -786,6 +897,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', async (e) => {
+    if (!ageGateUnlocked) return;
+
     const shareBtn = e.target.closest('[aria-label="Share"]');
     if (!shareBtn) return;
 
@@ -834,30 +947,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // =========================================================
-  // === Age Gate Storage ===
-  // =========================================================
-  const KEY = 'swipe_age_ok';
-  const gate = document.getElementById('gateOverlay');
-  const enterBtn = document.getElementById('enterBtn');
-
-  function hideGate() {
-    if (!gate) return;
-    gate.classList.add('hidden');
-  }
-
-  function showGate() {
-    if (!gate) return;
-    gate.classList.remove('hidden');
-  }
-
-  try {
-    if (localStorage.getItem(KEY) === '1') hideGate();
-    else showGate();
-  } catch (e) {
-    showGate();
-  }
-
   if (enterBtn) {
     enterBtn.addEventListener('click', function () {
       track('age_gate_enter', {
@@ -872,14 +961,8 @@ document.addEventListener('DOMContentLoaded', () => {
       this.textContent = 'ENTERED';
       this.disabled = true;
       this.style.opacity = '0.75';
-      hideGate();
 
-      if (PLAYLIST[state.index]?.type === 'video') {
-        refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
-        showPlayOverlay(false);
-        bindAutoAdvanceForCurrent();
-      }
+      activateFullFeed();
     });
   }
 });
