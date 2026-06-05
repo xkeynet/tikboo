@@ -588,11 +588,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.type === 'video') {
       showSeek(true);
       autoBoundVideo = refs.videoCurrent;
-      autoBoundVideo.loop = false;
+      autoBoundVideo.loop = true;
 
-      autoBoundVideo.onended = () => {
-        if (swipeEngine) swipeEngine.autoAdvance();
-      };
+      autoBoundVideo.onended = null;
 
       autoBoundVideo.onerror = () => {
         const flag = refs.videoCurrent?.dataset?.codecFallback;
