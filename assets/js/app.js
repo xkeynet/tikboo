@@ -2,6 +2,8 @@
 
 import { PLAYLIST } from './data/playlist.js';
 
+import { initInteractions } from './ui/interactions.js';
+
 // === iOS SAFARI: KILL ZOOM (pinch + gesture) ===
 document.addEventListener('touchmove', (e) => {
   if (e.scale && e.scale !== 1) e.preventDefault();
@@ -873,6 +875,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initFirst();
+
+  initInteractions({
+    state,
+    playlist: PLAYLIST,
+    track,
+    canInteract: () => ageGateUnlocked
+  });
 
   const profileBtn = document.getElementById('profileBtn');
   const profileModal = document.getElementById('profileModal');
