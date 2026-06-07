@@ -9,18 +9,26 @@ export function initInteractions({
   const likedByIndex = new Map();
   const baseLikesByIndex = new Map();
 
+  function normalizeIndex(index) {
+    const len = playlist.length;
+    return (index % len + len) % len;
+  }
+
   function getBaseLikes(index) {
-    if (!baseLikesByIndex.has(index)) {
-      const raw = playlist[index]?.likes;
+    const safeIndex = normalizeIndex(index);
+
+    if (!baseLikesByIndex.has(safeIndex)) {
+      const raw = playlist[safeIndex]?.likes;
       const value = Number.isFinite(Number(raw)) ? Number(raw) : 0;
-      baseLikesByIndex.set(index, value);
+      baseLikesByIndex.set(safeIndex, value);
     }
 
-    return baseLikesByIndex.get(index);
+    return baseLikesByIndex.get(safeIndex);
   }
 
   function getLikeCount(index) {
-    return getBaseLikes(index) + (likedByIndex.get(index) ? 1 : 0);
+    const safeIndex = normalizeIndex(index);
+    return getBaseLikes(safeIndex) + (likedByIndex.get(safeIndex) ? 1 : 0);
   }
 
   function formatCount(value) {
@@ -29,18 +37,26 @@ export function initInteractions({
     return String(value);
   }
 
-  function renderLikes() {
-    const index = state.index;
-    const isLiked = !!likedByIndex.get(index);
-    const count = getLikeCount(index);
+  function renderLayerLike(layer, index) {
+    if (!layer) return;
 
-    document.querySelectorAll('.likeBtn').forEach((btn) => {
+    const safeIndex = normalizeIndex(index);
+    const isLiked = !!likedByIndex.get(safeIndex);
+    const count = getLikeCount(safeIndex);
+
+    layer.querySelectorAll('.likeBtn').forEach((btn) => {
       btn.classList.toggle('is-liked', isLiked);
       btn.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
 
       const countEl = btn.closest('.stack')?.querySelector('.count');
       if (countEl) countEl.textContent = formatCount(count);
     });
+  }
+
+  function renderLikes() {
+    renderLayerLike(document.getElementById('layerPrev'), state.index - 1);
+    renderLayerLike(document.getElementById('layerCurrent'), state.index);
+    renderLayerLike(document.getElementById('layerNext'), state.index + 1);
   }
 
   function bounce(btn) {
@@ -58,33 +74,34 @@ export function initInteractions({
     e.preventDefault();
     e.stopPropagation();
 
-    const index = state.index;
-    const nextLiked = !likedByIndex.get(index);
+    const layer = likeBtn.closest('.twincher-layer');
+    let index = state.index;
 
-    likedByIndex.set(index, nextLiked);
+    if (layer?.id === 'layerPrev') index = state.index - 1;
+    if (layer?.id === 'layerCurrent') index = state.index;
+    if (layer?.id === 'layerNext') index = state.index + 1;
+
+    const safeIndex = normalizeIndex(index);
+    const nextLiked = !likedByIndex.get(safeIndex);
+
+    likedByIndex.set(safeIndex, nextLiked);
 
     bounce(likeBtn);
     renderLikes();
 
     track('like_toggle', {
-      video_index: index,
+      video_index: safeIndex,
       liked: nextLiked
     });
   }, true);
 
-  let lastIndex = state.index;
-
-  function watchIndex() {
-    if (state.index !== lastIndex) {
-      lastIndex = state.index;
-      renderLikes();
-    }
-
-    requestAnimationFrame(watchIndex);
+  function watchLayers() {
+    renderLikes();
+    requestAnimationFrame(watchLayers);
   }
 
   renderLikes();
-  requestAnimationFrame(watchIndex);
+  requestAnimationFrame(watchLayers);
 
   return {
     renderLikes
