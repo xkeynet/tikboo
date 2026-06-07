@@ -1,6 +1,7 @@
 // /assets/js/ui/interactions.js
 
 export function initInteractions({
+  refs,
   state,
   playlist,
   track = () => {},
@@ -54,9 +55,9 @@ export function initInteractions({
   }
 
   function renderLikes() {
-    renderLayerLike(document.getElementById('layerPrev'), state.index - 1);
-    renderLayerLike(document.getElementById('layerCurrent'), state.index);
-    renderLayerLike(document.getElementById('layerNext'), state.index + 1);
+    renderLayerLike(refs.layerPrev, state.index - 1);
+    renderLayerLike(refs.layerCurrent, state.index);
+    renderLayerLike(refs.layerNext, state.index + 1);
   }
 
   function bounce(btn) {
@@ -74,12 +75,11 @@ export function initInteractions({
     e.preventDefault();
     e.stopPropagation();
 
-    const layer = likeBtn.closest('.twincher-layer');
     let index = state.index;
 
-    if (layer?.id === 'layerPrev') index = state.index - 1;
-    if (layer?.id === 'layerCurrent') index = state.index;
-    if (layer?.id === 'layerNext') index = state.index + 1;
+    if (refs.layerPrev?.contains(likeBtn)) index = state.index - 1;
+    if (refs.layerCurrent?.contains(likeBtn)) index = state.index;
+    if (refs.layerNext?.contains(likeBtn)) index = state.index + 1;
 
     const safeIndex = normalizeIndex(index);
     const nextLiked = !likedByIndex.get(safeIndex);
