@@ -888,3 +888,43 @@ body.device-non-master.device-small .seek-time{
   font-size:26px;
   bottom:40px;
 }
+
+/* =========================================================
+   TIKBOO — LIKE INTERACTION
+   ========================================================= */
+
+.likeBtn{
+  position:relative;
+}
+
+.likeBtn.is-liked .icon-heart{
+  opacity:0;
+}
+
+.likeBtn.is-liked::before{
+  content:"";
+  width:32px;
+  height:32px;
+  display:block;
+  background:#FE2C55;
+
+  -webkit-mask:url("/assets/icons/heart.svg") center / contain no-repeat;
+  mask:url("/assets/icons/heart.svg") center / contain no-repeat;
+
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+  pointer-events:none;
+}
+
+.likeBtn.is-bouncing{
+  animation:tikboo-like-bounce 320ms cubic-bezier(.2,.9,.2,1);
+}
+
+@keyframes tikboo-like-bounce{
+  0%{ transform:translateZ(0) scale(1); }
+  38%{ transform:translateZ(0) scale(1.28); }
+  62%{ transform:translateZ(0) scale(.92); }
+  100%{ transform:translateZ(0) scale(1); }
+}
