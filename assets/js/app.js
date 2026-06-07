@@ -877,6 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFirst();
 
   initInteractions({
+    refs,
     state,
     playlist: PLAYLIST,
     track,
