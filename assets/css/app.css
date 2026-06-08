@@ -924,11 +924,11 @@ body.device-non-master.device-small .seek-time{
 }
 
 .likeBtn.is-bouncing{
-  animation:tikboo-like-bounce 820ms cubic-bezier(.22,1,.36,1);
+  animation:tikboo-like-bounce 760ms cubic-bezier(.22,1,.36,1);
 }
 
 .likeBtn.is-bouncing.is-liked::before{
-  animation:tikboo-liked-heart-pop 820ms cubic-bezier(.22,1,.36,1);
+  animation:tikboo-liked-heart-pop 760ms cubic-bezier(.22,1,.36,1);
 }
 
 @keyframes tikboo-like-bounce{
@@ -936,8 +936,8 @@ body.device-non-master.device-small .seek-time{
     transform:translate3d(0,0,0) scale(1);
   }
 
-  42%{
-    transform:translate3d(0,-5px,0) scale(1.08);
+  30%{
+    transform:translate3d(0,-8px,0) scale(1.08);
   }
 
   100%{
@@ -950,8 +950,8 @@ body.device-non-master.device-small .seek-time{
     transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
   }
 
-  42%{
-    transform:translate(-50%, -50%) translate3d(0,-5px,0) scale(1.08);
+  30%{
+    transform:translate(-50%, -50%) translate3d(0,-8px,0) scale(1.08);
   }
 
   100%{
