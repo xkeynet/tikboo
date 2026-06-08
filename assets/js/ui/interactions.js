@@ -1,5 +1,7 @@
 // /assets/js/ui/interactions.js
 
+import { supabase } from '../utils/supabaseClient.js';
+
 export function initInteractions({
   refs,
   state,
@@ -10,9 +12,50 @@ export function initInteractions({
   const likedByIndex = new Map();
   const baseLikesByIndex = new Map();
 
+  const LIKE_STORAGE_KEY = 'tikboo_liked_videos_v1';
+
   function normalizeIndex(index) {
     const len = playlist.length;
     return (index % len + len) % len;
+  }
+
+  function getVideoId(index) {
+    const safeIndex = normalizeIndex(index);
+    const item = playlist[safeIndex];
+
+    return String(
+      item?.id ||
+      item?.video_id ||
+      item?.src ||
+      `video_${safeIndex}`
+    );
+  }
+
+  function loadLocalLikedState() {
+    try {
+      const raw = localStorage.getItem(LIKE_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+
+      Object.entries(parsed).forEach(([videoId, liked]) => {
+        if (!liked) return;
+
+        const index = playlist.findIndex((item, i) => getVideoId(i) === videoId);
+        if (index >= 0) likedByIndex.set(index, true);
+      });
+    } catch (e) {}
+  }
+
+  function saveLocalLikedState() {
+    try {
+      const data = {};
+
+      likedByIndex.forEach((liked, index) => {
+        if (!liked) return;
+        data[getVideoId(index)] = true;
+      });
+
+      localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
   }
 
   function getBaseLikes(index) {
@@ -27,9 +70,14 @@ export function initInteractions({
     return baseLikesByIndex.get(safeIndex);
   }
 
-  function getLikeCount(index) {
+  function setBaseLikes(index, value) {
     const safeIndex = normalizeIndex(index);
-    return getBaseLikes(safeIndex) + (likedByIndex.get(safeIndex) ? 1 : 0);
+    const safeValue = Math.max(0, Number.isFinite(Number(value)) ? Number(value) : 0);
+    baseLikesByIndex.set(safeIndex, safeValue);
+  }
+
+  function getLikeCount(index) {
+    return getBaseLikes(index);
   }
 
   function formatCount(value) {
@@ -66,6 +114,69 @@ export function initInteractions({
     btn.classList.add('is-bouncing');
   }
 
+  async function loadRemoteLikes() {
+    const { data, error } = await supabase
+      .from('video_likes')
+      .select('video_id, likes');
+
+    if (error) {
+      console.warn('Tikboo likes load failed:', error);
+      return;
+    }
+
+    if (!Array.isArray(data)) return;
+
+    data.forEach((row) => {
+      const index = playlist.findIndex((item, i) => getVideoId(i) === row.video_id);
+      if (index < 0) return;
+
+      setBaseLikes(index, row.likes);
+    });
+
+    renderLikes();
+  }
+
+  async function persistLike(index, nextCount) {
+    const safeIndex = normalizeIndex(index);
+    const videoId = getVideoId(safeIndex);
+
+    const { data, error } = await supabase
+      .from('video_likes')
+      .select('id, likes')
+      .eq('video_id', videoId)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Tikboo likes read failed:', error);
+      return;
+    }
+
+    if (data?.id) {
+      const { error: updateError } = await supabase
+        .from('video_likes')
+        .update({ likes: nextCount })
+        .eq('id', data.id);
+
+      if (updateError) {
+        console.warn('Tikboo likes update failed:', updateError);
+      }
+
+      return;
+    }
+
+    const { error: insertError } = await supabase
+      .from('video_likes')
+      .insert({
+        video_id: videoId,
+        likes: nextCount
+      });
+
+    if (insertError) {
+      console.warn('Tikboo likes insert failed:', insertError);
+    }
+  }
+
   document.addEventListener('click', (e) => {
     const likeBtn = e.target.closest('.likeBtn');
     if (!likeBtn) return;
@@ -82,16 +193,26 @@ export function initInteractions({
     if (refs.layerNext?.contains(likeBtn)) index = state.index + 1;
 
     const safeIndex = normalizeIndex(index);
-    const nextLiked = !likedByIndex.get(safeIndex);
+    const wasLiked = !!likedByIndex.get(safeIndex);
+    const nextLiked = !wasLiked;
+
+    const currentCount = getBaseLikes(safeIndex);
+    const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
 
     likedByIndex.set(safeIndex, nextLiked);
+    setBaseLikes(safeIndex, nextCount);
+    saveLocalLikedState();
 
     bounce(likeBtn);
     renderLikes();
 
+    persistLike(safeIndex, nextCount);
+
     track('like_toggle', {
       video_index: safeIndex,
-      liked: nextLiked
+      video_id: getVideoId(safeIndex),
+      liked: nextLiked,
+      likes: nextCount
     });
   }, true);
 
@@ -100,7 +221,9 @@ export function initInteractions({
     requestAnimationFrame(watchLayers);
   }
 
+  loadLocalLikedState();
   renderLikes();
+  loadRemoteLikes();
   requestAnimationFrame(watchLayers);
 
   return {
