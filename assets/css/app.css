@@ -898,7 +898,7 @@ body.device-non-master.device-small .seek-time{
 }
 
 .likeBtn .icon-heart{
-  transition:opacity 40ms linear;
+  transition:opacity 20ms linear;
 }
 
 .likeBtn.is-liked .icon-heart{
@@ -918,31 +918,43 @@ body.device-non-master.device-small .seek-time{
   position:absolute;
   left:50%;
   top:50%;
-  transform:translate(-50%, -50%) translateZ(0);
+  transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
   pointer-events:none;
-  will-change:transform, opacity;
+  will-change:transform;
 }
 
 .likeBtn.is-bouncing{
-  animation:tikboo-like-bounce 420ms cubic-bezier(.16, .95, .22, 1);
+  animation:tikboo-like-bounce 820ms cubic-bezier(.22,1,.36,1);
 }
 
 .likeBtn.is-bouncing.is-liked::before{
-  animation:tikboo-liked-heart-pop 420ms cubic-bezier(.16, .95, .22, 1);
+  animation:tikboo-liked-heart-pop 820ms cubic-bezier(.22,1,.36,1);
 }
 
 @keyframes tikboo-like-bounce{
-  0%{ transform:translate3d(0,0,0) scale(1); }
-  24%{ transform:translate3d(0,-9px,0) scale(1.26); }
-  48%{ transform:translate3d(0,-5px,0) scale(.96); }
-  72%{ transform:translate3d(0,-2px,0) scale(1.06); }
-  100%{ transform:translate3d(0,0,0) scale(1); }
+  0%{
+    transform:translate3d(0,0,0) scale(1);
+  }
+
+  42%{
+    transform:translate3d(0,-5px,0) scale(1.08);
+  }
+
+  100%{
+    transform:translate3d(0,0,0) scale(1);
+  }
 }
 
 @keyframes tikboo-liked-heart-pop{
-  0%{ transform:translate(-50%, -50%) translate3d(0,0,0) scale(1); }
-  24%{ transform:translate(-50%, -50%) translate3d(0,-9px,0) scale(1.26); }
-  48%{ transform:translate(-50%, -50%) translate3d(0,-5px,0) scale(.96); }
-  72%{ transform:translate(-50%, -50%) translate3d(0,-2px,0) scale(1.06); }
-  100%{ transform:translate(-50%, -50%) translate3d(0,0,0) scale(1); }
+  0%{
+    transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
+  }
+
+  42%{
+    transform:translate(-50%, -50%) translate3d(0,-5px,0) scale(1.08);
+  }
+
+  100%{
+    transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
+  }
 }
