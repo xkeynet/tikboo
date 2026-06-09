@@ -20,11 +20,11 @@
 
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
-    const MAX_MOVE_STEP_PX = 120;
+    const MAX_MOVE_STEP_PX = 260;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
-    let preparedDir = 0, raf = 0, commitRaf = 0, settleTimer = 0;
+    let preparedDir = 0, raf = 0, settleTimer = 0;
     let startT = 0, lastMoveY = 0;
     let nextLoadedIndex = null;
     let prevLoadedIndex = null;
@@ -41,8 +41,8 @@
     let activeCommitDir = 0;
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
-    let playbackGuardTimers = [];
-    const COMMIT_COOLDOWN = 20;
+    let playbackGuardTimer = 0;
+    const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -71,22 +71,6 @@
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
 
-    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-    const lerp = (a, b, t) => a + (b - a) * t;
-    const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
-
-    function getCommitDuration(velocity) {
-      const v = clamp(Math.abs(velocity || 0), 0, 1.8);
-      return clamp(Math.round(150 - (v * 12)), 128, 150);
-    }
-
-    function clearCommitRaf() {
-      if (commitRaf) {
-        cancelAnimationFrame(commitRaf);
-        commitRaf = 0;
-      }
-    }
-
     function updateLayerEffects(layer, opacity) {
       if (!layer) return;
       const sideMenu = layer.querySelector('.side');
@@ -112,8 +96,10 @@
     }
 
     function clearPlaybackGuard() {
-      playbackGuardTimers.forEach(timer => clearTimeout(timer));
-      playbackGuardTimers = [];
+      if (playbackGuardTimer) {
+        clearTimeout(playbackGuardTimer);
+        playbackGuardTimer = 0;
+      }
     }
 
     function resetQueue() {
@@ -132,27 +118,25 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      [40, 140, 320].forEach(delay => {
-        const timer = setTimeout(() => {
-          if (state.isAnimating || dragging) return;
+      playbackGuardTimer = setTimeout(() => {
+        playbackGuardTimer = 0;
 
-          const item = playlist[state.index];
-          const video = refs.videoCurrent;
+        if (state.isAnimating || dragging) return;
 
-          if (!item || item.type !== 'video' || !video) return;
+        const item = playlist[state.index];
+        const video = refs.videoCurrent;
 
-          video.muted = state.isMuted;
-          video.playsInline = true;
-          video.setAttribute('playsinline', '');
-          video.setAttribute('webkit-playsinline', '');
+        if (!item || item.type !== 'video' || !video) return;
 
-          if (video.paused || video.readyState < 2 || video.currentTime < 0.05) {
-            tryPlay(video);
-          }
-        }, delay);
+        video.muted = state.isMuted;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
 
-        playbackGuardTimers.push(timer);
-      });
+        if (video.paused || video.readyState < 2) {
+          tryPlay(video);
+        }
+      }, 70);
     }
 
     function warmMemoryVideo(videoEl, item) {
@@ -191,7 +175,6 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
-      clearCommitRaf();
       clearTimeout(settleTimer);
       clearPendingCommit();
 
@@ -210,7 +193,6 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
-      clearCommitRaf();
       clearTimeout(settleTimer);
       settleTimer = 0;
 
@@ -315,7 +297,7 @@
         const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
 
         if (targetVideo && targetVideo.readyState >= 2) {
-          commit(dir, 0);
+          commit(dir);
           return;
         }
 
@@ -324,8 +306,6 @@
     }
 
     function finishCommit(dir, targetIndex, videoToPause) {
-      clearCommitRaf();
-
       if (videoToPause) {
         videoToPause.pause();
       }
@@ -401,15 +381,14 @@
       const queued = queuedDir;
       resetQueue();
 
-      if (queued !== 0 && !state.isAnimating) {
-        prepareNextForDirection(queued);
-        commit(queued, 1.2);
-        return;
-      }
-
       requestAnimationFrame(() => {
         warmForwardNext();
         warmBackwardNext();
+
+        if (queued !== 0 && !state.isAnimating) {
+          preparedDir = queued;
+          commit(queued);
+        }
       });
     }
 
@@ -419,7 +398,6 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
-      clearCommitRaf();
       clearTimeout(settleTimer);
       settleTimer = 0;
       clearPendingCommit();
@@ -428,7 +406,7 @@
       return true;
     }
 
-    function commit(dir, gestureVelocity) {
+    function commit(dir) {
       const now = performance.now();
 
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
@@ -464,17 +442,11 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
-      clearCommitRaf();
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = getCommitDuration(gestureVelocity);
+      const duration = 120; 
       const videoToPause = refs.videoCurrent;
-
-      const startCurrentY = dy || 0;
-      const endCurrentY = dir > 0 ? -height : height;
-      const startTargetY = dir > 0 ? height + startCurrentY : -height + startCurrentY;
-      const endTargetY = 0;
 
       activeCommitDir = dir;
       activeCommitTargetIndex = targetIndex;
@@ -486,42 +458,25 @@
         setTimeout(() => {
           if (!state.isAnimating) return;
           tryPlay(targetVideo);
-        }, 0);
+        }, 8);
       }
-
-      refs.layerCurrent.style.transition = 'none';
-      targetLayer.style.transition = 'none';
 
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
+      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
+
+      refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
+      targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
+
       updateLayerEffects(refs.layerCurrent, 0.3);
 
-      setTr(refs.layerCurrent, startCurrentY);
-      setTr(targetLayer, startTargetY);
+      setTr(refs.layerCurrent, dir > 0 ? -height : height);
+      setTr(targetLayer, 0);
 
-      const start = performance.now();
-
-      const step = (time) => {
-        const t = clamp((time - start) / duration, 0, 1);
-        const eased = easeOutQuart(t);
-
-        const currentY = lerp(startCurrentY, endCurrentY, eased);
-        const targetY = lerp(startTargetY, endTargetY, eased);
-
-        setTr(refs.layerCurrent, currentY);
-        setTr(targetLayer, targetY);
-
-        if (t < 1) {
-          commitRaf = requestAnimationFrame(step);
-          return;
-        }
-
-        commitRaf = 0;
+      settleTimer = setTimeout(() => {
         finishCommit(dir, targetIndex, videoToPause);
-      };
-
-      commitRaf = requestAnimationFrame(step);
+      }, duration); 
     }
 
     function snapBack() {
@@ -566,7 +521,7 @@
 
       warmForwardNext();
       preparedDir = 1;
-      commit(1, 0.8);
+      commit(1);
     }
 
     function finishGesture(cancelled) {
@@ -606,7 +561,6 @@
       }
 
       const vy = (lastMoveY - startY) / dt;
-      const absVy = Math.abs(vy);
       const isBackward = preparedDir === -1;
 
       const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
@@ -615,9 +569,9 @@
 
       if (
         Math.abs(totalDy) >= vh() * thresholdRatio ||
-        (Math.abs(totalDy) >= minDy && absVy >= minVy)
+        (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
       ) {
-        commit(preparedDir, absVy);
+        commit(preparedDir);
       } else {
         snapBack();
       }
