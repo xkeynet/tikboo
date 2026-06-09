@@ -508,10 +508,8 @@ body{
   letter-spacing:0;
   color:#FFFFFF;
 
-  /* premium kouřové sklo */
-  background:rgba(18,18,18,.18);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
+  /* stejné kouřové sklo jako layout, ale o trochu tmavší */
+  background:rgba(0,0,0,.68);
 
   box-shadow:none;
 
@@ -573,10 +571,8 @@ body{
 
   color:#FFFFFF;
 
-  /* stejné kouřové sklo */
-  background:rgba(18,18,18,.18);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
+  /* úplně stejné kouřové sklo jako overlay */
+  background:rgba(0,0,0,.55);
 
   border:3px solid rgba(255,255,255,.28);
   border-radius:0;
