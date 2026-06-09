@@ -486,7 +486,7 @@ body{
   align-items:center;
 }
 
-/* === THE PINK/RED PILL === */
+/* === THE ENTER PILL === */
 .enterBtn{
   width:100%;
   max-width:320px;
@@ -499,8 +499,8 @@ body{
   justify-content:center;
   gap:2px;
 
-  border:3px solid #FE2858;
-  border-radius:999px;
+  border:3px solid rgba(255,255,255,.28);
+  border-radius:4px;
 
   padding:6px 18px;
 
@@ -508,7 +508,10 @@ body{
   letter-spacing:0;
   color:#FFFFFF;
 
-  background:transparent;
+  background:rgba(0,0,0,.32);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+
   box-shadow:none;
 
   cursor:pointer;
@@ -567,9 +570,14 @@ body{
   font-weight:800;
   letter-spacing:0.04em;
 
-  background:transparent;
+  color:#FFFFFF;
 
-  border-radius:999px;
+  background:rgba(0,0,0,.32);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+
+  border:3px solid rgba(255,255,255,.28);
+  border-radius:4px;
 
   padding:5px 16px;
 
@@ -577,14 +585,10 @@ body{
   -webkit-tap-highlight-color:transparent;
 }
 
-.consent-pill:nth-child(1){
-  color:#FFFFFF;
-  border:3px solid #2AF0EA;
-}
-
+.consent-pill:nth-child(1),
 .consent-pill:nth-child(2),
 .consent-pill:nth-child(3){
-  color:rgba(255,255,255,.28);
+  color:#FFFFFF;
   border:3px solid rgba(255,255,255,.28);
 }
 
