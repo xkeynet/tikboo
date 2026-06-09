@@ -7,14 +7,14 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    const THRESHOLD_RATIO = 0.25; 
+    const THRESHOLD_RATIO = 0.50; 
     const MOVE_ACTIVATE_PX = 3;    
     const MIN_COMMIT_DY = 70;      
     const MIN_COMMIT_VY = 0.42;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
-    const BACKWARD_THRESHOLD_RATIO = 0.18;
+    const BACKWARD_THRESHOLD_RATIO = 0.50;
     const BACKWARD_MIN_COMMIT_DY = 55;
     const BACKWARD_MIN_COMMIT_VY = 0.34;
 
