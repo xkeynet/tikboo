@@ -890,6 +890,109 @@ body.device-non-master.device-small .seek-time{
 }
 
 /* =========================================================
+   TIKBOO — LIVE AVATAR RING
+   ========================================================= */
+
+.avatarBtn{
+  position:relative;
+  overflow:visible;
+}
+
+.avatar-ring{
+  position:relative;
+  width:50px;
+  height:50px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+  isolation:isolate;
+}
+
+.avatar-ring::before{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:999px;
+  background:linear-gradient(135deg, #ff1f5f 0%, #ff003d 48%, #ff6a00 100%);
+  z-index:0;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.22),
+    0 0 14px rgba(254,44,85,.72);
+}
+
+.avatar-ring::after{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:999px;
+  border:2px solid rgba(254,44,85,.48);
+  z-index:-1;
+  opacity:.75;
+  animation:tikboo-live-avatar-pulse 1700ms ease-out infinite;
+}
+
+.avatar{
+  position:relative;
+  z-index:2;
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  object-fit:cover;
+  border:2px solid #050505;
+}
+
+.avatarBtn::after{
+  content:"LIVE";
+  position:absolute;
+  left:50%;
+  bottom:-12px;
+  transform:translateX(-50%);
+  z-index:5;
+
+  height:18px;
+  min-width:38px;
+  padding:0 6px;
+  border-radius:5px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#FE2C55;
+  color:#fff;
+
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:.02em;
+
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.35),
+    0 0 10px rgba(254,44,85,.52);
+
+  pointer-events:none;
+}
+
+@keyframes tikboo-live-avatar-pulse{
+  0%{
+    transform:scale(.92);
+    opacity:.65;
+  }
+
+  70%{
+    transform:scale(1.32);
+    opacity:0;
+  }
+
+  100%{
+    transform:scale(1.32);
+    opacity:0;
+  }
+}
+
+/* =========================================================
    TIKBOO — LIKE INTERACTION
    ========================================================= */
 
