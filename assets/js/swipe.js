@@ -7,16 +7,16 @@
       ensureSoundOn, isInteractiveTarget 
     } = options;
 
-    const THRESHOLD_RATIO = 0.11; 
+    const THRESHOLD_RATIO = 0.13; 
     const MOVE_ACTIVATE_PX = 3;    
-    const MIN_COMMIT_DY = 28;      
-    const MIN_COMMIT_VY = 0.28;    
+    const MIN_COMMIT_DY = 38;      
+    const MIN_COMMIT_VY = 0.34;    
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
-    const BACKWARD_THRESHOLD_RATIO = 0.06;
-    const BACKWARD_MIN_COMMIT_DY = 18;
-    const BACKWARD_MIN_COMMIT_VY = 0.16;
+    const BACKWARD_THRESHOLD_RATIO = 0.09;
+    const BACKWARD_MIN_COMMIT_DY = 30;
+    const BACKWARD_MIN_COMMIT_VY = 0.24;
 
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
@@ -187,6 +187,38 @@
       setTr(refs.layerPrev, -height);
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
+    }
+
+    function recoverVisibleState() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+
+      clearPendingCommit();
+      clearPlaybackGuard();
+
+      dragging = false;
+      dy = 0;
+      dx = 0;
+      preparedDir = 0;
+      swipeSoundUnlocked = false;
+
+      resetQueue();
+      resetActiveCommit();
+
+      state.isAnimating = false;
+
+      resetSeekUiImmediate();
+      resetTransformsNoAnim();
+      bindAutoAdvanceForCurrent();
+      guardCurrentPlayback('recoverVisibleState');
+
+      requestAnimationFrame(() => {
+        warmForwardNext();
+        warmBackwardNext();
+      });
     }
 
     function prewarmVideo(videoEl, item) {
@@ -701,14 +733,16 @@
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        guardCurrentPlayback('visible');
+        recoverVisibleState();
       } else {
         clearPlaybackGuard();
+        clearPendingCommit();
+        resetQueue();
       }
     }, { passive: true });
 
     window.addEventListener('pageshow', () => {
-      guardCurrentPlayback('pageshow');
+      recoverVisibleState();
     }, { passive: true });
 
     return {
