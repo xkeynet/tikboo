@@ -539,7 +539,7 @@ body{
 /* === CONSENT PILLS === */
 .consent{
   width:100%;
-  max-width:260px;
+  max-width:320px;
   margin-top:9px;
 
   display:flex;
