@@ -122,6 +122,19 @@
       targetWakeDir = 0;
     }
 
+    function primeTargetAtStart(videoEl) {
+      if (!videoEl) return;
+
+      videoEl.muted = state.isMuted;
+      videoEl.playsInline = true;
+      videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
+
+      try {
+        if (videoEl.currentTime > 0.05) videoEl.currentTime = 0;
+      } catch (e) {}
+    }
+
     function wakeTargetVideo(dir) {
       if (targetWakeDir === dir) return;
 
@@ -133,18 +146,10 @@
 
       targetWakeDir = dir;
 
-      if (refs.videoCurrent && !refs.videoCurrent.paused) {
-        refs.videoCurrent.pause();
-      }
-
       targetVideo.muted = state.isMuted;
       targetVideo.playsInline = true;
       targetVideo.setAttribute('playsinline', '');
       targetVideo.setAttribute('webkit-playsinline', '');
-
-      try {
-        targetVideo.currentTime = 0;
-      } catch (e) {}
 
       tryPlay(targetVideo);
     }
@@ -282,7 +287,7 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-        videoEl.currentTime = 0;
+        primeTargetAtStart(videoEl);
       }
     }
 
@@ -296,6 +301,7 @@
         prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
 
+      primeTargetAtStart(refs.videoNext);
       warmMemoryForward();
 
       refs.layerNext.style.transition = 'none';
@@ -315,6 +321,7 @@
         prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
 
+      primeTargetAtStart(refs.videoPrev);
       warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
