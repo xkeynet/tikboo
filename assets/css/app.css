@@ -588,6 +588,27 @@ body{
   border:3px solid rgba(255,255,255,.28);
 }
 
+.icon-heart{
+  width:32px;
+  height:32px;
+  display:block;
+  filter:brightness(0) invert(1);
+}
+
+.icon-talk{
+  width:32px;
+  height:32px;
+  display:block;
+  filter:brightness(0) invert(1);
+}
+
+.icon-bookmark{
+  width:34px;
+  height:34px;
+  display:block;
+  filter:brightness(0) invert(1);
+}
+
 .icon-share{
   width:35px;
   height:35px;
