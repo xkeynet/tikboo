@@ -486,7 +486,7 @@ body{
   align-items:center;
 }
 
-/* === THE BLUE PILL === */
+/* === THE PINK/RED PILL === */
 .enterBtn{
   width:100%;
   max-width:320px;
@@ -499,13 +499,13 @@ body{
   justify-content:center;
   gap:5px;
 
-  border:0;
+  border:2px solid #FE2858;
   border-radius:999px;
   padding:10px 34px;
   font-weight:800;
   letter-spacing:0;
   color:#FFFFFF;
-  background:#FE2858;
+  background:transparent;
   box-shadow:none;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
