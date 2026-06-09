@@ -71,6 +71,26 @@
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
 
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    function getCommitMotion(velocity) {
+      const v = clamp(Math.abs(velocity || 0), 0, 1.8);
+      const duration = Math.round(168 - (v * 22));
+      const safeDuration = clamp(duration, 128, 168);
+
+      if (v > 1.05) {
+        return {
+          duration: safeDuration,
+          curve: 'cubic-bezier(0.18, 0.86, 0.22, 1)'
+        };
+      }
+
+      return {
+        duration: safeDuration,
+        curve: 'cubic-bezier(0.16, 0.84, 0.24, 1)'
+      };
+    }
+
     function updateLayerEffects(layer, opacity) {
       if (!layer) return;
       const sideMenu = layer.querySelector('.side');
@@ -297,7 +317,7 @@
         const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
 
         if (targetVideo && targetVideo.readyState >= 2) {
-          commit(dir);
+          commit(dir, 0);
           return;
         }
 
@@ -383,7 +403,7 @@
 
       if (queued !== 0 && !state.isAnimating) {
         prepareNextForDirection(queued);
-        commit(queued);
+        commit(queued, 1.2);
         return;
       }
 
@@ -407,7 +427,7 @@
       return true;
     }
 
-    function commit(dir) {
+    function commit(dir, gestureVelocity) {
       const now = performance.now();
 
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
@@ -446,7 +466,8 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 115; 
+      const motion = getCommitMotion(gestureVelocity);
+      const duration = motion.duration;
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -465,10 +486,8 @@
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
-
-      refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
-      targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
+      refs.layerCurrent.style.transition = `transform ${duration}ms ${motion.curve}`;
+      targetLayer.style.transition = `transform ${duration}ms ${motion.curve}`;
 
       updateLayerEffects(refs.layerCurrent, 0.3);
 
@@ -522,7 +541,7 @@
 
       warmForwardNext();
       preparedDir = 1;
-      commit(1);
+      commit(1, 0.8);
     }
 
     function finishGesture(cancelled) {
@@ -562,6 +581,7 @@
       }
 
       const vy = (lastMoveY - startY) / dt;
+      const absVy = Math.abs(vy);
       const isBackward = preparedDir === -1;
 
       const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
@@ -570,9 +590,9 @@
 
       if (
         Math.abs(totalDy) >= vh() * thresholdRatio ||
-        (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
+        (Math.abs(totalDy) >= minDy && absVy >= minVy)
       ) {
-        commit(preparedDir);
+        commit(preparedDir, absVy);
       } else {
         snapBack();
       }
