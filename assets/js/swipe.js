@@ -24,7 +24,7 @@
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
-    let preparedDir = 0, raf = 0, settleTimer = 0;
+    let preparedDir = 0, raf = 0, commitRaf = 0, settleTimer = 0;
     let startT = 0, lastMoveY = 0;
     let nextLoadedIndex = null;
     let prevLoadedIndex = null;
@@ -72,23 +72,19 @@
     };
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
 
-    function getCommitMotion(velocity) {
+    function getCommitDuration(velocity) {
       const v = clamp(Math.abs(velocity || 0), 0, 1.8);
-      const duration = Math.round(168 - (v * 22));
-      const safeDuration = clamp(duration, 128, 168);
+      return clamp(Math.round(150 - (v * 12)), 128, 150);
+    }
 
-      if (v > 1.05) {
-        return {
-          duration: safeDuration,
-          curve: 'cubic-bezier(0.18, 0.86, 0.22, 1)'
-        };
+    function clearCommitRaf() {
+      if (commitRaf) {
+        cancelAnimationFrame(commitRaf);
+        commitRaf = 0;
       }
-
-      return {
-        duration: safeDuration,
-        curve: 'cubic-bezier(0.16, 0.84, 0.24, 1)'
-      };
     }
 
     function updateLayerEffects(layer, opacity) {
@@ -195,6 +191,7 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
+      clearCommitRaf();
       clearTimeout(settleTimer);
       clearPendingCommit();
 
@@ -213,6 +210,7 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
+      clearCommitRaf();
       clearTimeout(settleTimer);
       settleTimer = 0;
 
@@ -326,6 +324,8 @@
     }
 
     function finishCommit(dir, targetIndex, videoToPause) {
+      clearCommitRaf();
+
       if (videoToPause) {
         videoToPause.pause();
       }
@@ -419,6 +419,7 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
+      clearCommitRaf();
       clearTimeout(settleTimer);
       settleTimer = 0;
       clearPendingCommit();
@@ -463,12 +464,17 @@
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
+      clearCommitRaf();
       clearTimeout(settleTimer);
 
       const height = vh();
-      const motion = getCommitMotion(gestureVelocity);
-      const duration = motion.duration;
+      const duration = getCommitDuration(gestureVelocity);
       const videoToPause = refs.videoCurrent;
+
+      const startCurrentY = dy || 0;
+      const endCurrentY = dir > 0 ? -height : height;
+      const startTargetY = dir > 0 ? height + startCurrentY : -height + startCurrentY;
+      const endTargetY = 0;
 
       activeCommitDir = dir;
       activeCommitTargetIndex = targetIndex;
@@ -483,20 +489,39 @@
         }, 0);
       }
 
+      refs.layerCurrent.style.transition = 'none';
+      targetLayer.style.transition = 'none';
+
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      refs.layerCurrent.style.transition = `transform ${duration}ms ${motion.curve}`;
-      targetLayer.style.transition = `transform ${duration}ms ${motion.curve}`;
-
       updateLayerEffects(refs.layerCurrent, 0.3);
 
-      setTr(refs.layerCurrent, dir > 0 ? -height : height);
-      setTr(targetLayer, 0);
+      setTr(refs.layerCurrent, startCurrentY);
+      setTr(targetLayer, startTargetY);
 
-      settleTimer = setTimeout(() => {
+      const start = performance.now();
+
+      const step = (time) => {
+        const t = clamp((time - start) / duration, 0, 1);
+        const eased = easeOutQuart(t);
+
+        const currentY = lerp(startCurrentY, endCurrentY, eased);
+        const targetY = lerp(startTargetY, endTargetY, eased);
+
+        setTr(refs.layerCurrent, currentY);
+        setTr(targetLayer, targetY);
+
+        if (t < 1) {
+          commitRaf = requestAnimationFrame(step);
+          return;
+        }
+
+        commitRaf = 0;
         finishCommit(dir, targetIndex, videoToPause);
-      }, duration); 
+      };
+
+      commitRaf = requestAnimationFrame(step);
     }
 
     function snapBack() {
