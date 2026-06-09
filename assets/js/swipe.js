@@ -18,8 +18,6 @@
     const BACKWARD_MIN_COMMIT_DY = 55;
     const BACKWARD_MIN_COMMIT_VY = 0.34;
 
-    const WAKE_TARGET_RATIO = 0.50;
-
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 120;
@@ -44,7 +42,6 @@
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
-    let targetWakeDir = 0;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -116,63 +113,6 @@
       activeCommitDir = 0;
       activeCommitTargetIndex = null;
       activeCommitVideoToPause = null;
-    }
-
-    function resetTargetWake() {
-      targetWakeDir = 0;
-    }
-
-    function primeTargetAtStart(videoEl) {
-      if (!videoEl) return;
-
-      videoEl.muted = state.isMuted;
-      videoEl.playsInline = true;
-      videoEl.setAttribute('playsinline', '');
-      videoEl.setAttribute('webkit-playsinline', '');
-
-      try {
-        if (videoEl.currentTime > 0.05) videoEl.currentTime = 0;
-      } catch (e) {}
-    }
-
-    function wakeTargetVideo(dir) {
-      if (targetWakeDir === dir) return;
-
-      const targetIndex = normalizeIndex(state.index + dir);
-      const targetItem = playlist[targetIndex];
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-      if (!targetItem || targetItem.type !== 'video' || !targetVideo) return;
-
-      targetWakeDir = dir;
-
-      targetVideo.muted = state.isMuted;
-      targetVideo.playsInline = true;
-      targetVideo.setAttribute('playsinline', '');
-      targetVideo.setAttribute('webkit-playsinline', '');
-
-      tryPlay(targetVideo);
-    }
-
-    function restoreCurrentAfterWake() {
-      if (!targetWakeDir) return;
-
-      const targetVideo = targetWakeDir > 0 ? refs.videoNext : refs.videoPrev;
-
-      if (targetVideo) {
-        targetVideo.pause();
-
-        try {
-          targetVideo.currentTime = 0;
-        } catch (e) {}
-      }
-
-      resetTargetWake();
-
-      if (playlist[state.index]?.type === 'video' && refs.videoCurrent) {
-        refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
-      }
     }
 
     function guardCurrentPlayback(reason) {
@@ -267,7 +207,6 @@
 
       resetQueue();
       resetActiveCommit();
-      resetTargetWake();
 
       state.isAnimating = false;
 
@@ -287,7 +226,7 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-        primeTargetAtStart(videoEl);
+        videoEl.currentTime = 0;
       }
     }
 
@@ -301,7 +240,6 @@
         prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
 
-      primeTargetAtStart(refs.videoNext);
       warmMemoryForward();
 
       refs.layerNext.style.transition = 'none';
@@ -321,7 +259,6 @@
         prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
 
-      primeTargetAtStart(refs.videoPrev);
       warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
@@ -345,8 +282,6 @@
       } else {
         prepareBackwardLayer();
       }
-
-      if (preparedDir !== dir) resetTargetWake();
 
       preparedDir = dir;
     }
@@ -424,8 +359,6 @@
         nextLoadedIndex = normalizeIndex(state.index + 1);
         prevLoadedIndex = null;
       }
-
-      resetTargetWake();
 
       if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
@@ -551,7 +484,6 @@
 
       clearPendingCommit();
       resetQueue();
-      restoreCurrentAfterWake();
 
       state.isAnimating = true;
 
@@ -639,7 +571,6 @@
         Math.abs(totalDy) >= vh() * thresholdRatio ||
         (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
       ) {
-        if (targetWakeDir !== preparedDir) wakeTargetVideo(preparedDir);
         commit(preparedDir);
       } else {
         snapBack();
@@ -666,7 +597,6 @@
 
       dragging = true;
       preparedDir = 0;
-      resetTargetWake();
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -727,7 +657,6 @@
 
         dragging = true;
         preparedDir = 0;
-        resetTargetWake();
 
         startY = e.touches[0].clientY;
         startX = e.touches[0].clientX;
@@ -774,10 +703,6 @@
       const dir = isDirectionFlip && Math.abs(dy) < DIRECTION_FLIP_DAMPING_PX ? preparedDir : rawDir;
 
       if (preparedDir !== dir) prepareNextForDirection(dir);
-
-      if (preparedDir !== 0 && Math.abs(dy) >= vh() * WAKE_TARGET_RATIO) {
-        wakeTargetVideo(preparedDir);
-      }
 
       if (!raf) {
         raf = requestAnimationFrame(() => {
