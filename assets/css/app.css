@@ -900,8 +900,8 @@ body.device-non-master.device-small .seek-time{
 
 .avatar-ring{
   position:relative;
-  width:54px;
-  height:54px;
+  width:48px;
+  height:48px;
   border-radius:999px;
   display:flex;
   align-items:center;
@@ -924,7 +924,7 @@ body.device-non-master.device-small .seek-time{
 .avatar-ring::after{
   content:"";
   position:absolute;
-  inset:-6px;
+  inset:-3px;
   border-radius:999px;
   border:1.5px solid rgba(254,44,85,.38);
   z-index:0;
