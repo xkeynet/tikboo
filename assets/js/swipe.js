@@ -42,7 +42,7 @@
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
     let playbackGuardTimers = [];
-    const COMMIT_COOLDOWN = 55;
+    const COMMIT_COOLDOWN = 20;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -381,14 +381,15 @@
       const queued = queuedDir;
       resetQueue();
 
+      if (queued !== 0 && !state.isAnimating) {
+        prepareNextForDirection(queued);
+        commit(queued);
+        return;
+      }
+
       requestAnimationFrame(() => {
         warmForwardNext();
         warmBackwardNext();
-
-        if (queued !== 0 && !state.isAnimating) {
-          preparedDir = queued;
-          commit(queued);
-        }
       });
     }
 
@@ -445,7 +446,7 @@
       clearTimeout(settleTimer);
 
       const height = vh();
-      const duration = 155; 
+      const duration = 115; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -458,13 +459,13 @@
         setTimeout(() => {
           if (!state.isAnimating) return;
           tryPlay(targetVideo);
-        }, 4);
+        }, 0);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.16, 0.84, 0.24, 1)';
+      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
