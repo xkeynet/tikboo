@@ -614,11 +614,8 @@
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
-      if (startY < vh() * 0.45) {
-        warmBackwardNext();
-      } else {
-        warmForwardNext();
-      }
+      warmForwardNext();
+      warmBackwardNext();
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
