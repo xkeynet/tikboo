@@ -572,7 +572,7 @@ body{
   color:#FFFFFF;
 
   /* úplně stejné kouřové sklo jako overlay */
-  background:rgba(0,0,0,.55);
+  background:transparent;
 
   border:3px solid rgba(255,255,255,.28);
   border-radius:0;
