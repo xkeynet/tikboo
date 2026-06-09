@@ -41,7 +41,7 @@
     let activeCommitDir = 0;
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
-    let playbackGuardTimer = 0;
+    let playbackGuardTimers = [];
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -96,10 +96,8 @@
     }
 
     function clearPlaybackGuard() {
-      if (playbackGuardTimer) {
-        clearTimeout(playbackGuardTimer);
-        playbackGuardTimer = 0;
-      }
+      playbackGuardTimers.forEach(timer => clearTimeout(timer));
+      playbackGuardTimers = [];
     }
 
     function resetQueue() {
@@ -118,25 +116,27 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      playbackGuardTimer = setTimeout(() => {
-        playbackGuardTimer = 0;
+      [40, 140, 320].forEach(delay => {
+        const timer = setTimeout(() => {
+          if (state.isAnimating || dragging) return;
 
-        if (state.isAnimating || dragging) return;
+          const item = playlist[state.index];
+          const video = refs.videoCurrent;
 
-        const item = playlist[state.index];
-        const video = refs.videoCurrent;
+          if (!item || item.type !== 'video' || !video) return;
 
-        if (!item || item.type !== 'video' || !video) return;
+          video.muted = state.isMuted;
+          video.playsInline = true;
+          video.setAttribute('playsinline', '');
+          video.setAttribute('webkit-playsinline', '');
 
-        video.muted = state.isMuted;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
+          if (video.paused || video.readyState < 2 || video.currentTime < 0.05) {
+            tryPlay(video);
+          }
+        }, delay);
 
-        if (video.paused || video.readyState < 2) {
-          tryPlay(video);
-        }
-      }, 70);
+        playbackGuardTimers.push(timer);
+      });
     }
 
     function warmMemoryVideo(videoEl, item) {
