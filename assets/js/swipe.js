@@ -458,7 +458,7 @@
         setTimeout(() => {
           if (!state.isAnimating) return;
           tryPlay(targetVideo);
-        }, 8);
+        }, 4);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -614,8 +614,11 @@
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
-      warmForwardNext();
-      warmBackwardNext();
+      if (startY < vh() * 0.45) {
+        warmBackwardNext();
+      } else {
+        warmForwardNext();
+      }
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
