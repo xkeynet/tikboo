@@ -510,7 +510,7 @@ body{
   color:#FFFFFF;
 
   /* stejné kouřové sklo jako layout, ale o trochu tmavší */
-  background: linear-gradient(90deg, #7F58FF 0%, #14C8D8 100%);
+  background: linear-gradient(90deg, #6119DD 0%, #14C8D8 100%);
 
   box-shadow:none;
 
@@ -577,7 +577,7 @@ body{
   color:rgba(255,255,255,.75);
 
   /* necháme prosvítat overlay */
-  background:#7F58FF;
+  background:#6119DD;
 
   border:2px solid rgba(255,255,255,.28);
   border-radius:6px;
