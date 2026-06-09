@@ -394,7 +394,7 @@ body{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  background: linear-gradient(135deg, #7A1FF2 0%, #6B46FF 50%, #7FA9FF 100%);
+  background:rgba(12,12,16,0.72);
   border:1px solid var(--glassStroke);
   border-radius:12px;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
