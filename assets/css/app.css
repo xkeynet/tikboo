@@ -425,7 +425,7 @@ body{
   }
 
   10% {
-    transform: translate(10px, -36px) rotate(12deg);
+    transform: translate(10px, -46px) rotate(12deg);
     animation-timing-function: ease-out;
   }
 
@@ -556,7 +556,7 @@ body{
 
   letter-spacing:0.06em;
 
-  color:#14C8D8;
+  color:#FFFFFF;
 
   /* o chlup luxusnější tmavší fialová */
   background:#5412C8;
