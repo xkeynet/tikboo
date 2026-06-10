@@ -1,8 +1,26 @@
-<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path
-    d="M13.5 3C13.5 2.44772 13.0523 2 12.5 2H11.5C10.9477 2 10.5 2.44772 10.5 3V10.5H3C2.44772 10.5 2 10.9477 2 11.5V12.5C2 13.0523 2.44772 13.5 3 13.5H10.5V21C10.5 21.5523 10.9477 22 11.5 22H12.5C13.0523 22 13.5 21.5523 13.5 21V13.5H21C21.5523 13.5 22 13.0523 22 12.5V11.5C22 10.9477 21.5523 10.5 21 10.5H13.5V3Z"
-    fill="#000000"
-    stroke="#000000"
-    stroke-width="0.35"
+<svg width="800px" height="800px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tikbooGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6119DD"/>
+      <stop offset="100%" stop-color="#14C8D8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- horizontální badge -->
+  <rect
+    x="2"
+    y="7"
+    width="28"
+    height="18"
+    rx="3"
+    fill="url(#tikbooGradient)"
   />
-</svg>
+
+  <!-- bílé plus -->
+  <path
+    d="M16 11.5V20.5M11.5 16H20.5"
+    stroke="#FFFFFF"
+    stroke-width="1.8"
+    stroke-linecap="square"
+  />
+  </svg>
