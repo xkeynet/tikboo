@@ -650,7 +650,7 @@ body{
   transform:translate(-50%,-50%);
   width:36px;
   height:28px;
-  border-radius:9px;
+  border-radius:6px;
   margin-top:1px; 
 }
 
@@ -753,7 +753,7 @@ body{
   right:0;
   bottom:0;
   height:43px;
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.80);
   pointer-events:none;
   z-index:-1;
 }
