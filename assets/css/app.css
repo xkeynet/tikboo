@@ -609,57 +609,36 @@ body{
   opacity: 0.8; 
 }
 
-/* [+] JAKO TikTok */
+/* === Tikboo [ + ] === */
 .add-btn{
+  appearance:none;
   position:relative;
+
   width:52px;
   height:32px;
-  border:0;
-  background:transparent;
-  padding:0;
-}
 
-/* základ pilulky */
-.pill{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:36px;
-  height:28px;
-  border-radius:6px;
-  margin-top:1px; 
-}
-
-/* střed */
-.pill-core{
-  background:#fff;
-  z-index:3;
   display:flex;
   align-items:center;
   justify-content:center;
+
+  background:transparent;
+  border:0;
+  padding:0;
+
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
 
-/* levá barevná */
-.pill-left{
-  background:#14C8D8;
-  transform:translate(calc(-50% - 4px),-50%);
-  z-index:1;
-}
-
-/* pravá barevná */
-.pill-right{
-  background:#6119DD;
-  transform:translate(calc(-50% + 4px),-50%);
-  z-index:1;
-}
-
-/* plus */
-.add-plus-svg{
-  width:17px;
-  height:17px;
+.add-create-svg{
+  width:42px;
+  height:42px;
   display:block;
-  transform: translate(-0.5px, 0px);
+
+  transform:translateY(0px);
+
+  user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
 }
 
 .nav-icon{
