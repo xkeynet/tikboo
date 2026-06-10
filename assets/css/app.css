@@ -592,7 +592,6 @@ body{
 .consent-pill:nth-child(2),
 .consent-pill:nth-child(3){
   color:rgba(255,255,255,.75);
-  border:2px solid rgba(255,255,255,.28);
 }
 
 .icon-heart{
