@@ -610,7 +610,7 @@ body{
 }
 
 /* === Tikboo [ + ] === */
-[aria-label="Create"] .nav-icon{
+.add-plus-svg{
   width:42px;
   height:26px;
   transform:translateY(-1px);
