@@ -611,9 +611,9 @@ body{
 
 /* === Tikboo [ + ] === */
 .add-plus-svg{
-  width:42px;
-  height:26px;
-  transform:translateY(-1px);
+  width:46px;
+  height:28px;
+  transform:translateY(-2px);
 }
 
 .nav-icon{
