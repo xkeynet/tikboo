@@ -672,7 +672,7 @@ body{
 
 /* pravá barevná */
 .pill-right{
-  background:#14C8D8;
+  background:#6119DD;
   transform:translate(calc(-50% + 4px),-50%);
   z-index:1;
 }
@@ -753,7 +753,7 @@ body{
   right:0;
   bottom:0;
   height:43px;
-  background:rgba(0,0,0,.80);
+  background:rgba(0,0,0,.90);
   pointer-events:none;
   z-index:-1;
 }
