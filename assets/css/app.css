@@ -556,7 +556,7 @@ body{
 
   letter-spacing:0.06em;
 
-  color:rgba(255,255,255,.75);
+  color:#14C8D8;
 
   /* o chlup luxusnější tmavší fialová */
   background:#5412C8;
@@ -569,12 +569,6 @@ body{
 
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
-}
-
-.consent-pill:nth-child(1),
-.consent-pill:nth-child(2),
-.consent-pill:nth-child(3){
-  color:rgba(255,255,255,.75);
 }
 
 .icon-heart{
