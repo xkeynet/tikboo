@@ -489,7 +489,7 @@ body{
 /* === THE ENTER PILL === */
 .enterBtn{
   width:100%;
-  max-width:420px;
+  max-width:520px;
 
   margin:0 auto;
 
@@ -497,13 +497,13 @@ body{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:2px;
+  gap:1px;
 
   border:0;
   border-radius:6px;
 
-  /* o chlup vyšší */
-  padding:12px 18px;
+  /* široké, ale ne nafouknuté */
+  padding:9px 18px;
 
   font-weight:800;
   letter-spacing:0;
@@ -537,7 +537,7 @@ body{
 /* === CONSENT PILLS === */
 .consent{
   width:100%;
-  max-width:420px;
+  max-width:520px;
 
   /* větší oddělení od ENTER */
   margin-top:14px;
@@ -549,6 +549,7 @@ body{
   gap:9px;
 
   align-items:center;
+
   pointer-events:auto;
 }
 
@@ -566,6 +567,7 @@ body{
 
   font-size:10px;
   font-weight:800;
+
   letter-spacing:0.06em;
 
   color:rgba(255,255,255,.75);
