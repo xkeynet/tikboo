@@ -489,7 +489,7 @@ body{
 /* === THE ENTER PILL === */
 .enterBtn{
   width:100%;
-  max-width:320px;
+  max-width:360px;
 
   margin:0 auto;
 
@@ -502,15 +502,14 @@ body{
   border:0;
   border-radius:6px;
 
-  /* více vzduchu nahoře a dole */
-  padding:10px 18px;
+  /* o chlup vyšší */
+  padding:12px 18px;
 
   font-weight:800;
   letter-spacing:0;
   color:#FFFFFF;
 
-  /* stejné kouřové sklo jako layout, ale o trochu tmavší */
-  background: linear-gradient(90deg, #6119DD 0%, #14C8D8 100%);
+  background:linear-gradient(90deg,#6119DD 0%,#14C8D8 100%);
 
   box-shadow:none;
 
@@ -526,31 +525,30 @@ body{
 .enterTop{
   font-size:14px;
   line-height:1;
-  text-transform:none;
   letter-spacing:0;
-  opacity:1;
 }
 
 .enterBottom{
   font-size:14px;
   line-height:1;
-  text-transform:none;
   letter-spacing:0.02em;
-  opacity:1;
 }
 
 /* === CONSENT PILLS === */
 .consent{
   width:100%;
-  max-width:320px;
-  margin-top:9px;
+  max-width:360px;
+
+  /* větší oddělení od ENTER */
+  margin-top:14px;
 
   display:flex;
   flex-direction:column;
-  gap:6px;
+
+  /* více vzduchu mezi pilulkami */
+  gap:9px;
 
   align-items:center;
-
   pointer-events:auto;
 }
 
@@ -567,22 +565,19 @@ body{
   text-decoration:none;
 
   font-size:10px;
-
-  /* vracíme tučnost */
   font-weight:800;
-
   letter-spacing:0.06em;
 
-  /* jemně utlumená bílá */
   color:rgba(255,255,255,.75);
 
-  /* necháme prosvítat overlay */
-  background:#6119DD;
+  /* o chlup luxusnější tmavší fialová */
+  background:#5412C8;
 
   border:0;
   border-radius:6px;
 
-  padding:5px 16px;
+  /* o trochu vyšší */
+  padding:7px 16px;
 
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
