@@ -610,35 +610,10 @@ body{
 }
 
 /* === Tikboo [ + ] === */
-.add-btn{
-  appearance:none;
-  position:relative;
-
-  width:52px;
-  height:32px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:transparent;
-  border:0;
-  padding:0;
-
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.add-create-svg{
+[aria-label="Create"] .nav-icon{
   width:42px;
-  height:42px;
-  display:block;
-
-  transform:translateY(0px);
-
-  user-select:none;
-  -webkit-user-drag:none;
-  pointer-events:none;
+  height:26px;
+  transform:translateY(-1px);
 }
 
 .nav-icon{
