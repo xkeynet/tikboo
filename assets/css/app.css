@@ -753,7 +753,7 @@ body{
   right:0;
   bottom:0;
   height:43px;
-  background:#000000;
+  background:rgba(0,0,0,.55);
   pointer-events:none;
   z-index:-1;
 }
