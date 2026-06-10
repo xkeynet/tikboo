@@ -665,7 +665,7 @@ body{
 
 /* levá barevná */
 .pill-left{
-  background:#6119DD;
+  background:#14C8D8;
   transform:translate(calc(-50% - 4px),-50%);
   z-index:1;
 }
