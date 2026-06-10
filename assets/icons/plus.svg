@@ -1,4 +1,4 @@
-<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<svg width="800px" height="800px" viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="tikbooGradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#6119DD"/>
@@ -9,7 +9,7 @@
   <!-- horizontální badge -->
   <rect
     x="2"
-    y="7"
+    y="1"
     width="28"
     height="18"
     rx="3"
@@ -18,7 +18,7 @@
 
   <!-- bílé plus -->
   <path
-    d="M16 11.5V20.5M11.5 16H20.5"
+    d="M16 5.5V14.5M11.5 10H20.5"
     stroke="#FFFFFF"
     stroke-width="1.8"
     stroke-linecap="square"
