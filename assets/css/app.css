@@ -499,7 +499,7 @@ body{
   justify-content:center;
   gap:2px;
 
-  border:2px solid #D9D9D9;
+  border:0;
   border-radius:6px;
 
   /* více vzduchu nahoře a dole */
@@ -579,7 +579,7 @@ body{
   /* necháme prosvítat overlay */
   background:#6119DD;
 
-  border:2px solid #D9D9D9;
+  border:0;
   border-radius:6px;
 
   padding:5px 16px;
