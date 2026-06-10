@@ -42,6 +42,7 @@
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
+    let playbackGuardTimers = [];
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -100,6 +101,9 @@
         clearTimeout(playbackGuardTimer);
         playbackGuardTimer = 0;
       }
+
+      playbackGuardTimers.forEach(t => clearTimeout(t));
+      playbackGuardTimers = [];
     }
 
     function resetQueue() {
@@ -118,9 +122,9 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      playbackGuardTimer = setTimeout(() => {
-        playbackGuardTimer = 0;
+      const delays = [0, 40, 120, 260, 520];
 
+      const attempt = () => {
         if (state.isAnimating || dragging) return;
 
         const item = playlist[state.index];
@@ -133,10 +137,25 @@
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
 
+        if (video.readyState < 2) {
+          try {
+            video.load();
+          } catch (e) {}
+        }
+
         if (video.paused || video.readyState < 2) {
           tryPlay(video);
         }
-      }, 70);
+      };
+
+      delays.forEach((delay) => {
+        const timer = setTimeout(() => {
+          playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
+          attempt();
+        }, delay);
+
+        playbackGuardTimers.push(timer);
+      });
     }
 
     function warmMemoryVideo(videoEl, item) {
