@@ -295,7 +295,7 @@ body{
 .seek-time{
   position:absolute;
   left:50%;
-  transform:translateX(-50%) scaleX(0.90);
+  transform:translateX(-50%);
   bottom:44px;
 
   font-family:"Barlow", system-ui, sans-serif;
