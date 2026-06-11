@@ -486,7 +486,7 @@ body{
   gap:1px;
 
   border:0;
-  border-radius:6px;
+  border-radius:4px;
 
   /* široké, ale ne nafouknuté */
   padding:9px 18px;
@@ -562,7 +562,7 @@ body{
   background:#5412C8;
 
   border:0;
-  border-radius:6px;
+  border-radius:4px;
 
   /* o trochu vyšší */
   padding:7px 16px;
