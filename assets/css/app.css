@@ -475,7 +475,7 @@ body{
 /* === THE ENTER PILL === */
 .enterBtn{
   width:100%;
-  max-width:530px;
+  max-width:540px;
 
   margin:0 auto;
 
@@ -523,7 +523,7 @@ body{
 /* === CONSENT PILLS === */
 .consent{
   width:100%;
-  max-width:530px;
+  max-width:540px;
 
   /* větší oddělení od ENTER */
   margin-top:14px;
