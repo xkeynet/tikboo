@@ -684,7 +684,7 @@ body{
   right:0;
   bottom:0;
   height:43px;
-  background:rgba(0,0,0,.70);
+  background:rgba(0,0,0,.80);
   pointer-events:none;
   z-index:-1;
 }
