@@ -137,60 +137,20 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (real transparent gap + outer ring) */
+/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
 .stack.avatar-stack{
-  position:absolute;
-  left:0;
-  right:0;
-  top:-65px;
-  pointer-events:auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -65px;
+  pointer-events: auto;
 }
-
-.avatarBtn{
-  position:relative;
-  width:48px;
-  height:48px;
-  padding:0;
-}
-
-.avatar-ring{
-  position:relative;
-  width:43px;
-  height:43px;
-  display:block;
-  border-radius:999px;
-}
-
-.avatar-ring::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:50%;
-
-  width:48px;
-  height:48px;
-
-  transform:translate(-50%, -50%);
-
-  border:2px solid #FFFFFF;
-  border-radius:999px;
-
-  background:transparent;
-
-  z-index:-2;
-}
-
 .avatar{
-  position:relative;
-  z-index:1;
-
-  width:43px;
-  height:43px;
-
+  width:42px;
+  height:42px;
   border-radius:999px;
   object-fit:cover;
   display:block;
-
   user-select:none;
   -webkit-user-drag:none;
 }
@@ -975,4 +935,3 @@ body.device-non-master.device-small .seek-time{
     transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
   }
 }
-
