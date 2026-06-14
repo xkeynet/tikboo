@@ -137,7 +137,7 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (Tikboo Ring – precise circle) */
+/* ✅ AVATAR (Tikboo Ring – red + transparent gap) */
 .stack.avatar-stack{
   position:absolute;
   left:0;
@@ -166,24 +166,37 @@ body{
   position:absolute;
   left:50%;
   top:50%;
+
+  /* 42px avatar + 1px mezera + 2px prstenec */
   width:48px;
   height:48px;
+
   transform:translate(-50%, -50%);
+
   border-radius:999px;
-  background:linear-gradient(90deg,#6119DD 0%,#14C8D8 100%);
-  z-index:-1;
+
+  /* TikTok/Tikboo červená */
+  background:#FE2C55;
+
+  z-index:-2;
 }
 
 .avatar{
   position:relative;
   z-index:1;
+
   width:42px;
   height:42px;
+
   border-radius:999px;
   object-fit:cover;
   display:block;
+
   user-select:none;
   -webkit-user-drag:none;
+
+  /* 1px transparentní mezera */
+  box-shadow:0 0 0 1px transparent;
 }
 
 .side button{
