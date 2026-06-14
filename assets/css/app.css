@@ -137,52 +137,53 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
+/* ✅ AVATAR (Tikboo Ring – transparent gap) */
 .stack.avatar-stack{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -65px;
-  pointer-events: auto;
+  position:absolute;
+  left:0;
+  right:0;
+  top:-65px;
+  pointer-events:auto;
 }
+
+.avatarBtn{
+  width:48px;
+  height:48px;
+  padding:0;
+}
+
+.avatar-ring{
+  width:46px;
+  height:46px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:linear-gradient(
+    90deg,
+    #6119DD 0%,
+    #14C8D8 100%
+  );
+
+  flex-shrink:0;
+
+  /* vytvoří průhlednou mezeru */
+  padding:1px;
+}
+
 .avatar{
   width:42px;
   height:42px;
+
   border-radius:999px;
   object-fit:cover;
   display:block;
+
   user-select:none;
   -webkit-user-drag:none;
-}
-
-.side button{
-  appearance: none;
-  background: transparent;
-  border: 0;
-  width: 48px;
-  height: 40px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform; 
-}
-.count{
-  font-size:12px;
-  font-weight:600;
-  color:#ffffff;
-  user-select:none;
-  line-height:1;
-  margin-top:0px;
-  letter-spacing:0.2px;
 }
 
 /* =========================================================
