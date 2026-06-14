@@ -137,20 +137,46 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
+/* ✅ AVATAR (Tikboo Ring – SAFE) */
 .stack.avatar-stack{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -65px;
-  pointer-events: auto;
+  position:absolute;
+  left:0;
+  right:0;
+  top:-65px;
+  pointer-events:auto;
 }
+
+.avatarBtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.avatar-ring{
+  width:47px;
+  height:47px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+
+  background:linear-gradient(
+    90deg,
+    #6119DD 0%,
+    #14C8D8 100%
+  );
+}
+
 .avatar{
   width:42px;
   height:42px;
+
   border-radius:999px;
   object-fit:cover;
   display:block;
+
   user-select:none;
   -webkit-user-drag:none;
 }
