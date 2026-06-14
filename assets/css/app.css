@@ -176,7 +176,7 @@ body{
   border-radius:999px;
 
   /* TikTok/Tikboo červená */
-  color:rgba(255,255,255,.50);
+  background:rgba(255,255,255,.65);
 
   z-index:-2;
 }
