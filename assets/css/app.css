@@ -137,7 +137,7 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (Tikboo Ring – layered base) */
+/* ✅ AVATAR (final layered rings) */
 .stack.avatar-stack{
   position:absolute;
   left:0;
@@ -164,37 +164,26 @@ body{
 .avatar-ring::before{
   content:"";
   position:absolute;
-  left:50%;
-  top:50%;
-  width:48px;
-  height:48px;
-  transform:translate(-50%, -50%);
+  inset:-3px;              /* 42 → 48 */
   border-radius:999px;
-  background:rgba(255,255,255,.65);
+  background:#FFFFFF;      /* vnější bílý prstenec */
   z-index:-2;
-}
-
-.avatar-ring::after{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:50px;
-  height:50px;
-  transform:translate(-50%, -50%);
-  border-radius:999px;
-  background:#FFFFFF;
-  z-index:-3;
 }
 
 .avatar{
   position:relative;
   z-index:1;
+
   width:42px;
   height:42px;
+
   border-radius:999px;
   object-fit:cover;
   display:block;
+
+  /* 1px transparentní mezera */
+  box-shadow:0 0 0 1px transparent;
+
   user-select:none;
   -webkit-user-drag:none;
 }
