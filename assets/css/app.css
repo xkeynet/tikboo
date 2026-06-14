@@ -153,14 +153,15 @@ body{
 }
 
 .avatar-ring{
-  width:47px;
-  height:47px;
+  width:46px;
+  height:46px;
+
+  border-radius:50%;
+  overflow:hidden;
 
   display:flex;
   align-items:center;
   justify-content:center;
-
-  border-radius:999px;
 
   background:linear-gradient(
     90deg,
@@ -173,12 +174,10 @@ body{
   width:42px;
   height:42px;
 
-  border-radius:999px;
-  object-fit:cover;
   display:block;
+  object-fit:cover;
 
-  user-select:none;
-  -webkit-user-drag:none;
+  border-radius:50%;
 }
 
 .side button{
