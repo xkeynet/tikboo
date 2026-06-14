@@ -676,7 +676,7 @@ body{
   justify-content: center;
   isolation: isolate;
 }
-
+/* spodní navigační lišta */
 .nav::before{
   content:"";
   position:absolute;
@@ -684,7 +684,7 @@ body{
   right:0;
   bottom:0;
   height:43px;
-  background:rgba(0,0,0,.90);
+  background:rgba(0,0,0,.70);
   pointer-events:none;
   z-index:-1;
 }
