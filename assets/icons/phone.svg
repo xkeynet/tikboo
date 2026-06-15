@@ -1,28 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 24 24"
-     fill="none"
-     xmlns="http://www.w3.org/2000/svg">
-
-  <!-- Tikboo status dot (nahoře jako iPhone indikátor) -->
-  <path d="M12 6H12.012"
-        stroke="#FFFFFF"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"/>
-
-  <!-- Tikboo phone outline -->
-  <path d="M6 5
-           L6 19
-           C6 20.1046 6.89543 21 8 21
-           H16
-           C17.1046 21 18 20.1046 18 19
-           L18 5
-           C18 3.89543 17.1046 3 16 3
-           L8 3
-           C6.89543 3 6 3.89543 6 5Z"
-        stroke="#FFFFFF"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"/>
-
+<svg fill="#FFFFFF" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 3H8C6.895 3 6 3.895 6 5v14c0 1.105.895 2 2 2h8c1.105 0 2-.895 2-2V5c0-1.105-.895-2-2-2zM8 5h8v14H8V5z"/>
+  <path d="M12 6.25a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5z"/>
 </svg>
