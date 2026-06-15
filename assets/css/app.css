@@ -99,6 +99,91 @@ body{
   -webkit-user-drag:none;
 }
 
+.live-arrow-fly{
+  position:fixed;
+  top:16px;
+  right:12px;
+
+  width:28px;
+  height:28px;
+
+  z-index:4;
+  pointer-events:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  opacity:0;
+
+  animation:liveArrowTravel 3000ms linear infinite;
+}
+
+.live-arrow-fly::before{
+  content:"";
+  width:12px;
+  height:12px;
+
+  border-top:2px solid #fff;
+  border-left:2px solid #fff;
+
+  transform-origin:50% 50%;
+  transform:rotate(135deg) translateZ(0);
+
+  will-change:transform;
+  backface-visibility:hidden;
+
+  filter:
+    drop-shadow(0 0 2px rgba(0,0,0,.90))
+    drop-shadow(0 2px 8px rgba(0,0,0,.65));
+
+  animation:liveArrowSpin 3000ms cubic-bezier(.14,.92,.18,1) infinite;
+}
+
+@keyframes liveArrowTravel{
+  0%{
+    opacity:0;
+    transform:translateX(0);
+  }
+
+  8%{
+    opacity:1;
+  }
+
+  42%{
+    opacity:1;
+    transform:translateX(calc(-100vw + 30px));
+  }
+
+  90%{
+    opacity:1;
+    transform:translateX(calc(-100vw + 30px));
+  }
+
+  100%{
+    opacity:0;
+    transform:translateX(calc(-100vw + 30px));
+  }
+}
+
+@keyframes liveArrowSpin{
+  0%{
+    transform:rotate(135deg) translateZ(0);
+  }
+
+  42%{
+    transform:rotate(135deg) translateZ(0);
+  }
+
+  90%{
+    transform:rotate(1035deg) translateZ(0);
+  }
+
+  100%{
+    transform:rotate(1035deg) translateZ(0);
+  }
+}
+
 /* === STAGE (EMPTY HERO) === */
 .stage{
   display:grid; place-items:center;
