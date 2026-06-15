@@ -119,38 +119,25 @@ body{
   animation:liveArrowTravel 3000ms linear infinite;
 }
 
-.live-arrow-fly::before,
-.live-arrow-fly::after{
-  content:"";
-  position:absolute;
-
-  transform-origin:50% 50%;
-  will-change:transform;
-  backface-visibility:hidden;
-
-  animation:liveArrowSpin 3000ms cubic-bezier(.14,.92,.18,1) infinite;
-}
-
-/* ostrý tmavý obrys */
 .live-arrow-fly::before{
-  width:14px;
-  height:14px;
-
-  border-top:3px solid rgba(0,0,0,.90);
-  border-left:3px solid rgba(0,0,0,.90);
-
-  transform:rotate(135deg) translateZ(0);
-}
-
-/* bílá šipka */
-.live-arrow-fly::after{
+  content:"";
   width:12px;
   height:12px;
 
   border-top:2px solid #fff;
   border-left:2px solid #fff;
 
+  transform-origin:50% 50%;
   transform:rotate(135deg) translateZ(0);
+
+  will-change:transform;
+  backface-visibility:hidden;
+
+  filter:
+    drop-shadow(0 0 2px rgba(0,0,0,.90))
+    drop-shadow(0 2px 8px rgba(0,0,0,.65));
+
+  animation:liveArrowSpin 3000ms cubic-bezier(.14,.92,.18,1) infinite;
 }
 
 @keyframes liveArrowTravel{
