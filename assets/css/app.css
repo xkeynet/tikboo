@@ -73,39 +73,39 @@ body{
 /* =========================================================
    CSS: Top UI
    ========================================================= */
-/* === TIKBOO LIVE TV === */
+/* === TOP LEFT LIVE === */
 .top{
   position:fixed;
   top:2px;
   left:4px;
   right:auto;
-
-  width:56px;
-  height:56px;
-
+  width:44px;
+  height:44px;
   display:flex;
   align-items:center;
   justify-content:center;
-
   z-index:3;
-
   padding:0;
   background:none;
   border:0;
-
-  pointer-events:auto;
 }
 
 .top img{
-  width:40px;
-  height:auto;
-
+  width:28px;
+  height:28px;
+  object-fit:contain;
   display:block;
-
   user-select:none;
   -webkit-user-drag:none;
+}
 
-  object-fit:contain;
+/* === STAGE (EMPTY HERO) === */
+.stage{
+  display:grid; place-items:center;
+  padding:24px var(--safeSide);
+  text-align:center; position:relative; z-index:1;
+  padding-bottom: calc(var(--navH) + 28px);
+  pointer-events:none;
 }
 
 /* =========================================================
@@ -935,3 +935,4 @@ body.device-non-master.device-small .seek-time{
     transform:translate(-50%, -50%) translate3d(0,0,0) scale(1);
   }
 }
+
