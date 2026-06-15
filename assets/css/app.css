@@ -91,8 +91,8 @@ body{
 }
 
 .top img{
-  width:46px;
-  height:46px;
+  width:44px;
+  height:44px;
   object-fit:contain;
   display:block;
   user-select:none;
