@@ -91,12 +91,20 @@ body{
 }
 
 .top img{
+  display:none;
+}
+
+.top::before{
+  content:"";
   width:40px;
   height:40px;
-  object-fit:contain;
   display:block;
-  user-select:none;
-  -webkit-user-drag:none;
+
+  background:#fff;
+
+  -webkit-mask:url("/assets/icons/phone.svg") center / contain no-repeat;
+  mask:url("/assets/icons/phone.svg") center / contain no-repeat;
+
   animation:phoneLiveFlash 3000ms linear infinite;
 }
 
@@ -186,16 +194,16 @@ body{
 }
 
 @keyframes phoneLiveFlash{
-  0%, 89%{
-    filter:none;
+  0%, 78%{
+    background:#fff;
   }
 
-  90%, 97%{
-    filter:brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(3764%) hue-rotate(331deg) brightness(104%) contrast(99%);
+  79%, 98%{
+    background:#FE2C55;
   }
 
   100%{
-    filter:none;
+    background:#fff;
   }
 }
 
