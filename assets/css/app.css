@@ -134,8 +134,8 @@ body{
   backface-visibility:hidden;
 
   filter:
-    drop-shadow(0 0 2px rgba(0,0,0,.90))
-    drop-shadow(0 2px 8px rgba(0,0,0,.65));
+    drop-shadow(0 0 2px rgba(0,0,0,.60))
+    drop-shadow(0 2px 8px rgba(0,0,0,.45));
 
   animation:liveArrowSpin 3000ms cubic-bezier(.14,.92,.18,1) infinite;
 }
