@@ -152,17 +152,17 @@ body{
 
   42%{
     opacity:1;
-    transform:translateX(calc(-100vw + 30px));
+    transform:translateX(calc(-100vw + 82px));
   }
 
   90%{
     opacity:1;
-    transform:translateX(calc(-100vw + 30px));
+    transform:translateX(calc(-100vw + 82px));
   }
 
   100%{
     opacity:0;
-    transform:translateX(calc(-100vw + 30px));
+    transform:translateX(calc(-100vw + 82px));
   }
 }
 
