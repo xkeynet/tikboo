@@ -79,8 +79,8 @@ body{
   top:2px;
   left:4px;
   right:auto;
-  width:44px;
-  height:44px;
+  width:56px;
+  height:56px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -91,8 +91,8 @@ body{
 }
 
 .top img{
-  width:28px;
-  height:28px;
+  width:48px;
+  height:48px;
   object-fit:contain;
   display:block;
   user-select:none;
