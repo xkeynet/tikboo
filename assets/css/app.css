@@ -109,6 +109,8 @@ body{
 }
 
 .live-arrow-fly{
+  display:none; 
+   
   position:absolute;
   top:16px;
   right:12px;
