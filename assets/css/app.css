@@ -105,12 +105,12 @@ body{
   -webkit-mask:url("/assets/icons/phone.svg") center / contain no-repeat;
   mask:url("/assets/icons/phone.svg") center / contain no-repeat;
 
-  animation:phoneLiveFlash 3000ms linear infinite;
+  animation:none;
 }
 
 .live-arrow-fly{
-  display:none; 
-   
+  display:none;
+
   position:absolute;
   top:16px;
   right:12px;
