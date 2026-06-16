@@ -9,6 +9,9 @@
   top:-65px;
   pointer-events:auto;
   flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .side .avatarBtn{
@@ -20,11 +23,16 @@
   max-width:48px;
   max-height:48px;
   aspect-ratio:1 / 1;
+
   padding:0;
   margin:0;
+  border:0;
+  background:transparent;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
   flex-shrink:0;
   overflow:visible;
 }
@@ -38,13 +46,16 @@
   max-width:48px;
   max-height:48px;
   aspect-ratio:1 / 1;
+
   border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
+
   background:transparent;
   flex-shrink:0;
   overflow:visible;
+
   transform:translateZ(0);
   backface-visibility:hidden;
 }
@@ -54,7 +65,9 @@
   position:absolute;
   inset:0;
   border-radius:50%;
+
   background:linear-gradient(135deg,#ffffff 0%,#00D9FF 48%,#6119DD 100%);
+
   padding:2px;
   box-sizing:border-box;
 
@@ -62,6 +75,10 @@
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;
+
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite:exclude;
 
   pointer-events:none;
@@ -70,6 +87,7 @@
 .avatar{
   position:relative;
   z-index:1;
+
   width:42px;
   height:42px;
   min-width:42px;
@@ -77,16 +95,19 @@
   max-width:42px;
   max-height:42px;
   aspect-ratio:1 / 1;
+
   border-radius:50%;
   object-fit:cover;
   display:block;
+
   background:transparent;
   border:0;
-  flex-shrink:0;
 
   user-select:none;
   -webkit-user-drag:none;
   -webkit-touch-callout:none;
+
+  flex-shrink:0;
 }
 
 /* small devices */
