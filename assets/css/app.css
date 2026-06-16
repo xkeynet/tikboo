@@ -121,7 +121,7 @@ body{
   z-index:4;
   pointer-events:none;
 
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
 
