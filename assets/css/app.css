@@ -265,7 +265,7 @@ body{
   -webkit-user-drag:none;
 }
 
-.side button{
+.side button:not(.avatarBtn){
   appearance: none;
   background: transparent;
   border: 0;
