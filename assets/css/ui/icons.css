@@ -25,7 +25,7 @@
 
   background:linear-gradient(135deg,#ffffff 0%,#00D9FF 48%,#6119DD 100%);
 
-  padding:3px;
+  padding:2px; /* původně 3px */
   transform:translateZ(0);
   backface-visibility:hidden;
 }
@@ -41,8 +41,8 @@
   -webkit-user-drag:none;
   -webkit-touch-callout:none;
 
-  background:#000;
-  border:2px solid #000;
+  background:transparent;
+  border:0;
 }
 
 /* small devices */
@@ -53,7 +53,7 @@ body.device-non-master.device-small .stack.avatar-stack{
 body.device-non-master.device-small .avatar-ring{
   width:46px;
   height:46px;
-  padding:3px;
+  padding:2px; /* původně 3px */
 }
 
 body.device-non-master.device-small .avatar{
