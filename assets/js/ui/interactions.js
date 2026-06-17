@@ -112,6 +112,10 @@ export function initInteractions({
     btn.classList.remove('is-bouncing');
     void btn.offsetWidth;
     btn.classList.add('is-bouncing');
+
+    window.setTimeout(() => {
+      btn.classList.remove('is-bouncing');
+    }, 360);
   }
 
   async function loadRemoteLikes() {
