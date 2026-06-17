@@ -382,20 +382,20 @@
       if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
       resetTransformsNoAnim();
+      resetSeekUiImmediate();
+      syncSoundUI();
+      showPlayOverlay(false);
+
+      state.isAnimating = false;
+      resetActiveCommit();
+
+      bindAutoAdvanceForCurrent();
 
       if (playlist[state.index].type === 'video') {
         refs.videoCurrent.muted = state.isMuted;
         tryPlay(refs.videoCurrent);
         guardCurrentPlayback('finishCommit');
       }
-
-      resetSeekUiImmediate();
-      syncSoundUI();
-      showPlayOverlay(false);
-      bindAutoAdvanceForCurrent();
-
-      state.isAnimating = false;
-      resetActiveCommit();
 
       const queued = queuedDir;
       resetQueue();
