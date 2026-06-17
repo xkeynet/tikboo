@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return !!can && can !== 'no';
   }
 
-  const USE_HEVC = supportsHEVC();
+  const USE_HEVC = false;
 
   function deriveHevcSrc(h264Src) {
     if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
