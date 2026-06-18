@@ -16,12 +16,12 @@
 
 .side .avatarBtn{
   position:relative;
-  width:54px;
-  height:54px;
-  min-width:54px;
-  min-height:54px;
-  max-width:54px;
-  max-height:54px;
+  width:52px;
+  height:52px;
+  min-width:52px;
+  min-height:52px;
+  max-width:52px;
+  max-height:52px;
   aspect-ratio:1 / 1;
 
   padding:0;
@@ -35,17 +35,18 @@
 
   flex-shrink:0;
   overflow:visible;
+
   transform:translateY(-10px);
 }
 
 .avatar-ring{
   position:relative;
-  width:54px;
-  height:54px;
-  min-width:54px;
-  min-height:54px;
-  max-width:54px;
-  max-height:54px;
+  width:52px;
+  height:52px;
+  min-width:52px;
+  min-height:52px;
+  max-width:52px;
+  max-height:52px;
   aspect-ratio:1 / 1;
 
   border-radius:50%;
@@ -69,7 +70,7 @@
 
   background:linear-gradient(135deg,#ffffff 0%,#00D9FF 48%,#6119DD 100%);
 
-  padding:3px;
+  padding:2.5px;
   box-sizing:border-box;
 
   -webkit-mask:
@@ -117,21 +118,21 @@ body.device-non-master.device-small .stack.avatar-stack{
 }
 
 body.device-non-master.device-small .side .avatarBtn{
-  width:50px;
-  height:50px;
-  min-width:50px;
-  min-height:50px;
-  max-width:50px;
-  max-height:50px;
+  width:48px;
+  height:48px;
+  min-width:48px;
+  min-height:48px;
+  max-width:48px;
+  max-height:48px;
 }
 
 body.device-non-master.device-small .avatar-ring{
-  width:50px;
-  height:50px;
-  min-width:50px;
-  min-height:50px;
-  max-width:50px;
-  max-height:50px;
+  width:48px;
+  height:48px;
+  min-width:48px;
+  min-height:48px;
+  max-width:48px;
+  max-height:48px;
 }
 
 body.device-non-master.device-small .avatar{
