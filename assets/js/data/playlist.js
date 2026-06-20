@@ -1,6 +1,15 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ellzz22x.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo_car.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/vegasssecrets.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ika_dauria.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/krystal.galtry.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/extraolivemay.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/christelbarbie.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mariadmsanchez.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/dangershewrote.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rmcleodxo.mp4' },
