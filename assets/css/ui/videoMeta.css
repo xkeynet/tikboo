@@ -23,8 +23,8 @@
 }
 
 .video-meta-logo{
-  width:42px;
-  height:42px;
+  width:48px;
+  height:48px;
   object-fit:contain;
   display:block;
   flex:0 0 auto;
@@ -45,8 +45,10 @@
 .video-meta-follow{
   margin-left:8px;
 
-  height:28px;
-  padding:0 9px;
+  height:24px;
+
+  padding-left:7px;
+  padding-right:7px;
 
   display:inline-flex;
   align-items:center;
@@ -62,19 +64,20 @@
 
   font-size:14px;
   font-weight:700;
-  letter-spacing:0;
   line-height:1;
+
+  letter-spacing:0;
 
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
-  pointer-events:auto;
-
   white-space:nowrap;
+
+  pointer-events:auto;
   -webkit-tap-highlight-color:transparent;
 }
 
 .video-meta-caption{
-  margin-left:50px;
+  margin-left:56px;
 
   color:#ffffff;
 
