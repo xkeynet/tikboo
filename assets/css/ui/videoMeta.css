@@ -1,1 +1,30 @@
+.video-meta{
+  position:absolute;
+  left:16px;
+  bottom:98px;
+  z-index:6;
+  pointer-events:none;
+}
 
+.video-meta-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.video-meta-logo{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  display:block;
+}
+
+.video-meta-creator,
+.video-meta-caption{
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+}
+
+.video-meta-follow{
+  pointer-events:auto;
+}
