@@ -60,7 +60,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/The%20spray%20was%20so%20cold.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/iPhone.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Reflections.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hottmesscrystal_85.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/7thsunday.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/HBU.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/%23highheels.mp4' },
