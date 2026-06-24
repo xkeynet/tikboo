@@ -165,6 +165,16 @@ document.addEventListener('DOMContentLoaded', () => {
       sideEl.style.opacity = on ? '0' : '';
       sideEl.style.pointerEvents = on ? 'none' : '';
       sideEl.style.display = on ? 'none' : '';
+
+      const layer = sideEl.closest('.twincher-layer');
+      const videoMeta = layer?.querySelector('.video-meta');
+
+      if (videoMeta) {
+        videoMeta.classList.toggle('scrubbing', !!on);
+        videoMeta.style.opacity = on ? '0' : '';
+        videoMeta.style.pointerEvents = on ? 'none' : '';
+        videoMeta.style.display = on ? 'none' : '';
+      }
     });
   }
 
