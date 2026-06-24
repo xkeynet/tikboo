@@ -37,7 +37,7 @@
   font-size:15px;
   font-weight:600;
 
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
   white-space:nowrap;
 }
@@ -45,29 +45,32 @@
 .video-meta-follow{
   margin-left:8px;
 
-  height:24px;
-  padding:0 10px;
+  min-height:24px;
+  padding:4px 10px;
 
   display:inline-flex;
   align-items:center;
   justify-content:center;
 
-  border:1px solid rgba(255,255,255,.35);
-  border-radius:999px;
+  border:1px solid #ffffff;
+  border-radius:4px;
 
-  background:rgba(255,255,255,.08);
+  background:transparent;
 
   color:#ffffff;
   text-decoration:none;
 
-  font-size:13px;
-  font-weight:600;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:0.06em;
+  line-height:1;
 
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
   pointer-events:auto;
 
   white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
 }
 
 .video-meta-caption{
@@ -79,7 +82,7 @@
   font-weight:400;
   line-height:1.3;
 
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
   text-shadow:0 2px 12px rgba(0,0,0,.45);
 
