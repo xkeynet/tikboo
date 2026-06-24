@@ -2,7 +2,6 @@
   position:absolute;
   left:16px;
   bottom:98px;
-
   z-index:6;
 
   display:flex;
@@ -35,7 +34,6 @@
   margin-left:8px;
 
   color:#ffffff;
-
   font-size:15px;
   font-weight:600;
 
@@ -92,6 +90,7 @@
   overflow:hidden;
 }
 
+.video-meta.scrubbing,
 .side.scrubbing ~ .video-meta{
   opacity:0;
   pointer-events:none;
