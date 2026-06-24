@@ -158,7 +158,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Thoughts.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MONO.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sydneylint.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Kila.mp4' },
