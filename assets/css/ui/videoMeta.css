@@ -2,22 +2,25 @@
   position:absolute;
   left:16px;
   bottom:98px;
+
   z-index:6;
+
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+
+  max-width:calc(100vw - 110px);
 
   pointer-events:none;
 
   opacity:1;
-  transform:translate3d(0,0,0);
-
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
+  transition:opacity 120ms ease;
 }
 
 .video-meta-row{
   display:flex;
   align-items:center;
-  gap:8px;
+  flex-wrap:nowrap;
 }
 
 .video-meta-logo{
@@ -25,20 +28,71 @@
   height:34px;
   object-fit:contain;
   display:block;
+  flex:0 0 auto;
 }
 
-.video-meta-creator,
-.video-meta-caption{
-  color:#fff;
+.video-meta-creator{
+  margin-left:8px;
+
+  color:#ffffff;
+
+  font-size:15px;
+  font-weight:600;
+
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+
+  white-space:nowrap;
 }
 
 .video-meta-follow{
+  margin-left:8px;
+
+  height:24px;
+  padding:0 10px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:999px;
+
+  background:rgba(255,255,255,.08);
+
+  color:#ffffff;
+  text-decoration:none;
+
+  font-size:13px;
+  font-weight:600;
+
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+
   pointer-events:auto;
+
+  white-space:nowrap;
 }
 
-/* Hide meta while seekbar is being scrubbed */
-.scrubbing .video-meta{
+.video-meta-caption{
+  margin-left:42px;
+
+  color:#ffffff;
+
+  font-size:14px;
+  font-weight:400;
+  line-height:1.3;
+
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+
+  text-shadow:0 2px 12px rgba(0,0,0,.45);
+
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+
+  overflow:hidden;
+}
+
+.side.scrubbing ~ .video-meta{
   opacity:0;
   pointer-events:none;
 }
