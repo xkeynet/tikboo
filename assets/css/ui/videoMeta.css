@@ -45,16 +45,16 @@
 .video-meta-follow{
   margin-left:8px;
 
-  height:24px;
+  height:22px;
 
-  padding-left:7px;
-  padding-right:7px;
+  padding-left:5px;
+  padding-right:5px;
 
   display:inline-flex;
   align-items:center;
   justify-content:center;
 
-  border:1px solid #ffffff;
+  border:1px solid rgba(255,255,255,.65);
   border-radius:4px;
 
   background:transparent;
@@ -63,7 +63,7 @@
   text-decoration:none;
 
   font-size:14px;
-  font-weight:700;
+  font-weight:800;
   line-height:1;
 
   letter-spacing:0;
