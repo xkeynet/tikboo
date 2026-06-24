@@ -74,6 +74,8 @@
 
   pointer-events:auto;
   -webkit-tap-highlight-color:transparent;
+
+  transform:translateY(1px);
 }
 
 .video-meta-caption{
