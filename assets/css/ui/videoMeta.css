@@ -3,7 +3,15 @@
   left:16px;
   bottom:98px;
   z-index:6;
+
   pointer-events:none;
+
+  opacity:1;
+  transform:translate3d(0,0,0);
+
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
 }
 
 .video-meta-row{
@@ -27,4 +35,10 @@
 
 .video-meta-follow{
   pointer-events:auto;
+}
+
+/* Hide meta while seekbar is being scrubbed */
+.scrubbing .video-meta{
+  opacity:0;
+  pointer-events:none;
 }
