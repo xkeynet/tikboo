@@ -1,7 +1,20 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/liifewniic-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ellzz22x.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rafaeltats-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lopirova-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lady_s_dreamer-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angell_novikova-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ika_dauria-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mariadmsanchez-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/violeta_london-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/theallierae-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/livvvvvk2.0-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/allie_brink13-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jul1ett3x-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo_car.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/vegasssecrets.mp4' },
