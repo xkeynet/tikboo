@@ -313,14 +313,7 @@
 
         if (state.isAnimating) return;
 
-        const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-        if (targetVideo && targetVideo.readyState >= 2) {
-          commit(dir);
-          return;
-        }
-
-        snapBack();
+        commit(dir);
       }, 90);
     }
 
@@ -442,9 +435,8 @@
         return;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 2) {
+      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
         retryCommitOnce(dir);
-        return;
       }
 
       clearPendingCommit();
@@ -474,10 +466,30 @@
       if (targetItem?.type === 'video' && targetVideo) {
         targetVideo.muted = state.isMuted;
 
+        try {
+          if (targetVideo.readyState < 1) {
+            targetVideo.load();
+          }
+        } catch (e) {}
+
         setTimeout(() => {
           if (!state.isAnimating) return;
           tryPlay(targetVideo);
         }, 8);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          if (targetVideo.paused || targetVideo.readyState < 2) {
+            tryPlay(targetVideo);
+          }
+        }, 60);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          if (targetVideo.paused || targetVideo.readyState < 2) {
+            tryPlay(targetVideo);
+          }
+        }, 140);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
