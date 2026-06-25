@@ -132,36 +132,100 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const delays = [0, 40, 120, 260, 520];
+      const attempts = [
+        { delay: 0, verify: 70 },
+        { delay: 120, verify: 90 },
+        { delay: 260, verify: 120 },
+        { delay: 520, verify: 150 },
+        { delay: 900, verify: 180 }
+      ];
 
-      const attempt = () => {
-        if (state.isAnimating || dragging) return;
+      const isStillCurrent = (video, index) => {
+        return (
+          !state.isAnimating &&
+          !dragging &&
+          refs.videoCurrent === video &&
+          state.index === index
+        );
+      };
 
-        const item = playlist[state.index];
-        const video = refs.videoCurrent;
+      const hasUsableSrc = (video) => {
+        return !!(
+          video &&
+          (
+            video.currentSrc ||
+            video.src ||
+            video.getAttribute('src')
+          )
+        );
+      };
 
-        if (!item || item.type !== 'video' || !video) return;
+      const forceLoadIfCold = (video) => {
+        if (!video || video.readyState >= 2) return;
+
+        try {
+          video.load();
+        } catch (e) {}
+      };
+
+      const normalizeVideo = (video) => {
+        if (!video) return;
 
         video.muted = state.isMuted;
         video.playsInline = true;
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
-
-        if (video.readyState < 2) {
-          try {
-            video.load();
-          } catch (e) {}
-        }
-
-        if (video.paused || video.readyState < 2) {
-          tryPlay(video);
-        }
       };
 
-      delays.forEach((delay) => {
+      const attempt = (verifyDelay) => {
+        const indexAtAttempt = state.index;
+        const item = playlist[indexAtAttempt];
+        const video = refs.videoCurrent;
+
+        if (!item || item.type !== 'video' || !video) return;
+        if (!isStillCurrent(video, indexAtAttempt)) return;
+        if (!hasUsableSrc(video)) return;
+
+        normalizeVideo(video);
+
+        if (video.readyState < 2) {
+          forceLoadIfCold(video);
+        }
+
+        tryPlay(video);
+
+        const timeBefore = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+
+        const verifyTimer = setTimeout(() => {
+          playbackGuardTimers = playbackGuardTimers.filter(t => t !== verifyTimer);
+
+          if (!isStillCurrent(video, indexAtAttempt)) return;
+
+          const itemNow = playlist[state.index];
+          if (!itemNow || itemNow.type !== 'video') return;
+          if (!hasUsableSrc(video)) return;
+
+          normalizeVideo(video);
+
+          const timeAfter = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+          const advanced = timeAfter > timeBefore + 0.015;
+
+          if (advanced && !video.paused) return;
+
+          if (video.readyState < 2) {
+            forceLoadIfCold(video);
+          }
+
+          tryPlay(video);
+        }, verifyDelay);
+
+        playbackGuardTimers.push(verifyTimer);
+      };
+
+      attempts.forEach(({ delay, verify }) => {
         const timer = setTimeout(() => {
           playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
-          attempt();
+          attempt(verify);
         }, delay);
 
         playbackGuardTimers.push(timer);
