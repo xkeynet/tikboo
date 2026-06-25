@@ -11,6 +11,7 @@ export function initInteractions({
 }) {
   const likedByIndex = new Map();
   const baseLikesByIndex = new Map();
+  const renderedLikeStateByLayer = new WeakMap();
 
   const LIKE_STORAGE_KEY = 'tikboo_liked_videos_v1';
 
@@ -92,6 +93,13 @@ export function initInteractions({
     const safeIndex = normalizeIndex(index);
     const isLiked = !!likedByIndex.get(safeIndex);
     const count = getLikeCount(safeIndex);
+
+    const nextRenderState = `${safeIndex}|${isLiked ? 1 : 0}|${count}`;
+    const prevRenderState = renderedLikeStateByLayer.get(layer);
+
+    if (prevRenderState === nextRenderState) return;
+
+    renderedLikeStateByLayer.set(layer, nextRenderState);
 
     layer.querySelectorAll('.likeBtn').forEach((btn) => {
       btn.classList.toggle('is-liked', isLiked);
@@ -220,9 +228,15 @@ export function initInteractions({
     });
   }, true);
 
+  function watchLayers() {
+    renderLikes();
+    requestAnimationFrame(watchLayers);
+  }
+
   loadLocalLikedState();
   renderLikes();
   loadRemoteLikes();
+  requestAnimationFrame(watchLayers);
 
   return {
     renderLikes
