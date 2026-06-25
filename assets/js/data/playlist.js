@@ -15,6 +15,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-003.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/theallierae-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/livvvvvk2.0-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ambss.woods-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/allie_brink13-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jul1ett3x-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo.mp4' },
