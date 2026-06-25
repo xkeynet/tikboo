@@ -220,15 +220,9 @@ export function initInteractions({
     });
   }, true);
 
-  function watchLayers() {
-    renderLikes();
-    requestAnimationFrame(watchLayers);
-  }
-
   loadLocalLikedState();
   renderLikes();
   loadRemoteLikes();
-  requestAnimationFrame(watchLayers);
 
   return {
     renderLikes
