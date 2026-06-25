@@ -67,7 +67,7 @@
   inset:0;
   border-radius:50%;
 
-  background:#FE2C55;
+  background:linear-gradient(135deg,#ffffff 0%,#00D9FF 48%,#6119DD 100%);
 
   padding:2px;
   box-sizing:border-box;
