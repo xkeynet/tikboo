@@ -432,23 +432,25 @@ body{
 
 .seek-time .t-cur{
   color:rgba(255,255,255,.96);
-  font-weight:600;
+  font-weight:500;
 }
 
 .seek-time .t-sep{
   color:rgba(255,255,255,.60);
-  font-weight:600;
-  font-size:0.60em;
+  font-weight:500;
+  font-size:0.68em;
+  line-height:1.25;
   letter-spacing:0;
   padding:0 18px;
   position:relative;
-  top:-5px;
-  transform:rotate(-5deg);
+  top:-2px;
+  transform:rotate(-5deg) scaleY(1.18);
+  display:inline-block;
 }
 
 .seek-time .t-tot{
   color:rgba(255,255,255,.60);
-  font-weight:600;
+  font-weight:500;
 }
 
 /* =========================================================
