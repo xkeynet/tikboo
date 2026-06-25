@@ -4,7 +4,7 @@
     const { 
       refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg, 
       bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent, 
-      ensureSoundOn, isInteractiveTarget, onAfterCommit = () => {}
+      ensureSoundOn, isInteractiveTarget 
     } = options;
 
     const THRESHOLD_RATIO = 0.50; 
@@ -132,100 +132,36 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const attempts = [
-        { delay: 0, verify: 70 },
-        { delay: 120, verify: 90 },
-        { delay: 260, verify: 120 },
-        { delay: 520, verify: 150 },
-        { delay: 900, verify: 180 }
-      ];
+      const delays = [0, 40, 120, 260, 520];
 
-      const isStillCurrent = (video, index) => {
-        return (
-          !state.isAnimating &&
-          !dragging &&
-          refs.videoCurrent === video &&
-          state.index === index
-        );
-      };
+      const attempt = () => {
+        if (state.isAnimating || dragging) return;
 
-      const hasUsableSrc = (video) => {
-        return !!(
-          video &&
-          (
-            video.currentSrc ||
-            video.src ||
-            video.getAttribute('src')
-          )
-        );
-      };
+        const item = playlist[state.index];
+        const video = refs.videoCurrent;
 
-      const forceLoadIfCold = (video) => {
-        if (!video || video.readyState >= 2) return;
-
-        try {
-          video.load();
-        } catch (e) {}
-      };
-
-      const normalizeVideo = (video) => {
-        if (!video) return;
+        if (!item || item.type !== 'video' || !video) return;
 
         video.muted = state.isMuted;
         video.playsInline = true;
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
-      };
-
-      const attempt = (verifyDelay) => {
-        const indexAtAttempt = state.index;
-        const item = playlist[indexAtAttempt];
-        const video = refs.videoCurrent;
-
-        if (!item || item.type !== 'video' || !video) return;
-        if (!isStillCurrent(video, indexAtAttempt)) return;
-        if (!hasUsableSrc(video)) return;
-
-        normalizeVideo(video);
 
         if (video.readyState < 2) {
-          forceLoadIfCold(video);
+          try {
+            video.load();
+          } catch (e) {}
         }
 
-        tryPlay(video);
-
-        const timeBefore = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-
-        const verifyTimer = setTimeout(() => {
-          playbackGuardTimers = playbackGuardTimers.filter(t => t !== verifyTimer);
-
-          if (!isStillCurrent(video, indexAtAttempt)) return;
-
-          const itemNow = playlist[state.index];
-          if (!itemNow || itemNow.type !== 'video') return;
-          if (!hasUsableSrc(video)) return;
-
-          normalizeVideo(video);
-
-          const timeAfter = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-          const advanced = timeAfter > timeBefore + 0.015;
-
-          if (advanced && !video.paused) return;
-
-          if (video.readyState < 2) {
-            forceLoadIfCold(video);
-          }
-
+        if (video.paused || video.readyState < 2) {
           tryPlay(video);
-        }, verifyDelay);
-
-        playbackGuardTimers.push(verifyTimer);
+        }
       };
 
-      attempts.forEach(({ delay, verify }) => {
+      delays.forEach((delay) => {
         const timer = setTimeout(() => {
           playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
-          attempt(verify);
+          attempt();
         }, delay);
 
         playbackGuardTimers.push(timer);
@@ -452,10 +388,6 @@
       resetSeekUiImmediate();
       syncSoundUI();
       showPlayOverlay(false);
-
-      try {
-        onAfterCommit();
-      } catch (e) {}
 
       state.isAnimating = false;
       resetActiveCommit();
