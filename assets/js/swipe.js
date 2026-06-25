@@ -4,7 +4,7 @@
     const { 
       refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg, 
       bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent, 
-      ensureSoundOn, isInteractiveTarget 
+      ensureSoundOn, isInteractiveTarget, onAfterCommit = () => {}
     } = options;
 
     const THRESHOLD_RATIO = 0.50; 
@@ -452,6 +452,10 @@
       resetSeekUiImmediate();
       syncSoundUI();
       showPlayOverlay(false);
+
+      try {
+        onAfterCommit();
+      } catch (e) {}
 
       state.isAnimating = false;
       resetActiveCommit();
