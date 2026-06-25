@@ -444,7 +444,7 @@ body{
   padding:0 18px;
   position:relative;
   top:-2px;
-  transform:rotate(-5deg) scaleY(1.18);
+  transform:rotate(-10deg) scaleY(1.18);
   display:inline-block;
 }
 
