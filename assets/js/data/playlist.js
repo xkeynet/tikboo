@@ -139,7 +139,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/baby.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Crazy.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/haha.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Fav.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sunone.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Sun%E2%80%99s.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4' },
