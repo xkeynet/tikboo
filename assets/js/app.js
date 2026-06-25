@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let swipeEngine = null;
+  let interactionsApi = null;
 
   let autoTimer = 0;
   let autoBoundVideo = null;
@@ -833,7 +834,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setLayerContent,
     ensureSoundOn,
     isInteractiveTarget,
-    primeNextVideo
+    primeNextVideo,
+    onAfterCommit: () => interactionsApi?.renderLikes?.()
   });
 
   function activatePreviewMode() {
@@ -888,7 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initFirst();
 
-  initInteractions({
+  interactionsApi = initInteractions({
     refs,
     state,
     playlist: PLAYLIST,
