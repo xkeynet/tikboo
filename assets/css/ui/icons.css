@@ -35,7 +35,7 @@
 
   flex-shrink:0;
   overflow:visible;
-  transform:translateY(-10px);
+  transform:translateY(-8px);
 }
 
 .avatar-ring{
@@ -67,7 +67,7 @@
   inset:0;
   border-radius:50%;
 
-  background:#none;
+  background:none;
 
   padding:2px;
   box-sizing:border-box;
