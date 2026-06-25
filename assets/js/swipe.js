@@ -447,6 +447,7 @@
 
       if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
         retryCommitOnce(dir);
+        return;
       }
 
       clearPendingCommit();
