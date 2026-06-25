@@ -74,8 +74,12 @@
 
     function updateLayerEffects(layer, opacity) {
       if (!layer) return;
+
       const sideMenu = layer.querySelector('.side');
       if (sideMenu) sideMenu.style.opacity = opacity;
+
+      const videoMeta = layer.querySelector('.video-meta');
+      if (videoMeta) videoMeta.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
@@ -86,6 +90,12 @@
         s.classList.remove('scrubbing');
         s.style.opacity = '1';
         s.style.display = '';
+      });
+
+      document.querySelectorAll('.video-meta').forEach(m => {
+        m.classList.remove('scrubbing');
+        m.style.opacity = '1';
+        m.style.display = '';
       });
     }
 
