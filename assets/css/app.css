@@ -987,7 +987,8 @@ body.device-non-master.device-small .seek-time{
 }
 
 .likeBtn .icon-heart{
-  transition:opacity 20ms linear;
+  opacity:1;
+  transition:none;
 }
 
 .likeBtn.is-liked .icon-heart{
