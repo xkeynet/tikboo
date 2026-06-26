@@ -79,7 +79,9 @@
 }
 
 .video-meta-caption{
-  margin-left:50px;
+  margin-left:0;
+
+  margin-top:-2px;
 
   color:#ffffff;
 
