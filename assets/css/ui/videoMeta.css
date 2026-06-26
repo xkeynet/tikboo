@@ -23,8 +23,8 @@
 }
 
 .video-meta-logo{
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   object-fit:contain;
   display:block;
   flex:0 0 auto;
@@ -87,7 +87,7 @@
 .video-meta-caption{
   margin-left:4px;
 
-  margin-top:2px;
+  margin-top:4px;
 
   color:rgba(255,255,255,.80);
 
