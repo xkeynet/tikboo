@@ -217,6 +217,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
+  // === Video Metadata Layer ===
+  // =========================================================
+  function setLayerVideoMeta(layer, item) {
+    if (!layer || !item) return;
+
+    const meta = layer.querySelector('.video-meta');
+    if (!meta) return;
+
+    const creatorEl = meta.querySelector('.video-meta-creator');
+    const captionEl = meta.querySelector('.video-meta-caption');
+    const followEl = meta.querySelector('.video-meta-follow');
+
+    const creator = item.creator || '';
+    const caption = item.caption || '';
+    const followUrl = item.followUrl || '';
+
+    if (creatorEl) {
+      creatorEl.textContent = creator;
+    }
+
+    if (captionEl) {
+      captionEl.textContent = caption;
+      captionEl.style.display = caption ? '' : 'none';
+    }
+
+    if (followEl) {
+      if (followUrl) {
+        followEl.href = followUrl;
+        followEl.setAttribute('target', '_blank');
+        followEl.setAttribute('rel', 'noopener noreferrer');
+        followEl.setAttribute('aria-disabled', 'false');
+      } else {
+        followEl.href = '#';
+        followEl.removeAttribute('target');
+        followEl.setAttribute('rel', 'noopener noreferrer');
+        followEl.setAttribute('aria-disabled', 'true');
+      }
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const followEl = e.target.closest('.video-meta-follow');
+    if (!followEl) return;
+
+    const href = followEl.getAttribute('href') || '';
+    const disabled = followEl.getAttribute('aria-disabled') === 'true';
+
+    if (disabled || !href || href === '#') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // =========================================================
   // === Video Engine ===
   // =========================================================
   function updateSeekFill() {
@@ -521,6 +575,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function setLayerContent(layer, item, forNext) {
     const v = layer.querySelector('video');
     const im = layer.querySelector('img');
+
+    setLayerVideoMeta(layer, item);
 
     hideAll(layer);
 
