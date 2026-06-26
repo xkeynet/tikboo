@@ -1,6 +1,8 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-002.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mayaalessiaaaa-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-003.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/laurenwolfe-001.mp4' },
@@ -34,6 +36,8 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jul1ett3x-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsmiaxa-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hbro__-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-004.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hayleydavies.bts-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/brattytal-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-001.mp4' },
