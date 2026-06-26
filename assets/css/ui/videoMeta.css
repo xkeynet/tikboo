@@ -55,10 +55,12 @@
   align-items:center;
   justify-content:center;
 
-  border-image:linear-gradient(90deg,#6119DD 0%,#14C8D8 100%) 1;
+  border:1px solid transparent;
   border-radius:4px;
 
-  background:transparent;
+  background:
+    linear-gradient(#0000,#0000) padding-box,
+    linear-gradient(90deg,#6119DD 0%,#14C8D8 100%) border-box;
 
   color:#ffffff;
   text-decoration:none;
