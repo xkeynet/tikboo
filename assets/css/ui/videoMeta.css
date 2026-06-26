@@ -55,7 +55,7 @@
   align-items:center;
   justify-content:center;
 
-  border:1px solid #14C8D8;
+  border-image:linear-gradient(90deg,#6119DD 0%,#14C8D8 100%) 1;
   border-radius:4px;
 
   background:transparent;
