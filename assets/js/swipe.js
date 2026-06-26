@@ -77,6 +77,9 @@
 
       const sideMenu = layer.querySelector('.side');
       if (sideMenu) sideMenu.style.opacity = opacity;
+
+      const videoMeta = layer.querySelector('.video-meta');
+      if (videoMeta) videoMeta.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
