@@ -23,8 +23,8 @@
 }
 
 .video-meta-logo{
-  width:46px;
-  height:46px;
+  width:42px;
+  height:42px;
   object-fit:contain;
   display:block;
   flex:0 0 auto;
@@ -35,7 +35,7 @@
 
   color:rgba(255,255,255,.90);
 
-  font-size:14px;
+  font-size:15px;
   font-weight:600;
 
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -55,14 +55,17 @@
   align-items:center;
   justify-content:center;
 
-  border:1px solid transparent;
+  border:1px solid rgba(255,255,255,.50);
   border-radius:4px;
 
-  background:
-    linear-gradient(#0000,#0000) padding-box,
-    linear-gradient(90deg,#6119DD 0%,#14C8D8 100%) border-box;
+  background:transparent;
 
-  color:#ffffff;
+  background-image:linear-gradient(90deg,#6119DD 0%,#14C8D8 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+
   text-decoration:none;
 
   font-size:13px;
@@ -84,7 +87,7 @@
 .video-meta-caption{
   margin-left:4px;
 
-  margin-top:4px;
+  margin-top:2px;
 
   color:rgba(255,255,255,.80);
 
