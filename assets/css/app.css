@@ -1049,3 +1049,31 @@ body.device-non-master.device-small .seek-time{
   }
 }
 
+/* =========================================================
+   TIKBOO — RIGHT COLUMN 90% WHITE FINAL OVERRIDE
+   ========================================================= */
+
+.side button:not(.avatarBtn){
+  color:rgba(255,255,255,.90);
+}
+
+.side .count{
+  color:rgba(255,255,255,.90);
+}
+
+.side .icon-heart,
+.side .icon-talk,
+.side .icon-bookmark,
+.side .icon-share,
+.side .icon-dots{
+  opacity:.90 !important;
+}
+
+/* liked heart musí zůstat schované, protože červené srdce jde přes ::before */
+.side .likeBtn.is-liked .icon-heart{
+  opacity:0 !important;
+}
+
+.side .likeBtn.is-liked::before{
+  background:#FE2C55;
+}
