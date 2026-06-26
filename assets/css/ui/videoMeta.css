@@ -1,7 +1,7 @@
 .video-meta{
   position:absolute;
   left:16px;
-  bottom:98px;
+  bottom:84px;
   z-index:6;
 
   display:flex;
@@ -79,7 +79,7 @@
 }
 
 .video-meta-caption{
-  margin-left:56px;
+  margin-left:50px;
 
   color:#ffffff;
 
