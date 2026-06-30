@@ -228,10 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const creatorEl = meta.querySelector('.video-meta-creator');
     const captionEl = meta.querySelector('.video-meta-caption');
     const followEl = meta.querySelector('.video-meta-follow');
+    const avatarEl = layer.querySelector('.avatar');
 
     const creator = item.creator || '';
     const caption = item.caption || '';
     const followUrl = item.followUrl || '';
+    const avatar = item.avatar || '/assets/profile.jpeg';
 
     if (creatorEl) {
       creatorEl.textContent = creator;
@@ -254,6 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
         followEl.setAttribute('rel', 'noopener noreferrer');
         followEl.setAttribute('aria-disabled', 'true');
       }
+    }
+
+    if (avatarEl) {
+      avatarEl.src = avatar;
+      avatarEl.alt = creator ? `${creator} avatar` : 'Avatar';
     }
   }
 
