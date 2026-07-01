@@ -7,7 +7,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-003.mp4', creator: 'daddysjuiced_', caption: "Got me too wet babyyy!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/laurenwolfe-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/liifewniic-001.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-001.mp4', creator: 'daddysjuiced_', caption: "Happy Father's Day yall we love you!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ellzz22x.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-002.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rafaeltats-001.mp4' },
