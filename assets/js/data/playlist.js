@@ -4,7 +4,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-002.mp4', creator: 'julianomass', caption: "I'm bustin' mad moves to El Farsante", followUrl: 'https://www.instagram.com/julianomass/', avatar: '/assets/avatars/julianomass.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mayaalessiaaaa-001.mp4', creator: 'mayaalessiaaaa', caption: 'My pretty face 💖', followUrl: 'https://www.instagram.com/mayaalessiaaaa/', avatar: '/assets/avatars/mayaalessiaaaa.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-001.mp4' , creator: 'ripsigal', caption: 'Main character energy..🥤', followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-003.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-003.mp4', creator: 'daddysjuiced_', caption: "Happy Father's Day yall we love you!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/laurenwolfe-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/liifewniic-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-001.mp4' },
