@@ -5,7 +5,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mayaalessiaaaa-001.mp4', creator: 'mayaalessiaaaa', caption: 'My pretty face 💖', followUrl: 'https://www.instagram.com/mayaalessiaaaa/', avatar: '/assets/avatars/mayaalessiaaaa.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-001.mp4' , creator: 'ripsigal', caption: 'Main character energy..🥤', followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-003.mp4', creator: 'daddysjuiced_', caption: "Got me too wet babyyy!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/laurenwolfe-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/laurenwolfe-001.mp4' , creator: 'laurenwolfe', caption: "Best Mannequin Challenge in a girls' world 💅", followUrl: 'https://www.instagram.com/laurenwolfe/', avatar: '/assets/avatars/laurenwolfe.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/liifewniic-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_-001.mp4', creator: 'daddysjuiced_', caption: "Happy Father's Day yall we love you!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ellzz22x.mp4' },
