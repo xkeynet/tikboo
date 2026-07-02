@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const creator = item.creator || '';
     const caption = item.caption || '';
     const followUrl = item.followUrl || '';
-    const avatar = item.avatar || '/assets/profile.jpeg';
+    const avatar = item.avatar || '/assets/xxx.jpg';
 
     if (creatorEl) {
       creatorEl.textContent = creator;
