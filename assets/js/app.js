@@ -89,6 +89,114 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
+  // === AVATAR PRELOAD / DECODE CACHE ===
+  // =========================================================
+  const FALLBACK_AVATAR = '/assets/xxx.jpg';
+  const avatarCache = new Map();
+
+  function normalizeAvatarSrc(src) {
+    return src || FALLBACK_AVATAR;
+  }
+
+  function preloadAvatar(src) {
+    const avatarSrc = normalizeAvatarSrc(src);
+    if (!avatarSrc) return null;
+
+    const cached = avatarCache.get(avatarSrc);
+    if (cached) return cached;
+
+    const img = new Image();
+    const record = {
+      src: avatarSrc,
+      img,
+      loaded: false,
+      failed: false,
+      decodePromise: null
+    };
+
+    img.decoding = 'async';
+    img.loading = 'eager';
+    img.fetchPriority = 'high';
+
+    img.onload = () => {
+      record.loaded = true;
+    };
+
+    img.onerror = () => {
+      record.failed = true;
+    };
+
+    img.src = avatarSrc;
+
+    if (typeof img.decode === 'function') {
+      record.decodePromise = img.decode()
+        .then(() => {
+          record.loaded = true;
+          return true;
+        })
+        .catch(() => {
+          record.failed = true;
+          return false;
+        });
+    }
+
+    avatarCache.set(avatarSrc, record);
+    return record;
+  }
+
+  function warmAvatarWindow(centerIndex = state.index) {
+    const indexes = [
+      centerIndex,
+      normalizeIndex(centerIndex + 1),
+      normalizeIndex(centerIndex - 1),
+      normalizeIndex(centerIndex + 2),
+      normalizeIndex(centerIndex - 2)
+    ];
+
+    indexes.forEach((idx) => {
+      const item = PLAYLIST[idx];
+      if (item) preloadAvatar(item.avatar);
+    });
+  }
+
+  function applyAvatarInstant(avatarEl, avatar, creator) {
+    if (!avatarEl) return;
+
+    const avatarSrc = normalizeAvatarSrc(avatar);
+    const record = preloadAvatar(avatarSrc);
+
+    avatarEl.decoding = 'async';
+    avatarEl.loading = 'eager';
+    avatarEl.fetchPriority = 'high';
+    avatarEl.alt = creator ? `${creator} avatar` : 'Avatar';
+
+    const currentSrc = avatarEl.getAttribute('src') || '';
+
+    if (currentSrc === avatarSrc || currentSrc.endsWith(avatarSrc)) {
+      avatarEl.style.opacity = '1';
+      return;
+    }
+
+    if (record && (record.loaded || record.img.complete)) {
+      avatarEl.src = avatarSrc;
+      avatarEl.style.opacity = '1';
+      return;
+    }
+
+    if (record && record.decodePromise) {
+      record.decodePromise.then((ok) => {
+        if (!ok) return;
+        avatarEl.src = avatarSrc;
+        avatarEl.style.opacity = '1';
+      });
+      return;
+    }
+
+    avatarEl.src = avatarSrc;
+    avatarEl.style.opacity = '1';
+  }
+
+  // =========================================================
   // === HIDDEN PRELOAD BUFFERS ===
   // =========================================================
   const preloadPrev = document.createElement('video');
@@ -131,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
         preloadNext.load();
       }
     }
+
+    warmAvatarWindow(state.index);
   }
 
   // =========================================================
@@ -233,7 +343,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const creator = item.creator || '';
     const caption = item.caption || '';
     const followUrl = item.followUrl || '';
-    const avatar = item.avatar || '/assets/xxx.jpg';
+    const avatar = normalizeAvatarSrc(item.avatar);
+
+    preloadAvatar(avatar);
 
     if (creatorEl) {
       creatorEl.textContent = creator;
@@ -258,10 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (avatarEl) {
-      avatarEl.src = avatar;
-      avatarEl.alt = creator ? `${creator} avatar` : 'Avatar';
-    }
+    applyAvatarInstant(avatarEl, avatar, creator);
   }
 
   document.addEventListener('click', (e) => {
@@ -599,12 +708,15 @@ document.addEventListener('DOMContentLoaded', () => {
         primeNextVideo(v);
       }
 
+      warmAvatarWindow(state.index);
+
       return;
     }
 
     v.style.display = 'none';
     clearVideo(v);
     setImageSafe(im, item.src);
+    warmAvatarWindow(state.index);
   }
 
   function bindPreviewLoopForCurrent() {
@@ -699,6 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (swipeEngine) swipeEngine.autoAdvance();
       }, 3000);
     }
+
+    warmAvatarWindow(state.index);
   }
 
   // =========================================================
@@ -908,6 +1022,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refs.videoCurrent.loop = true;
     refs.videoCurrent.muted = true;
 
+    warmAvatarWindow(state.index);
     bindPreviewLoopForCurrent();
     showGate();
   }
@@ -919,6 +1034,8 @@ document.addEventListener('DOMContentLoaded', () => {
     refs.videoCurrent.muted = state.isMuted;
 
     hideGate();
+
+    warmAvatarWindow(state.index);
 
     if (PLAYLIST[state.index]?.type === 'video') {
       tryPlay(refs.videoCurrent);
@@ -938,6 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.isMuted = true;
     syncSoundUI();
 
+    warmAvatarWindow(state.index);
     setLayerContent(refs.layerCurrent, PLAYLIST[state.index], false);
     swipeEngine.resetTransformsNoAnim();
     showPlayOverlay(false);
