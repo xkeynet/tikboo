@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION LIGHT STABILITY
+// /assets/js/swipe.js - ATOMIC VERSION LIGHT STABILITY SMOOTH
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -44,8 +44,12 @@
     let playbackGuardTimer = 0;
     let playbackGuardTimers = [];
     let commitToken = 0;
+    let dragHeight = 0;
+    let activeTargetLayer = null;
 
     const COMMIT_COOLDOWN = 65;
+
+    const layerEffectCache = new WeakMap();
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -75,6 +79,21 @@
       if (!el) return;
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
+
+    function getLayerEffects(layer) {
+      if (!layer) return null;
+
+      let cached = layerEffectCache.get(layer);
+      if (cached) return cached;
+
+      cached = {
+        side: layer.querySelector('.side'),
+        meta: layer.querySelector('.video-meta')
+      };
+
+      layerEffectCache.set(layer, cached);
+      return cached;
+    }
 
     function hardenVideo(video, muted) {
       if (!video) return;
@@ -113,13 +132,11 @@
     }
 
     function updateLayerEffects(layer, opacity) {
-      if (!layer) return;
+      const cached = getLayerEffects(layer);
+      if (!cached) return;
 
-      const sideMenu = layer.querySelector('.side');
-      if (sideMenu) sideMenu.style.opacity = opacity;
-
-      const videoMeta = layer.querySelector('.video-meta');
-      if (videoMeta) videoMeta.style.opacity = opacity;
+      if (cached.side) cached.side.style.opacity = opacity;
+      if (cached.meta) cached.meta.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
@@ -244,6 +261,7 @@
 
     function resetTransformsNoAnim() {
       const height = vh();
+      dragHeight = height;
 
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
@@ -261,6 +279,8 @@
       setTr(refs.layerPrev, -height);
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
+
+      activeTargetLayer = null;
     }
 
     function recoverVisibleState() {
@@ -278,6 +298,7 @@
       dx = 0;
       preparedDir = 0;
       swipeSoundUnlocked = false;
+      activeTargetLayer = null;
 
       resetQueue();
       resetActiveCommit();
@@ -313,11 +334,14 @@
     }
 
     function prepareForwardLayer() {
-      const height = vh();
+      const height = dragHeight || vh();
+      dragHeight = height;
+
       const targetIndex = normalizeIndex(state.index + 1);
       
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
+        layerEffectCache.delete(refs.layerNext);
         nextLoadedIndex = targetIndex;
         prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
@@ -325,6 +349,7 @@
       warmMemoryForward();
 
       refs.layerNext.style.transition = 'none';
+      refs.layerNext.style.willChange = 'transform';
       setTr(refs.layerNext, height);
       nextLoadedDir = 1;
     }
@@ -332,11 +357,14 @@
     function prepareBackwardLayer() {
       if (!refs.layerPrev || !refs.videoPrev) return;
 
-      const height = vh();
+      const height = dragHeight || vh();
+      dragHeight = height;
+
       const targetIndex = normalizeIndex(state.index - 1);
       
       if (prevLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerPrev, playlist[targetIndex], true);
+        layerEffectCache.delete(refs.layerPrev);
         prevLoadedIndex = targetIndex;
         prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
@@ -344,6 +372,7 @@
       warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
+      refs.layerPrev.style.willChange = 'transform';
       setTr(refs.layerPrev, -height);
       nextLoadedDir = -1;
     }
@@ -361,8 +390,10 @@
     function prepareNextForDirection(dir) {
       if (dir > 0) {
         prepareForwardLayer();
+        activeTargetLayer = refs.layerNext;
       } else {
         prepareBackwardLayer();
+        activeTargetLayer = refs.layerPrev;
       }
 
       preparedDir = dir;
@@ -508,6 +539,9 @@
         return;
       }
 
+      const height = dragHeight || vh();
+      dragHeight = height;
+
       const targetIndex = normalizeIndex(state.index + dir);
       const targetItem = playlist[targetIndex];
       const targetLayer = dir > 0 ? refs.layerNext : refs.layerPrev;
@@ -553,7 +587,6 @@
       clearTimeout(settleTimer);
       settleTimer = 0;
 
-      const height = vh();
       const duration = 122; 
       const videoToPause = refs.videoCurrent;
 
@@ -600,6 +633,9 @@
       commitToken++;
 
       const token = commitToken;
+      const height = dragHeight || vh();
+      dragHeight = height;
+
       const duration = 200;
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
@@ -614,13 +650,14 @@
       setTr(refs.layerCurrent, 0);
 
       if (targetLayer) {
-        setTr(targetLayer, preparedDir > 0 ? vh() : -vh());
+        setTr(targetLayer, preparedDir > 0 ? height : -height);
       }
 
       settleTimer = setTimeout(() => {
         if (token !== commitToken) return;
 
         preparedDir = 0;
+        activeTargetLayer = null;
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
@@ -638,6 +675,7 @@
 
       warmForwardNext();
       preparedDir = 1;
+      activeTargetLayer = refs.layerNext;
       commit(1);
     }
 
@@ -682,6 +720,7 @@
 
         dy = 0;
         dx = 0;
+        activeTargetLayer = null;
         return;
       }
 
@@ -693,7 +732,7 @@
       const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
 
       if (
-        Math.abs(totalDy) >= vh() * thresholdRatio ||
+        Math.abs(totalDy) >= dragHeight * thresholdRatio ||
         (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
       ) {
         commit(preparedDir);
@@ -708,6 +747,8 @@
     document.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
+      dragHeight = vh();
+
       if (state.isAnimating) {
         queueHasStart = true;
         queueStartY = e.touches[0].clientY;
@@ -718,6 +759,7 @@
 
       dragging = true;
       preparedDir = 0;
+      activeTargetLayer = null;
       dy = 0;
       dx = 0;
 
@@ -737,7 +779,7 @@
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
-      if (startY < vh() * 0.45) {
+      if (startY < dragHeight * 0.45) {
         warmBackwardNext();
       } else {
         warmForwardNext();
@@ -778,8 +820,11 @@
       if (!dragging) {
         if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
+        dragHeight = vh();
+
         dragging = true;
         preparedDir = 0;
+        activeTargetLayer = null;
         dy = 0;
         dx = 0;
 
@@ -833,10 +878,11 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
 
-          const height = vh();
-          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
+          const height = dragHeight || vh();
+          const absDy = Math.abs(dy);
+          const progress = Math.min(absDy / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
-          const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
+          const targetLayer = activeTargetLayer || (preparedDir > 0 ? refs.layerNext : refs.layerPrev);
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
