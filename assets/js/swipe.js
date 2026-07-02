@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION
+// /assets/js/swipe.js - ATOMIC VERSION LIGHT STABILITY
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -43,7 +43,9 @@
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
     let playbackGuardTimers = [];
-    const COMMIT_COOLDOWN = 55;
+    let commitToken = 0;
+
+    const COMMIT_COOLDOWN = 65;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -54,7 +56,9 @@
     [memoryForwardVideo, memoryBackwardVideo].forEach(v => {
       v.preload = 'auto';
       v.muted = true;
+      v.defaultMuted = true;
       v.playsInline = true;
+      v.setAttribute('muted', '');
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
       v.style.position = 'absolute';
@@ -71,6 +75,42 @@
       if (!el) return;
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
+
+    function hardenVideo(video, muted) {
+      if (!video) return;
+
+      video.preload = 'auto';
+      video.muted = !!muted;
+      video.defaultMuted = !!muted;
+      video.playsInline = true;
+
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+
+      if (muted) {
+        video.setAttribute('muted', '');
+      } else {
+        video.removeAttribute('muted');
+      }
+
+      try {
+        video.disablePictureInPicture = true;
+      } catch (e) {}
+    }
+
+    function safePlay(video, reason) {
+      if (!video) return;
+
+      hardenVideo(video, state.isMuted);
+
+      try {
+        const result = tryPlay(video);
+
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => {});
+        }
+      } catch (e) {}
+    }
 
     function updateLayerEffects(layer, opacity) {
       if (!layer) return;
@@ -132,29 +172,29 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const delays = [0, 40, 120, 260, 520];
+      const localToken = commitToken;
+      const delays = [0, 60, 160, 360];
 
       const attempt = () => {
+        if (localToken !== commitToken) return;
         if (state.isAnimating || dragging) return;
+        if (document.visibilityState && document.visibilityState !== 'visible') return;
 
         const item = playlist[state.index];
         const video = refs.videoCurrent;
 
         if (!item || item.type !== 'video' || !video) return;
 
-        video.muted = state.isMuted;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
+        hardenVideo(video, state.isMuted);
 
-        if (video.readyState < 2) {
+        if (video.readyState < 1) {
           try {
             video.load();
           } catch (e) {}
         }
 
         if (video.paused || video.readyState < 2) {
-          tryPlay(video);
+          safePlay(video, reason);
         }
       };
 
@@ -174,7 +214,11 @@
       const current = videoEl.getAttribute('src') || '';
       if (current === item.src || current.endsWith(item.src)) return;
 
-      videoEl.pause();
+      try {
+        videoEl.pause();
+      } catch (e) {}
+
+      hardenVideo(videoEl, true);
 
       try {
         videoEl.src = item.src;
@@ -205,6 +249,7 @@
       raf = 0;
 
       clearTimeout(settleTimer);
+      settleTimer = 0;
       clearPendingCommit();
 
       [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
@@ -238,6 +283,7 @@
       resetActiveCommit();
 
       state.isAnimating = false;
+      commitToken++;
 
       resetSeekUiImmediate();
       resetTransformsNoAnim();
@@ -253,9 +299,16 @@
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
+      hardenVideo(videoEl, true);
+
       if (videoEl !== refs.videoCurrent) {
-        videoEl.pause();
-        videoEl.currentTime = 0;
+        try {
+          videoEl.pause();
+        } catch (e) {}
+
+        try {
+          videoEl.currentTime = 0;
+        } catch (e) {}
       }
     }
 
@@ -321,15 +374,39 @@
       pendingCommitTimer = setTimeout(() => {
         pendingCommitTimer = 0;
 
-        if (state.isAnimating) return;
+        if (state.isAnimating) {
+          queuedDir = dir;
+          return;
+        }
 
         commit(dir);
       }, 90);
     }
 
-    function finishCommit(dir, targetIndex, videoToPause) {
+    function drainQueue() {
+      const queued = queuedDir;
+      resetQueue();
+
+      if (!queued || state.isAnimating || dragging) return;
+
+      requestAnimationFrame(() => {
+        if (state.isAnimating || dragging) {
+          queuedDir = queued;
+          return;
+        }
+
+        prepareNextForDirection(queued);
+        commit(queued);
+      });
+    }
+
+    function finishCommit(dir, targetIndex, videoToPause, token) {
+      if (token !== commitToken) return;
+
       if (videoToPause) {
-        videoToPause.pause();
+        try {
+          videoToPause.pause();
+        } catch (e) {}
       }
 
       state.index = targetIndex;
@@ -394,44 +471,40 @@
 
       bindAutoAdvanceForCurrent();
 
-      if (playlist[state.index].type === 'video') {
-        refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
+      if (playlist[state.index] && playlist[state.index].type === 'video' && refs.videoCurrent) {
+        hardenVideo(refs.videoCurrent, state.isMuted);
+        safePlay(refs.videoCurrent, 'finishCommit');
         guardCurrentPlayback('finishCommit');
       }
-
-      const queued = queuedDir;
-      resetQueue();
 
       requestAnimationFrame(() => {
         warmForwardNext();
         warmBackwardNext();
-
-        if (queued !== 0 && !state.isAnimating) {
-          preparedDir = queued;
-          commit(queued);
-        }
+        drainQueue();
       });
     }
 
     function interruptActiveCommit() {
-      if (!state.isAnimating || activeCommitDir === 0 || activeCommitTargetIndex === null) return false;
-
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-
-      clearTimeout(settleTimer);
-      settleTimer = 0;
-      clearPendingCommit();
-
-      finishCommit(activeCommitDir, activeCommitTargetIndex, activeCommitVideoToPause);
-      return true;
+      return false;
     }
 
     function commit(dir) {
       const now = performance.now();
 
+      if (state.isAnimating) {
+        queuedDir = dir;
+        return;
+      }
+
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
+        queuedDir = dir;
+        clearPendingCommit();
+
+        pendingCommitTimer = setTimeout(() => {
+          pendingCommitTimer = 0;
+          drainQueue();
+        }, COMMIT_COOLDOWN);
+
         return;
       }
 
@@ -445,18 +518,31 @@
         return;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
-        return;
+      if (dir > 0) {
+        prepareForwardLayer();
+      } else {
+        prepareBackwardLayer();
+      }
+
+      if (targetItem?.type === 'video' && targetVideo) {
+        hardenVideo(targetVideo, state.isMuted);
+
+        if (targetVideo.readyState < 1) {
+          try {
+            targetVideo.load();
+          } catch (e) {}
+        }
       }
 
       clearPendingCommit();
       clearPlaybackGuard();
       lastCommitTime = now;
 
-      if (state.isAnimating) return;
       state.isAnimating = true;
+      commitToken++;
       
+      const token = commitToken;
+
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
@@ -465,9 +551,10 @@
       raf = 0;
 
       clearTimeout(settleTimer);
+      settleTimer = 0;
 
       const height = vh();
-      const duration = 120; 
+      const duration = 122; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -475,32 +562,14 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
+        safePlay(targetVideo, 'commitStart');
 
         setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
+          if (!state.isAnimating || token !== commitToken) return;
           if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
+            safePlay(targetVideo, 'commitRetryA');
           }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
+        }, 70);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -517,7 +586,7 @@
       setTr(targetLayer, 0);
 
       settleTimer = setTimeout(() => {
-        finishCommit(dir, targetIndex, videoToPause);
+        finishCommit(dir, targetIndex, videoToPause, token);
       }, duration); 
     }
 
@@ -528,7 +597,9 @@
       resetQueue();
 
       state.isAnimating = true;
+      commitToken++;
 
+      const token = commitToken;
       const duration = 200;
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
@@ -547,6 +618,8 @@
       }
 
       settleTimer = setTimeout(() => {
+        if (token !== commitToken) return;
+
         preparedDir = 0;
         resetTransformsNoAnim();
         state.isAnimating = false;
@@ -555,6 +628,8 @@
 
         if (snapDir < 0) warmBackwardNext();
         else warmForwardNext();
+
+        drainQueue();
       }, duration);
     }
 
@@ -567,7 +642,12 @@
     }
 
     function finishGesture(cancelled) {
-      if (!dragging || state.isAnimating) return;
+      if (!dragging) return;
+
+      if (state.isAnimating) {
+        dragging = false;
+        return;
+      }
 
       const totalDy = dy;
       const endT = performance.now();
@@ -584,7 +664,7 @@
 
           if (isTap && refs.videoCurrent) {
             if (refs.videoCurrent.paused) { 
-              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
+              ensureSoundOn ? ensureSoundOn(true) : safePlay(refs.videoCurrent, 'tapPlay');
               showPlayOverlay(false);
               guardCurrentPlayback('tapPlay');
             } else {
@@ -597,8 +677,11 @@
 
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
+          guardCurrentPlayback('finishGesture');
         }
 
+        dy = 0;
+        dx = 0;
         return;
       }
 
@@ -626,19 +709,17 @@
       if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
       if (state.isAnimating) {
-        const interrupted = interruptActiveCommit();
-
-        if (!interrupted || state.isAnimating) {
-          queueHasStart = true;
-          queueStartY = e.touches[0].clientY;
-          queueStartX = e.touches[0].clientX;
-          queuedDir = 0;
-          return;
-        }
+        queueHasStart = true;
+        queueStartY = e.touches[0].clientY;
+        queueStartX = e.touches[0].clientX;
+        queuedDir = 0;
+        return;
       }
 
       dragging = true;
       preparedDir = 0;
+      dy = 0;
+      dx = 0;
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -699,6 +780,8 @@
 
         dragging = true;
         preparedDir = 0;
+        dy = 0;
+        dx = 0;
 
         startY = e.touches[0].clientY;
         startX = e.touches[0].clientX;
@@ -793,6 +876,7 @@
       warmBackwardNext,
       commit,
       resetTransformsNoAnim,
+      recoverVisibleState,
       isDragging() {
         return dragging;
       }
