@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION LIGHT STABILITY SMOOTH
+// /assets/js/swipe.js - ATOMIC VERSION
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -43,13 +43,7 @@
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
     let playbackGuardTimers = [];
-    let commitToken = 0;
-    let dragHeight = 0;
-    let activeTargetLayer = null;
-
-    const COMMIT_COOLDOWN = 65;
-
-    const layerEffectCache = new WeakMap();
+    const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -60,9 +54,7 @@
     [memoryForwardVideo, memoryBackwardVideo].forEach(v => {
       v.preload = 'auto';
       v.muted = true;
-      v.defaultMuted = true;
       v.playsInline = true;
-      v.setAttribute('muted', '');
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
       v.style.position = 'absolute';
@@ -80,63 +72,14 @@
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
 
-    function getLayerEffects(layer) {
-      if (!layer) return null;
-
-      let cached = layerEffectCache.get(layer);
-      if (cached) return cached;
-
-      cached = {
-        side: layer.querySelector('.side'),
-        meta: layer.querySelector('.video-meta')
-      };
-
-      layerEffectCache.set(layer, cached);
-      return cached;
-    }
-
-    function hardenVideo(video, muted) {
-      if (!video) return;
-
-      video.preload = 'auto';
-      video.muted = !!muted;
-      video.defaultMuted = !!muted;
-      video.playsInline = true;
-
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-
-      if (muted) {
-        video.setAttribute('muted', '');
-      } else {
-        video.removeAttribute('muted');
-      }
-
-      try {
-        video.disablePictureInPicture = true;
-      } catch (e) {}
-    }
-
-    function safePlay(video, reason) {
-      if (!video) return;
-
-      hardenVideo(video, state.isMuted);
-
-      try {
-        const result = tryPlay(video);
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(() => {});
-        }
-      } catch (e) {}
-    }
-
     function updateLayerEffects(layer, opacity) {
-      const cached = getLayerEffects(layer);
-      if (!cached) return;
+      if (!layer) return;
 
-      if (cached.side) cached.side.style.opacity = opacity;
-      if (cached.meta) cached.meta.style.opacity = opacity;
+      const sideMenu = layer.querySelector('.side');
+      if (sideMenu) sideMenu.style.opacity = opacity;
+
+      const videoMeta = layer.querySelector('.video-meta');
+      if (videoMeta) videoMeta.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
@@ -189,29 +132,29 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const localToken = commitToken;
-      const delays = [0, 60, 160, 360];
+      const delays = [0, 40, 120, 260, 520];
 
       const attempt = () => {
-        if (localToken !== commitToken) return;
         if (state.isAnimating || dragging) return;
-        if (document.visibilityState && document.visibilityState !== 'visible') return;
 
         const item = playlist[state.index];
         const video = refs.videoCurrent;
 
         if (!item || item.type !== 'video' || !video) return;
 
-        hardenVideo(video, state.isMuted);
+        video.muted = state.isMuted;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
 
-        if (video.readyState < 1) {
+        if (video.readyState < 2) {
           try {
             video.load();
           } catch (e) {}
         }
 
         if (video.paused || video.readyState < 2) {
-          safePlay(video, reason);
+          tryPlay(video);
         }
       };
 
@@ -231,11 +174,7 @@
       const current = videoEl.getAttribute('src') || '';
       if (current === item.src || current.endsWith(item.src)) return;
 
-      try {
-        videoEl.pause();
-      } catch (e) {}
-
-      hardenVideo(videoEl, true);
+      videoEl.pause();
 
       try {
         videoEl.src = item.src;
@@ -261,13 +200,11 @@
 
     function resetTransformsNoAnim() {
       const height = vh();
-      dragHeight = height;
 
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
 
       clearTimeout(settleTimer);
-      settleTimer = 0;
       clearPendingCommit();
 
       [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
@@ -279,8 +216,6 @@
       setTr(refs.layerPrev, -height);
       setTr(refs.layerCurrent, 0);
       setTr(refs.layerNext, height);
-
-      activeTargetLayer = null;
     }
 
     function recoverVisibleState() {
@@ -298,13 +233,11 @@
       dx = 0;
       preparedDir = 0;
       swipeSoundUnlocked = false;
-      activeTargetLayer = null;
 
       resetQueue();
       resetActiveCommit();
 
       state.isAnimating = false;
-      commitToken++;
 
       resetSeekUiImmediate();
       resetTransformsNoAnim();
@@ -320,28 +253,18 @@
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
-      hardenVideo(videoEl, true);
-
       if (videoEl !== refs.videoCurrent) {
-        try {
-          videoEl.pause();
-        } catch (e) {}
-
-        try {
-          videoEl.currentTime = 0;
-        } catch (e) {}
+        videoEl.pause();
+        videoEl.currentTime = 0;
       }
     }
 
     function prepareForwardLayer() {
-      const height = dragHeight || vh();
-      dragHeight = height;
-
+      const height = vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        layerEffectCache.delete(refs.layerNext);
         nextLoadedIndex = targetIndex;
         prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
@@ -349,7 +272,6 @@
       warmMemoryForward();
 
       refs.layerNext.style.transition = 'none';
-      refs.layerNext.style.willChange = 'transform';
       setTr(refs.layerNext, height);
       nextLoadedDir = 1;
     }
@@ -357,14 +279,11 @@
     function prepareBackwardLayer() {
       if (!refs.layerPrev || !refs.videoPrev) return;
 
-      const height = dragHeight || vh();
-      dragHeight = height;
-
+      const height = vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
       if (prevLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerPrev, playlist[targetIndex], true);
-        layerEffectCache.delete(refs.layerPrev);
         prevLoadedIndex = targetIndex;
         prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
@@ -372,7 +291,6 @@
       warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
-      refs.layerPrev.style.willChange = 'transform';
       setTr(refs.layerPrev, -height);
       nextLoadedDir = -1;
     }
@@ -390,10 +308,8 @@
     function prepareNextForDirection(dir) {
       if (dir > 0) {
         prepareForwardLayer();
-        activeTargetLayer = refs.layerNext;
       } else {
         prepareBackwardLayer();
-        activeTargetLayer = refs.layerPrev;
       }
 
       preparedDir = dir;
@@ -405,39 +321,15 @@
       pendingCommitTimer = setTimeout(() => {
         pendingCommitTimer = 0;
 
-        if (state.isAnimating) {
-          queuedDir = dir;
-          return;
-        }
+        if (state.isAnimating) return;
 
         commit(dir);
       }, 90);
     }
 
-    function drainQueue() {
-      const queued = queuedDir;
-      resetQueue();
-
-      if (!queued || state.isAnimating || dragging) return;
-
-      requestAnimationFrame(() => {
-        if (state.isAnimating || dragging) {
-          queuedDir = queued;
-          return;
-        }
-
-        prepareNextForDirection(queued);
-        commit(queued);
-      });
-    }
-
-    function finishCommit(dir, targetIndex, videoToPause, token) {
-      if (token !== commitToken) return;
-
+    function finishCommit(dir, targetIndex, videoToPause) {
       if (videoToPause) {
-        try {
-          videoToPause.pause();
-        } catch (e) {}
+        videoToPause.pause();
       }
 
       state.index = targetIndex;
@@ -502,45 +394,46 @@
 
       bindAutoAdvanceForCurrent();
 
-      if (playlist[state.index] && playlist[state.index].type === 'video' && refs.videoCurrent) {
-        hardenVideo(refs.videoCurrent, state.isMuted);
-        safePlay(refs.videoCurrent, 'finishCommit');
+      if (playlist[state.index].type === 'video') {
+        refs.videoCurrent.muted = state.isMuted;
+        tryPlay(refs.videoCurrent);
         guardCurrentPlayback('finishCommit');
       }
+
+      const queued = queuedDir;
+      resetQueue();
 
       requestAnimationFrame(() => {
         warmForwardNext();
         warmBackwardNext();
-        drainQueue();
+
+        if (queued !== 0 && !state.isAnimating) {
+          preparedDir = queued;
+          commit(queued);
+        }
       });
     }
 
     function interruptActiveCommit() {
-      return false;
+      if (!state.isAnimating || activeCommitDir === 0 || activeCommitTargetIndex === null) return false;
+
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+      clearPendingCommit();
+
+      finishCommit(activeCommitDir, activeCommitTargetIndex, activeCommitVideoToPause);
+      return true;
     }
 
     function commit(dir) {
       const now = performance.now();
 
-      if (state.isAnimating) {
-        queuedDir = dir;
-        return;
-      }
-
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
-        queuedDir = dir;
-        clearPendingCommit();
-
-        pendingCommitTimer = setTimeout(() => {
-          pendingCommitTimer = 0;
-          drainQueue();
-        }, COMMIT_COOLDOWN);
-
         return;
       }
-
-      const height = dragHeight || vh();
-      dragHeight = height;
 
       const targetIndex = normalizeIndex(state.index + dir);
       const targetItem = playlist[targetIndex];
@@ -552,31 +445,18 @@
         return;
       }
 
-      if (dir > 0) {
-        prepareForwardLayer();
-      } else {
-        prepareBackwardLayer();
-      }
-
-      if (targetItem?.type === 'video' && targetVideo) {
-        hardenVideo(targetVideo, state.isMuted);
-
-        if (targetVideo.readyState < 1) {
-          try {
-            targetVideo.load();
-          } catch (e) {}
-        }
+      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
+        retryCommitOnce(dir);
+        return;
       }
 
       clearPendingCommit();
       clearPlaybackGuard();
       lastCommitTime = now;
 
+      if (state.isAnimating) return;
       state.isAnimating = true;
-      commitToken++;
       
-      const token = commitToken;
-
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
@@ -585,9 +465,9 @@
       raf = 0;
 
       clearTimeout(settleTimer);
-      settleTimer = 0;
 
-      const duration = 122; 
+      const height = vh();
+      const duration = 120; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -595,14 +475,32 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        safePlay(targetVideo, 'commitStart');
+        targetVideo.muted = state.isMuted;
+
+        try {
+          if (targetVideo.readyState < 1) {
+            targetVideo.load();
+          }
+        } catch (e) {}
 
         setTimeout(() => {
-          if (!state.isAnimating || token !== commitToken) return;
+          if (!state.isAnimating) return;
+          tryPlay(targetVideo);
+        }, 8);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
           if (targetVideo.paused || targetVideo.readyState < 2) {
-            safePlay(targetVideo, 'commitRetryA');
+            tryPlay(targetVideo);
           }
-        }, 70);
+        }, 60);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          if (targetVideo.paused || targetVideo.readyState < 2) {
+            tryPlay(targetVideo);
+          }
+        }, 140);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -619,7 +517,7 @@
       setTr(targetLayer, 0);
 
       settleTimer = setTimeout(() => {
-        finishCommit(dir, targetIndex, videoToPause, token);
+        finishCommit(dir, targetIndex, videoToPause);
       }, duration); 
     }
 
@@ -630,11 +528,6 @@
       resetQueue();
 
       state.isAnimating = true;
-      commitToken++;
-
-      const token = commitToken;
-      const height = dragHeight || vh();
-      dragHeight = height;
 
       const duration = 200;
       const snapDir = preparedDir;
@@ -650,14 +543,11 @@
       setTr(refs.layerCurrent, 0);
 
       if (targetLayer) {
-        setTr(targetLayer, preparedDir > 0 ? height : -height);
+        setTr(targetLayer, preparedDir > 0 ? vh() : -vh());
       }
 
       settleTimer = setTimeout(() => {
-        if (token !== commitToken) return;
-
         preparedDir = 0;
-        activeTargetLayer = null;
         resetTransformsNoAnim();
         state.isAnimating = false;
         bindAutoAdvanceForCurrent();
@@ -665,8 +555,6 @@
 
         if (snapDir < 0) warmBackwardNext();
         else warmForwardNext();
-
-        drainQueue();
       }, duration);
     }
 
@@ -675,17 +563,11 @@
 
       warmForwardNext();
       preparedDir = 1;
-      activeTargetLayer = refs.layerNext;
       commit(1);
     }
 
     function finishGesture(cancelled) {
-      if (!dragging) return;
-
-      if (state.isAnimating) {
-        dragging = false;
-        return;
-      }
+      if (!dragging || state.isAnimating) return;
 
       const totalDy = dy;
       const endT = performance.now();
@@ -702,7 +584,7 @@
 
           if (isTap && refs.videoCurrent) {
             if (refs.videoCurrent.paused) { 
-              ensureSoundOn ? ensureSoundOn(true) : safePlay(refs.videoCurrent, 'tapPlay');
+              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
               showPlayOverlay(false);
               guardCurrentPlayback('tapPlay');
             } else {
@@ -715,12 +597,8 @@
 
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
-          guardCurrentPlayback('finishGesture');
         }
 
-        dy = 0;
-        dx = 0;
-        activeTargetLayer = null;
         return;
       }
 
@@ -732,7 +610,7 @@
       const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
 
       if (
-        Math.abs(totalDy) >= dragHeight * thresholdRatio ||
+        Math.abs(totalDy) >= vh() * thresholdRatio ||
         (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
       ) {
         commit(preparedDir);
@@ -747,21 +625,20 @@
     document.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
-      dragHeight = vh();
-
       if (state.isAnimating) {
-        queueHasStart = true;
-        queueStartY = e.touches[0].clientY;
-        queueStartX = e.touches[0].clientX;
-        queuedDir = 0;
-        return;
+        const interrupted = interruptActiveCommit();
+
+        if (!interrupted || state.isAnimating) {
+          queueHasStart = true;
+          queueStartY = e.touches[0].clientY;
+          queueStartX = e.touches[0].clientX;
+          queuedDir = 0;
+          return;
+        }
       }
 
       dragging = true;
       preparedDir = 0;
-      activeTargetLayer = null;
-      dy = 0;
-      dx = 0;
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -779,7 +656,7 @@
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
-      if (startY < dragHeight * 0.45) {
+      if (startY < vh() * 0.45) {
         warmBackwardNext();
       } else {
         warmForwardNext();
@@ -820,13 +697,8 @@
       if (!dragging) {
         if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
-        dragHeight = vh();
-
         dragging = true;
         preparedDir = 0;
-        activeTargetLayer = null;
-        dy = 0;
-        dx = 0;
 
         startY = e.touches[0].clientY;
         startX = e.touches[0].clientX;
@@ -878,11 +750,10 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
 
-          const height = dragHeight || vh();
-          const absDy = Math.abs(dy);
-          const progress = Math.min(absDy / (height * 0.4), 1);
+          const height = vh();
+          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
-          const targetLayer = activeTargetLayer || (preparedDir > 0 ? refs.layerNext : refs.layerPrev);
+          const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
@@ -922,7 +793,6 @@
       warmBackwardNext,
       commit,
       resetTransformsNoAnim,
-      recoverVisibleState,
       isDragging() {
         return dragging;
       }
