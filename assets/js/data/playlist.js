@@ -1,6 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsryanpownall-001.mp4', creator: 'itsryanpownall', caption: "GOT MILK?🥛", followUrl: 'https://www.instagram.com/itsryanpownall/', avatar: '/assets/avatars/itsryanpownall.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-002.mp4', creator: 'julianomass', caption: "I'm bustin' mad moves to El Farsante", followUrl: 'https://www.instagram.com/julianomass/', avatar: '/assets/avatars/julianomass.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mayaalessiaaaa-001.mp4', creator: 'mayaalessiaaaa', caption: 'My pretty face 💖', followUrl: 'https://www.instagram.com/mayaalessiaaaa/', avatar: '/assets/avatars/mayaalessiaaaa.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-001.mp4', creator: 'ripsigal', caption: 'Main character energy..🥤', followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
