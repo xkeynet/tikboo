@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION
+// /assets/js/swipe.js - ATOMIC PREDATOR STABILITY VERSION
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -22,6 +22,10 @@
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
 
+    const COMMIT_COOLDOWN = 80;
+    const COMMIT_DURATION = 132;
+    const SNAP_DURATION = 190;
+
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
@@ -43,7 +47,8 @@
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
     let playbackGuardTimers = [];
-    const COMMIT_COOLDOWN = 55;
+    let commitSerial = 0;
+    let recoverySerial = 0;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -54,7 +59,9 @@
     [memoryForwardVideo, memoryBackwardVideo].forEach(v => {
       v.preload = 'auto';
       v.muted = true;
+      v.defaultMuted = true;
       v.playsInline = true;
+      v.setAttribute('muted', '');
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
       v.style.position = 'absolute';
@@ -71,6 +78,82 @@
       if (!el) return;
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
+
+    function hardenVideo(videoEl, mutedValue) {
+      if (!videoEl) return;
+
+      videoEl.preload = 'auto';
+      videoEl.muted = !!mutedValue;
+      videoEl.defaultMuted = !!mutedValue;
+      videoEl.playsInline = true;
+      videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
+
+      if (mutedValue) {
+        videoEl.setAttribute('muted', '');
+      } else {
+        videoEl.removeAttribute('muted');
+      }
+
+      try {
+        videoEl.disablePictureInPicture = true;
+      } catch (e) {}
+    }
+
+    function safeTryPlay(videoEl, reason) {
+      if (!videoEl) return false;
+
+      hardenVideo(videoEl, state.isMuted);
+
+      try {
+        const playResult = tryPlay(videoEl);
+
+        if (playResult && typeof playResult.then === 'function') {
+          playResult.catch(() => {
+            schedulePlayRetry(videoEl, reason);
+          });
+        }
+
+        return true;
+      } catch (e) {
+        schedulePlayRetry(videoEl, reason);
+        return false;
+      }
+    }
+
+    function schedulePlayRetry(videoEl, reason) {
+      if (!videoEl) return;
+
+      const localSerial = commitSerial;
+      const delays = [24, 72, 150, 320];
+
+      delays.forEach(delay => {
+        const timer = setTimeout(() => {
+          playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
+
+          if (!videoEl || localSerial !== commitSerial) return;
+          if (document.visibilityState && document.visibilityState !== 'visible') return;
+
+          hardenVideo(videoEl, state.isMuted);
+
+          try {
+            if (videoEl.readyState < 2) videoEl.load();
+          } catch (e) {}
+
+          if (videoEl.paused || videoEl.readyState < 2) {
+            try {
+              const playResult = tryPlay(videoEl);
+
+              if (playResult && typeof playResult.catch === 'function') {
+                playResult.catch(() => {});
+              }
+            } catch (e) {}
+          }
+        }, delay);
+
+        playbackGuardTimers.push(timer);
+      });
+    }
 
     function updateLayerEffects(layer, opacity) {
       if (!layer) return;
@@ -132,20 +215,20 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const delays = [0, 40, 120, 260, 520];
+      const localSerial = commitSerial;
+      const delays = [0, 40, 110, 220, 420, 700];
 
       const attempt = () => {
+        if (localSerial !== commitSerial) return;
         if (state.isAnimating || dragging) return;
+        if (document.visibilityState && document.visibilityState !== 'visible') return;
 
         const item = playlist[state.index];
         const video = refs.videoCurrent;
 
         if (!item || item.type !== 'video' || !video) return;
 
-        video.muted = state.isMuted;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
+        hardenVideo(video, state.isMuted);
 
         if (video.readyState < 2) {
           try {
@@ -154,7 +237,7 @@
         }
 
         if (video.paused || video.readyState < 2) {
-          tryPlay(video);
+          safeTryPlay(video, reason);
         }
       };
 
@@ -168,13 +251,47 @@
       });
     }
 
+    function stageRecoveryCheck(reason) {
+      const localRecovery = ++recoverySerial;
+
+      setTimeout(() => {
+        if (localRecovery !== recoverySerial) return;
+        if (state.isAnimating || dragging) return;
+        if (document.visibilityState && document.visibilityState !== 'visible') return;
+
+        const currentLayer = refs.layerCurrent;
+        const currentVideo = refs.videoCurrent;
+        const currentItem = playlist[state.index];
+
+        if (!currentLayer) {
+          recoverVisibleState();
+          return;
+        }
+
+        resetTransformsNoAnim();
+
+        if (currentItem && currentItem.type === 'video' && currentVideo) {
+          hardenVideo(currentVideo, state.isMuted);
+
+          if (currentVideo.paused || currentVideo.readyState < 2) {
+            safeTryPlay(currentVideo, reason);
+            guardCurrentPlayback(reason);
+          }
+        }
+      }, 260);
+    }
+
     function warmMemoryVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video' || !item.src) return;
 
       const current = videoEl.getAttribute('src') || '';
       if (current === item.src || current.endsWith(item.src)) return;
 
-      videoEl.pause();
+      try {
+        videoEl.pause();
+      } catch (e) {}
+
+      hardenVideo(videoEl, true);
 
       try {
         videoEl.src = item.src;
@@ -205,6 +322,7 @@
       raf = 0;
 
       clearTimeout(settleTimer);
+      settleTimer = 0;
       clearPendingCommit();
 
       [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
@@ -238,6 +356,8 @@
       resetActiveCommit();
 
       state.isAnimating = false;
+      commitSerial++;
+      recoverySerial++;
 
       resetSeekUiImmediate();
       resetTransformsNoAnim();
@@ -253,9 +373,22 @@
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
+      hardenVideo(videoEl, true);
+
       if (videoEl !== refs.videoCurrent) {
-        videoEl.pause();
-        videoEl.currentTime = 0;
+        try {
+          videoEl.pause();
+        } catch (e) {}
+
+        try {
+          if (videoEl.readyState < 1) videoEl.load();
+        } catch (e) {}
+
+        try {
+          if (Number.isFinite(videoEl.duration) && videoEl.duration > 0) {
+            videoEl.currentTime = 0;
+          }
+        } catch (e) {}
       }
     }
 
@@ -272,6 +405,7 @@
       warmMemoryForward();
 
       refs.layerNext.style.transition = 'none';
+      refs.layerNext.style.willChange = 'transform';
       setTr(refs.layerNext, height);
       nextLoadedDir = 1;
     }
@@ -291,6 +425,7 @@
       warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
+      refs.layerPrev.style.willChange = 'transform';
       setTr(refs.layerPrev, -height);
       nextLoadedDir = -1;
     }
@@ -321,15 +456,43 @@
       pendingCommitTimer = setTimeout(() => {
         pendingCommitTimer = 0;
 
-        if (state.isAnimating) return;
+        if (state.isAnimating) {
+          queuedDir = dir;
+          return;
+        }
 
         commit(dir);
       }, 90);
     }
 
-    function finishCommit(dir, targetIndex, videoToPause) {
-      if (videoToPause) {
-        videoToPause.pause();
+    function drainQueuedCommit() {
+      const queued = queuedDir;
+      resetQueue();
+
+      if (queued === 0 || state.isAnimating || dragging) return;
+
+      requestAnimationFrame(() => {
+        if (state.isAnimating || dragging) {
+          queuedDir = queued;
+          return;
+        }
+
+        prepareNextForDirection(queued);
+        commit(queued);
+      });
+    }
+
+    function finishCommit(dir, targetIndex, videoToPause, serial) {
+      if (serial !== commitSerial) return;
+
+      if (videoToPause && videoToPause !== refs.videoCurrent) {
+        try {
+          videoToPause.pause();
+        } catch (e) {}
+      } else if (videoToPause) {
+        try {
+          videoToPause.pause();
+        } catch (e) {}
       }
 
       state.index = targetIndex;
@@ -374,10 +537,6 @@
         refs.videoNext = oldCurrentVideo;
         refs.imgNext = oldCurrentImg;
 
-        refs.layerPrev = oldNextLayer;
-        refs.videoPrev = oldNextVideo;
-        refs.imgPrev = oldNextImg;
-
         nextLoadedIndex = normalizeIndex(state.index + 1);
         prevLoadedIndex = null;
       }
@@ -394,44 +553,41 @@
 
       bindAutoAdvanceForCurrent();
 
-      if (playlist[state.index].type === 'video') {
-        refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
+      if (playlist[state.index] && playlist[state.index].type === 'video' && refs.videoCurrent) {
+        hardenVideo(refs.videoCurrent, state.isMuted);
+        safeTryPlay(refs.videoCurrent, 'finishCommit');
         guardCurrentPlayback('finishCommit');
       }
-
-      const queued = queuedDir;
-      resetQueue();
 
       requestAnimationFrame(() => {
         warmForwardNext();
         warmBackwardNext();
-
-        if (queued !== 0 && !state.isAnimating) {
-          preparedDir = queued;
-          commit(queued);
-        }
+        stageRecoveryCheck('finishCommitRecovery');
+        drainQueuedCommit();
       });
     }
 
     function interruptActiveCommit() {
-      if (!state.isAnimating || activeCommitDir === 0 || activeCommitTargetIndex === null) return false;
-
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-
-      clearTimeout(settleTimer);
-      settleTimer = 0;
-      clearPendingCommit();
-
-      finishCommit(activeCommitDir, activeCommitTargetIndex, activeCommitVideoToPause);
-      return true;
+      return false;
     }
 
     function commit(dir) {
       const now = performance.now();
 
+      if (state.isAnimating) {
+        queuedDir = dir;
+        return;
+      }
+
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
+        queuedDir = dir;
+
+        clearPendingCommit();
+        pendingCommitTimer = setTimeout(() => {
+          pendingCommitTimer = 0;
+          drainQueuedCommit();
+        }, COMMIT_COOLDOWN);
+
         return;
       }
 
@@ -445,17 +601,28 @@
         return;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
-        return;
+      if (dir > 0) {
+        prepareForwardLayer();
+      } else {
+        prepareBackwardLayer();
+      }
+
+      if (targetItem && targetItem.type === 'video' && targetVideo) {
+        hardenVideo(targetVideo, state.isMuted);
+
+        try {
+          if (targetVideo.readyState < 1) targetVideo.load();
+        } catch (e) {}
       }
 
       clearPendingCommit();
       clearPlaybackGuard();
-      lastCommitTime = now;
 
-      if (state.isAnimating) return;
+      lastCommitTime = now;
       state.isAnimating = true;
+      commitSerial++;
+
+      const serial = commitSerial;
       
       clearAuto();
       stopProg();
@@ -465,48 +632,38 @@
       raf = 0;
 
       clearTimeout(settleTimer);
+      settleTimer = 0;
 
       const height = vh();
-      const duration = 120; 
+      const duration = COMMIT_DURATION; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
       activeCommitTargetIndex = targetIndex;
       activeCommitVideoToPause = videoToPause;
 
-      if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
+      if (targetItem && targetItem.type === 'video' && targetVideo) {
+        safeTryPlay(targetVideo, 'commitStart');
 
         setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
+          if (!state.isAnimating || serial !== commitSerial) return;
           if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
+            safeTryPlay(targetVideo, 'commitRetryA');
           }
-        }, 60);
+        }, 52);
 
         setTimeout(() => {
-          if (!state.isAnimating) return;
+          if (!state.isAnimating || serial !== commitSerial) return;
           if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
+            safeTryPlay(targetVideo, 'commitRetryB');
           }
-        }, 140);
+        }, 116);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
+      const monsterCurve = 'cubic-bezier(0.18, 0.92, 0.26, 1)';
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
@@ -517,8 +674,8 @@
       setTr(targetLayer, 0);
 
       settleTimer = setTimeout(() => {
-        finishCommit(dir, targetIndex, videoToPause);
-      }, duration); 
+        finishCommit(dir, targetIndex, videoToPause, serial);
+      }, duration + 8); 
     }
 
     function snapBack() {
@@ -528,8 +685,10 @@
       resetQueue();
 
       state.isAnimating = true;
+      commitSerial++;
 
-      const duration = 200;
+      const serial = commitSerial;
+      const duration = SNAP_DURATION;
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
       
@@ -547,6 +706,8 @@
       }
 
       settleTimer = setTimeout(() => {
+        if (serial !== commitSerial) return;
+
         preparedDir = 0;
         resetTransformsNoAnim();
         state.isAnimating = false;
@@ -555,7 +716,9 @@
 
         if (snapDir < 0) warmBackwardNext();
         else warmForwardNext();
-      }, duration);
+
+        stageRecoveryCheck('snapBackRecovery');
+      }, duration + 8);
     }
 
     function autoAdvance() {
@@ -567,7 +730,12 @@
     }
 
     function finishGesture(cancelled) {
-      if (!dragging || state.isAnimating) return;
+      if (!dragging) return;
+
+      if (state.isAnimating) {
+        dragging = false;
+        return;
+      }
 
       const totalDy = dy;
       const endT = performance.now();
@@ -584,7 +752,7 @@
 
           if (isTap && refs.videoCurrent) {
             if (refs.videoCurrent.paused) { 
-              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
+              ensureSoundOn ? ensureSoundOn(true) : safeTryPlay(refs.videoCurrent, 'tapPlay');
               showPlayOverlay(false);
               guardCurrentPlayback('tapPlay');
             } else {
@@ -597,8 +765,11 @@
 
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
+          guardCurrentPlayback('finishGestureNoDir');
         }
 
+        dy = 0;
+        dx = 0;
         return;
       }
 
@@ -626,19 +797,17 @@
       if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
 
       if (state.isAnimating) {
-        const interrupted = interruptActiveCommit();
-
-        if (!interrupted || state.isAnimating) {
-          queueHasStart = true;
-          queueStartY = e.touches[0].clientY;
-          queueStartX = e.touches[0].clientX;
-          queuedDir = 0;
-          return;
-        }
+        queueHasStart = true;
+        queueStartY = e.touches[0].clientY;
+        queueStartX = e.touches[0].clientX;
+        queuedDir = 0;
+        return;
       }
 
       dragging = true;
       preparedDir = 0;
+      dy = 0;
+      dx = 0;
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -647,6 +816,7 @@
       
       clearAuto();
       stopProg();
+      clearPlaybackGuard();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
@@ -699,6 +869,8 @@
 
         dragging = true;
         preparedDir = 0;
+        dy = 0;
+        dx = 0;
 
         startY = e.touches[0].clientY;
         startX = e.touches[0].clientX;
@@ -707,6 +879,7 @@
 
         clearAuto();
         stopProg();
+        clearPlaybackGuard();
 
         refs.layerCurrent.style.transition = 'none';
         refs.layerNext.style.transition = 'none';
@@ -787,12 +960,25 @@
       recoverVisibleState();
     }, { passive: true });
 
+    window.addEventListener('pagehide', () => {
+      clearPlaybackGuard();
+      clearPendingCommit();
+      resetQueue();
+    }, { passive: true });
+
+    requestAnimationFrame(() => {
+      warmForwardNext();
+      warmBackwardNext();
+      guardCurrentPlayback('initialBoot');
+    });
+
     return {
       autoAdvance,
       warmForwardNext,
       warmBackwardNext,
       commit,
       resetTransformsNoAnim,
+      recoverVisibleState,
       isDragging() {
         return dragging;
       }
