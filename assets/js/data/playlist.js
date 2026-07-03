@@ -12,7 +12,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ellzz22x.mp4', creator: 'ellzz22x', caption: "Just at home dancing in the mirror..lol", followUrl: 'https://www.instagram.com/ellzz22x/', avatar: '/assets/avatars/ellzz22x.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-002.mp4', creator: 'ripsigal', caption: "Vibe check in the parking lot! 🎧", followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rafaeltats-001.mp4', creator: 'rafaeltats', caption: "You really wanna do that? It's a done deal bro 💵", followUrl: 'https://www.instagram.com/rafaeltats/', avatar: '/assets/avatars/rafaeltats.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rafaeltatsclips-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rafaeltatsclips-001.mp4', creator: 'rafaeltats', caption: "Put me down with your sister ...", followUrl: 'https://www.instagram.com/rafaeltats/', avatar: '/assets/avatars/rafaeltats.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/onlysophielouisee-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/nikkisandiego-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-003.mp4' },
