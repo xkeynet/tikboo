@@ -63,7 +63,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadeella2.0.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/its.onlynicxo.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mygfapp.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/christianasansone.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/christianasansone.mp4', creator: 'christianasansone', caption: "Ken Carson day @christianasansone", followUrl: 'https://www.instagram.com/christianasansone/', avatar: '/assets/avatars/christianasansone.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly_2.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly_3.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly_1.mp4' },
