@@ -1,7 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jackdoherty-001.mp4', creator: 'jackdoherty', caption: "My $2,000,000 piece of land 💎... #jackdoherty", followUrl: 'https://www.instagram.com/jackdoherty/', avatar: '/assets/avatars/jackdoherty.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jackdoherty-001.mp4', creator: 'jackdoherty', caption: "What you saying #jackdoherty", followUrl: 'https://www.instagram.com/jackdoherty/', avatar: '/assets/avatars/jackdoherty.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/abbyy.irl-002.mp4', creator: 'abbyy.irl', caption: "Cute or sexy dress?", followUrl: 'https://www.instagram.com/abbyy.irl/', avatar: '/assets/avatars/abbyy.irl.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-009.mp4', creator: 'rebeccamcleoddd', caption: "I swear it always goes missing in this house", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsryanpownall-001.mp4', creator: 'itsryanpownall', caption: "GOT MILK?🥛", followUrl: 'https://www.instagram.com/itsryanpownall/', avatar: '/assets/avatars/itsryanpownall.jpg' },
