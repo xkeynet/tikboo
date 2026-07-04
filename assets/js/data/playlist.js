@@ -25,7 +25,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/livvvvvk2.0-002.mp4', creator: 'livvvvvk2.0', caption: "I'm gonna blow this target to smithereens", followUrl: 'https://www.instagram.com/livvvvvk2.0/', avatar: '/assets/avatars/livvvvvk2.0.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadellatwo-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-004.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lopirova-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lopirova-001.mp4', creator: 'lopirova', caption: "Чиллим в машине", followUrl: 'https://www.instagram.com/lopirova/', avatar: '/assets/avatars/lopirova.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lady_s_dreamer-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-005.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angell_novikova-001.mp4' },
