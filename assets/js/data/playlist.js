@@ -176,7 +176,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ReturnGirls.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/GiannaBellucci.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Millennial.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/GeorginaRodriguez.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/GeorginaRodriguez.mp4', creator: 'georginarodrigueez_', caption: "Georgina Star ⭐️", followUrl: 'https://www.instagram.com/georginarodrigueez_/', avatar: '/assets/avatars/georginarodrigueez_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/getting-ready.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/abigail.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/interview-kayley.mp4' },
