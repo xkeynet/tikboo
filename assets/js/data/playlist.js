@@ -206,7 +206,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Kila.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tiger.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tiger.mp4', creator: 'daddysjuiced_', caption: "Eye of the Tiger", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/KIT.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/OTD.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/dole.mp4' }
