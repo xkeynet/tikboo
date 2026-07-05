@@ -43,6 +43,8 @@
     let activeCommitVideoToPause = null;
     let playbackGuardTimer = 0;
     let playbackGuardTimers = [];
+    let gestureHeight = 0;
+    let touchBlocked = false;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -233,6 +235,8 @@
       dx = 0;
       preparedDir = 0;
       swipeSoundUnlocked = false;
+      gestureHeight = 0;
+      touchBlocked = false;
 
       resetQueue();
       resetActiveCommit();
@@ -259,8 +263,8 @@
       }
     }
 
-    function prepareForwardLayer() {
-      const height = vh();
+    function prepareForwardLayer(heightOverride) {
+      const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index + 1);
       
       if (nextLoadedIndex !== targetIndex) {
@@ -276,10 +280,10 @@
       nextLoadedDir = 1;
     }
 
-    function prepareBackwardLayer() {
+    function prepareBackwardLayer(heightOverride) {
       if (!refs.layerPrev || !refs.videoPrev) return;
 
-      const height = vh();
+      const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index - 1);
       
       if (prevLoadedIndex !== targetIndex) {
@@ -306,10 +310,12 @@
     }
 
     function prepareNextForDirection(dir) {
+      const height = gestureHeight || vh();
+
       if (dir > 0) {
-        prepareForwardLayer();
+        prepareForwardLayer(height);
       } else {
-        prepareBackwardLayer();
+        prepareBackwardLayer(height);
       }
 
       preparedDir = dir;
@@ -466,7 +472,7 @@
 
       clearTimeout(settleTimer);
 
-      const height = vh();
+      const height = gestureHeight || vh();
       const duration = 120; 
       const videoToPause = refs.videoCurrent;
 
@@ -532,6 +538,7 @@
       const duration = 200;
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
+      const height = gestureHeight || vh();
       
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       if (targetLayer) {
@@ -543,7 +550,7 @@
       setTr(refs.layerCurrent, 0);
 
       if (targetLayer) {
-        setTr(targetLayer, preparedDir > 0 ? vh() : -vh());
+        setTr(targetLayer, preparedDir > 0 ? height : -height);
       }
 
       settleTimer = setTimeout(() => {
@@ -572,9 +579,11 @@
       const totalDy = dy;
       const endT = performance.now();
       const dt = Math.max(1, endT - startT);
+      const height = gestureHeight || vh();
       
       dragging = false;
       swipeSoundUnlocked = false;
+      touchBlocked = false;
 
       if (cancelled || preparedDir === 0) {
         if (preparedDir !== 0) {
@@ -610,7 +619,7 @@
       const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
 
       if (
-        Math.abs(totalDy) >= vh() * thresholdRatio ||
+        Math.abs(totalDy) >= height * thresholdRatio ||
         (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
       ) {
         commit(preparedDir);
@@ -623,7 +632,11 @@
     }
 
     document.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+      touchBlocked = e.touches.length !== 1 || isInteractiveTarget(e.target);
+
+      if (touchBlocked) return;
+
+      gestureHeight = vh();
 
       if (state.isAnimating) {
         const interrupted = interruptActiveCommit();
@@ -656,7 +669,7 @@
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
       
-      if (startY < vh() * 0.45) {
+      if (startY < gestureHeight * 0.45) {
         warmBackwardNext();
       } else {
         warmForwardNext();
@@ -664,8 +677,10 @@
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
+      if (touchBlocked) return;
+
       if (state.isAnimating) {
-        if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+        if (!e.touches || e.touches.length !== 1) return;
 
         const qy = e.touches[0].clientY;
         const qx = e.touches[0].clientX;
@@ -695,10 +710,11 @@
       }
 
       if (!dragging) {
-        if (!e.touches || e.touches.length !== 1 || isInteractiveTarget(e.target)) return;
+        if (!e.touches || e.touches.length !== 1) return;
 
         dragging = true;
         preparedDir = 0;
+        gestureHeight = gestureHeight || vh();
 
         startY = e.touches[0].clientY;
         startX = e.touches[0].clientX;
@@ -750,7 +766,7 @@
         raf = requestAnimationFrame(() => {
           raf = 0;
 
-          const height = vh();
+          const height = gestureHeight;
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
@@ -770,8 +786,15 @@
       }
     }, { passive: false });
 
-    document.addEventListener('touchend', () => finishGesture(false), { passive: true });
-    document.addEventListener('touchcancel', () => finishGesture(true), { passive: true });
+    document.addEventListener('touchend', () => {
+      touchBlocked = false;
+      finishGesture(false);
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+      touchBlocked = false;
+      finishGesture(true);
+    }, { passive: true });
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
