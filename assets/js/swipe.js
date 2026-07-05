@@ -433,6 +433,10 @@
             targetVideo.load();
           }
         } catch (e) {}
+
+        if (targetVideo.readyState >= 2) {
+          tryPlay(targetVideo);
+        }
       }
 
       refs.layerCurrent.style.willChange = 'transform';
