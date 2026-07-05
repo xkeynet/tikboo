@@ -433,25 +433,6 @@
             targetVideo.load();
           }
         } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
