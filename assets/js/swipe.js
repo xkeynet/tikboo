@@ -36,8 +36,6 @@
     let queueHasStart = false;
     let queueStartY = 0;
     let queueStartX = 0;
-    let memoryForwardIndex = null;
-    let memoryBackwardIndex = null;
     let activeCommitDir = 0;
     let activeCommitTargetIndex = null;
     let activeCommitVideoToPause = null;
@@ -49,25 +47,6 @@
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
-
-    const memoryForwardVideo = document.createElement('video');
-    const memoryBackwardVideo = document.createElement('video');
-
-    [memoryForwardVideo, memoryBackwardVideo].forEach(v => {
-      v.preload = 'auto';
-      v.muted = true;
-      v.playsInline = true;
-      v.setAttribute('playsinline', '');
-      v.setAttribute('webkit-playsinline', '');
-      v.style.position = 'absolute';
-      v.style.width = '1px';
-      v.style.height = '1px';
-      v.style.opacity = '0';
-      v.style.pointerEvents = 'none';
-      v.style.left = '-9999px';
-      v.style.top = '-9999px';
-      document.body.appendChild(v);
-    });
 
     const setTr = (el, y) => {
       if (!el) return;
@@ -170,36 +149,6 @@
       });
     }
 
-    function warmMemoryVideo(videoEl, item) {
-      if (!videoEl || !item || item.type !== 'video' || !item.src) return;
-
-      const current = videoEl.getAttribute('src') || '';
-      if (current === item.src || current.endsWith(item.src)) return;
-
-      videoEl.pause();
-
-      try {
-        videoEl.src = item.src;
-        videoEl.load();
-      } catch (e) {}
-    }
-
-    function warmMemoryForward() {
-      const targetIndex = normalizeIndex(state.index + 2);
-      if (memoryForwardIndex === targetIndex) return;
-
-      memoryForwardIndex = targetIndex;
-      warmMemoryVideo(memoryForwardVideo, playlist[targetIndex]);
-    }
-
-    function warmMemoryBackward() {
-      const targetIndex = normalizeIndex(state.index - 2);
-      if (memoryBackwardIndex === targetIndex) return;
-
-      memoryBackwardIndex = targetIndex;
-      warmMemoryVideo(memoryBackwardVideo, playlist[targetIndex]);
-    }
-
     function resetTransformsNoAnim() {
       const height = vh();
 
@@ -273,8 +222,6 @@
         prewarmVideo(refs.videoNext, playlist[targetIndex]);
       }
 
-      warmMemoryForward();
-
       refs.layerNext.style.transition = 'none';
       setTr(refs.layerNext, height);
       nextLoadedDir = 1;
@@ -291,8 +238,6 @@
         prevLoadedIndex = targetIndex;
         prewarmVideo(refs.videoPrev, playlist[targetIndex]);
       }
-
-      warmMemoryBackward();
 
       refs.layerPrev.style.transition = 'none';
       setTr(refs.layerPrev, -height);
