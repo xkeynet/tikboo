@@ -447,8 +447,6 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      updateLayerEffects(refs.layerCurrent, 0.3);
-
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
       setTr(targetLayer, 0);
 
@@ -474,8 +472,6 @@
       if (targetLayer) {
         targetLayer.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       }
-
-      updateLayerEffects(refs.layerCurrent, 1);
 
       setTr(refs.layerCurrent, 0);
 
@@ -697,11 +693,7 @@
           raf = 0;
 
           const height = gestureHeight;
-          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
-          
-          updateLayerEffects(refs.layerCurrent, currentOpacity);
 
           setTr(refs.layerCurrent, dy);
 
