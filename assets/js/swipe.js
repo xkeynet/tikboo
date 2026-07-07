@@ -113,7 +113,7 @@
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
-      const delays = [0, 40, 120, 260, 520];
+      const delays = [180, 420];
 
       const attempt = () => {
         if (state.isAnimating || dragging) return;
@@ -128,13 +128,14 @@
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
 
-        if (video.readyState < 2) {
+        if (video.readyState === 0) {
           try {
             video.load();
           } catch (e) {}
+          return;
         }
 
-        if (video.paused || video.readyState < 2) {
+        if (video.paused && video.readyState >= 2) {
           tryPlay(video);
         }
       };
