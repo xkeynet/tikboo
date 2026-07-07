@@ -48,19 +48,34 @@
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
 
+    const layerEffectCache = new WeakMap();
+
     const setTr = (el, y) => {
       if (!el) return;
       el.style.transform = `translate3d(0,${y}px,0)`;
     };
 
+    function getLayerEffectEls(layer) {
+      if (!layer) return null;
+
+      let cached = layerEffectCache.get(layer);
+      if (cached) return cached;
+
+      cached = {
+        sideMenu: layer.querySelector('.side'),
+        videoMeta: layer.querySelector('.video-meta')
+      };
+
+      layerEffectCache.set(layer, cached);
+      return cached;
+    }
+
     function updateLayerEffects(layer, opacity) {
-      if (!layer) return;
+      const els = getLayerEffectEls(layer);
+      if (!els) return;
 
-      const sideMenu = layer.querySelector('.side');
-      if (sideMenu) sideMenu.style.opacity = opacity;
-
-      const videoMeta = layer.querySelector('.video-meta');
-      if (videoMeta) videoMeta.style.opacity = opacity;
+      if (els.sideMenu) els.sideMenu.style.opacity = opacity;
+      if (els.videoMeta) els.videoMeta.style.opacity = opacity;
     }
 
     function resetSeekUiImmediate() {
