@@ -434,7 +434,7 @@
       clearTimeout(settleTimer);
 
       const height = gestureHeight || vh();
-      const duration = 120; 
+      const duration = 160; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -473,7 +473,7 @@
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.2, 0.9, 0.3, 1)';
+      const monsterCurve = 'cubic-bezier(0.16, 0.84, 0.24, 1)';
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
