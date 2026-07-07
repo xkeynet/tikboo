@@ -42,7 +42,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jul1ett3x-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsmiaxa-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hbro__-001.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-001.mp4', creator: 'julianomass', caption: "#julianomassarelli", followUrl: 'https://www.instagram.com/julianomass/', avatar: '/assets/avatars/julianomass.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-004.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hayleydavies.bts-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/brattytal-001.mp4' },
