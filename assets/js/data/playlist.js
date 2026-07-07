@@ -64,7 +64,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jullflexx.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/katalinacarttmel.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mosaffari_red.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alexacappelli.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alexacappelli.mp4', creator: 'alexacappelli', caption: "I call this..the crimes strut 🧚‍♀️🔪", followUrl: 'https://www.instagram.com/alexacappelli/', avatar: '/assets/avatars/alexacappelli.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadeella2.0.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/its.onlynicxo.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mygfapp.mp4' },
