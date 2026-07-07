@@ -473,7 +473,7 @@
       refs.layerCurrent.style.willChange = 'transform';
       targetLayer.style.willChange = 'transform';
 
-      const monsterCurve = 'cubic-bezier(0.16, 0.84, 0.24, 1)';
+      const monsterCurve = 'cubic-bezier(0.15, 0.85, 0.2, 1)';
 
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
