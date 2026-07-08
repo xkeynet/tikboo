@@ -544,14 +544,14 @@ body{
     opacity: .90;
   }
 
-  /* Začátek odletu */
+  /* Začátek odletu – okamžitě 30 % */
   10% {
     transform: translate(24px, -180px) rotate(26deg);
-    opacity: .50;
+    opacity: .30;
     animation-timing-function: ease-out;
   }
 
-  /* Let vzhůru */
+  /* Celý let */
   20% {
     transform: translate(24px, -180px) rotate(26deg);
     opacity: .30;
@@ -560,7 +560,7 @@ body{
   /* Nahoře v nebi */
   30% {
     transform: translate(24px, -180px) rotate(26deg);
-    opacity: .16;
+    opacity: .30;
   }
 
   /* Okamžitý návrat */
@@ -574,24 +574,6 @@ body{
     transform: translate(0, 0) rotate(0deg);
     opacity: .90;
   }
-}
-
-.legal{
-  width:100%;
-  max-width:none;
-  margin:16px auto 10px;
-
-  font-size:14px;
-  line-height:1.35;
-  font-weight:600;
-  color:rgba(255,255,255,.50);
-  opacity:1;
-
-  text-align:center;
-  white-space:normal;
-
-  -webkit-font-smoothing:antialiased;
-  text-rendering:geometricPrecision;
 }
 
 .legal span{
