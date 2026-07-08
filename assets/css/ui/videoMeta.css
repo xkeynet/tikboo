@@ -31,7 +31,7 @@
 }
 
 .video-meta-creator{
-  margin-left:8px;
+  margin-left:0;
 
   color:rgba(255,255,255,.90);
 
@@ -81,7 +81,7 @@
 }
 
 .video-meta-caption{
-  margin-left:4px;
+  margin-left:0;
 
   margin-top:4px;
 
