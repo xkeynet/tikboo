@@ -540,12 +540,28 @@ body{
     opacity: 1;
   }
 
-  72% {
-    opacity: .32;
+  55% {
+    opacity: .80;
+  }
+
+  65% {
+    opacity: .60;
+  }
+
+  75% {
+    opacity: .40;
+  }
+
+  85% {
+    opacity: .25;
+  }
+
+  95% {
+    opacity: .12;
   }
 
   100% {
-    opacity: 0;
+    opacity: .08;
   }
 }
 
