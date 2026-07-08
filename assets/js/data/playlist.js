@@ -30,7 +30,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-005.mp4', creator: 'ripsigal', caption: "Now You're Gone ✈️", followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angell_novikova-001.mp4', creator: 'angell_novikova', caption: "When you and your bestie finally got here", followUrl: 'https://www.instagram.com/angell_novikova/', avatar: '/assets/avatars/angell_novikova.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-006.mp4', creator: 'ripsigal', caption: "Не отстаем от трендов 🤪🤘", followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ika_dauria-001.mp4', creator: 'ika_dauria', caption: "The fitting room is basically my second home now", followUrl: 'https://www.instagram.com/ika_dauria/', avatar: '/assets/avatars/ika_dauria.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ika_dauria-001.mp4', creator: 'ika_dauria', caption: "The fitting room is basically my second home", followUrl: 'https://www.instagram.com/ika_dauria/', avatar: '/assets/avatars/ika_dauria.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mariadmsanchez-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/violeta_london-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-001.mp4' },
