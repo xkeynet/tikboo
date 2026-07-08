@@ -518,7 +518,7 @@ body{
 }
 
 .gate-logo {
-  width: 64px;
+  width: 68px;
   height: auto;
   display: block;
   user-select: none;
@@ -532,39 +532,20 @@ body{
 }
 
 @keyframes ghost-smoke {
-  /* Plně bílý */
   0% {
     opacity: 1;
   }
 
-  /* Chvíli zůstane bílý */
-  35% {
+  45% {
     opacity: 1;
   }
 
-  /* Začne se velmi jemně rozplývat */
-  55% {
-    opacity: .75;
+  72% {
+    opacity: .32;
   }
 
-  /* Pokračuje jako kouř */
-  70% {
-    opacity: .50;
-  }
-
-  /* Už je téměř přízrak */
-  85% {
-    opacity: .25;
-  }
-
-  /* Téměř zmizí */
-  95% {
-    opacity: .10;
-  }
-
-  /* Nový cyklus - opět plně bílý */
   100% {
-    opacity: 1;
+    opacity: 0;
   }
 }
 
