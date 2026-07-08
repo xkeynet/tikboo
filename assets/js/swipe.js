@@ -21,7 +21,6 @@
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
-    const TARGET_PLAY_PROGRESS = 0.80;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -44,7 +43,6 @@
     let playbackGuardTimers = [];
     let gestureHeight = 0;
     let touchBlocked = false;
-    let targetPlaybackArmedDir = 0;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -127,45 +125,6 @@
       activeCommitVideoToPause = null;
     }
 
-    function resetTargetPlaybackArm() {
-      targetPlaybackArmedDir = 0;
-    }
-
-    function playTargetVideo(dir) {
-      if (targetPlaybackArmedDir === dir) return;
-
-      const targetIndex = normalizeIndex(state.index + dir);
-      const targetItem = playlist[targetIndex];
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-      if (!targetItem || targetItem.type !== 'video' || !targetVideo) return;
-
-      targetPlaybackArmedDir = dir;
-
-      targetVideo.muted = state.isMuted;
-      targetVideo.playsInline = true;
-      targetVideo.setAttribute('playsinline', '');
-      targetVideo.setAttribute('webkit-playsinline', '');
-
-      try {
-        if (targetVideo.readyState < 1) {
-          targetVideo.load();
-        }
-      } catch (e) {}
-
-      tryPlay(targetVideo);
-    }
-
-    function stopTargetVideo(dir) {
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-      if (!targetVideo || targetVideo === refs.videoCurrent) return;
-
-      try {
-        targetVideo.pause();
-        targetVideo.currentTime = 0;
-      } catch (e) {}
-    }
-
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
@@ -246,7 +205,6 @@
 
       resetQueue();
       resetActiveCommit();
-      resetTargetPlaybackArm();
 
       state.isAnimating = false;
 
@@ -319,10 +277,6 @@
         prepareForwardLayer(height);
       } else {
         prepareBackwardLayer(height);
-      }
-
-      if (preparedDir !== dir) {
-        resetTargetPlaybackArm();
       }
 
       preparedDir = dir;
@@ -404,7 +358,6 @@
 
       state.isAnimating = false;
       resetActiveCommit();
-      resetTargetPlaybackArm();
 
       bindAutoAdvanceForCurrent();
 
@@ -541,17 +494,10 @@
       clearPendingCommit();
       resetQueue();
 
-      const snapDir = preparedDir;
-
-      if (targetPlaybackArmedDir !== 0) {
-        stopTargetVideo(targetPlaybackArmedDir);
-      }
-
-      resetTargetPlaybackArm();
-
       state.isAnimating = true;
 
       const duration = 200;
+      const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
       const height = gestureHeight || vh();
       
@@ -619,7 +565,6 @@
             }
           }
 
-          resetTargetPlaybackArm();
           resetTransformsNoAnim();
           bindAutoAdvanceForCurrent();
         }
@@ -668,7 +613,6 @@
 
       dragging = true;
       preparedDir = 0;
-      resetTargetPlaybackArm();
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -731,7 +675,6 @@
 
         dragging = true;
         preparedDir = 0;
-        resetTargetPlaybackArm();
         gestureHeight = gestureHeight || vh();
 
         startY = e.touches[0].clientY;
@@ -791,10 +734,6 @@
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
-          if (progress >= TARGET_PLAY_PROGRESS && preparedDir !== 0) {
-            playTargetVideo(preparedDir);
-          }
-
           setTr(refs.layerCurrent, dy);
 
           if (targetLayer) {
@@ -825,7 +764,6 @@
         clearPlaybackGuard();
         clearPendingCommit();
         resetQueue();
-        resetTargetPlaybackArm();
       }
     }, { passive: true });
 
