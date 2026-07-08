@@ -525,43 +525,28 @@ body{
   -webkit-user-drag: none;
 
   position: relative;
-  top: 24px;
+  top: 30px;
 
-  animation: ghost-smoke 3s cubic-bezier(.45, 0, .25, 1) infinite;
-  will-change: opacity;
+  animation: swipe-bounce 3s infinite;
 }
 
-@keyframes ghost-smoke {
+@keyframes swipe-bounce {
   0% {
-    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.9, 0, 1, 1);
   }
 
-  45% {
-    opacity: 1;
+  10% {
+    transform: translate(10px, -50px) rotate(12deg);
+    animation-timing-function: ease-out;
   }
 
-  55% {
-    opacity: .80;
-  }
-
-  65% {
-    opacity: .60;
-  }
-
-  75% {
-    opacity: .40;
-  }
-
-  85% {
-    opacity: .25;
-  }
-
-  95% {
-    opacity: .12;
+  30% {
+    transform: translate(0, 0) rotate(0deg);
   }
 
   100% {
-    opacity: .08;
+    transform: translate(0, 0) rotate(0deg);
   }
 }
 
@@ -573,7 +558,7 @@ body{
   font-size:14px;
   line-height:1.35;
   font-weight:600;
-  color:rgba(255,255,255,.60);
+  color:rgba(255,255,255,.50);
   opacity:1;
 
   text-align:center;
