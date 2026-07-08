@@ -518,7 +518,7 @@ body{
 }
 
 .gate-logo {
-  width: 60px;
+  width: 68px;
   height: auto;
   display: block;
   user-select: none;
@@ -527,26 +527,25 @@ body{
   position: relative;
   top: 24px;
 
-animation: swipe-bounce 3s infinite;
+  animation: ghost-smoke 3s cubic-bezier(.45, 0, .25, 1) infinite;
+  will-change: opacity;
 }
 
-@keyframes swipe-bounce {
+@keyframes ghost-smoke {
   0% {
-    transform: translate(0, 0) rotate(0deg);
-    animation-timing-function: cubic-bezier(0.9, 0, 1, 1);
+    opacity: 1;
   }
 
-  10% {
-    transform: translate(10px, -50px) rotate(12deg);
-    animation-timing-function: ease-out;
+  45% {
+    opacity: 1;
   }
 
-  30% {
-    transform: translate(0, 0) rotate(0deg);
+  72% {
+    opacity: .32;
   }
 
   100% {
-    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
   }
 }
 
