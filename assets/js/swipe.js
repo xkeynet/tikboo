@@ -22,9 +22,6 @@
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
 
-    const CHROME_DIM_OPACITY = 0.42;
-    const CHROME_FADE_IN_MS = 60;
-
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
@@ -81,34 +78,19 @@
       if (els.videoMeta) els.videoMeta.style.opacity = opacity;
     }
 
-    function revealLayerEffects(layer) {
-      const els = getLayerEffectEls(layer);
-      if (!els) return;
-
-      [els.sideMenu, els.videoMeta].forEach((el) => {
-        if (!el) return;
-        el.style.transition = `opacity ${CHROME_FADE_IN_MS}ms ease`;
-        el.style.opacity = '1';
-
-        setTimeout(() => {
-          el.style.transition = '';
-        }, CHROME_FADE_IN_MS + 20);
-      });
-    }
-
-    function resetSeekUiImmediate(restoreOpacity = true) {
+    function resetSeekUiImmediate() {
       if (seekPill) seekPill.classList.remove('is-active');
       if (seekTime) seekTime.classList.remove('is-active');
 
       document.querySelectorAll('.side').forEach(s => {
         s.classList.remove('scrubbing');
-        if (restoreOpacity) s.style.opacity = '1';
+        s.style.opacity = '1';
         s.style.display = '';
       });
 
       document.querySelectorAll('.video-meta').forEach(m => {
         m.classList.remove('scrubbing');
-        if (restoreOpacity) m.style.opacity = '1';
+        m.style.opacity = '1';
         m.style.display = '';
       });
     }
@@ -183,7 +165,7 @@
       });
     }
 
-    function resetTransformsNoAnim(effectOpacity = 1) {
+    function resetTransformsNoAnim() {
       const height = vh();
 
       if (raf) cancelAnimationFrame(raf);
@@ -195,7 +177,7 @@
       [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
         l.style.transition = 'none';
         l.style.willChange = 'auto';
-        updateLayerEffects(l, effectOpacity);
+        updateLayerEffects(l, 1);
       });
 
       setTr(refs.layerPrev, -height);
@@ -293,10 +275,8 @@
 
       if (dir > 0) {
         prepareForwardLayer(height);
-        updateLayerEffects(refs.layerNext, CHROME_DIM_OPACITY);
       } else {
         prepareBackwardLayer(height);
-        updateLayerEffects(refs.layerPrev, CHROME_DIM_OPACITY);
       }
 
       preparedDir = dir;
@@ -371,8 +351,8 @@
 
       if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
 
-      resetTransformsNoAnim(CHROME_DIM_OPACITY);
-      resetSeekUiImmediate(false);
+      resetTransformsNoAnim();
+      resetSeekUiImmediate();
       syncSoundUI();
       showPlayOverlay(false);
 
@@ -386,12 +366,6 @@
         tryPlay(refs.videoCurrent);
         guardCurrentPlayback('finishCommit');
       }
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          revealLayerEffects(refs.layerCurrent);
-        });
-      });
 
       const queued = queuedDir;
       resetQueue();
@@ -504,8 +478,7 @@
       refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
       targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
 
-      updateLayerEffects(refs.layerCurrent, CHROME_DIM_OPACITY);
-      updateLayerEffects(targetLayer, CHROME_DIM_OPACITY);
+      updateLayerEffects(refs.layerCurrent, 0.3);
 
       setTr(refs.layerCurrent, dir > 0 ? -height : height);
       setTr(targetLayer, 0);
@@ -756,11 +729,10 @@
 
           const height = gestureHeight;
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, CHROME_DIM_OPACITY);
+          const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
           
           updateLayerEffects(refs.layerCurrent, currentOpacity);
-          updateLayerEffects(targetLayer, CHROME_DIM_OPACITY);
 
           setTr(refs.layerCurrent, dy);
 
