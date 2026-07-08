@@ -532,35 +532,47 @@ body{
 
 @keyframes swipe-bounce {
 
-  /* Výchozí stav */
+  /* Výchozí stav – duch je krásně bílý */
   0% {
     transform: translate(0, 0) rotate(0deg);
-    opacity: 1;
+    opacity: .90;
     animation-timing-function: cubic-bezier(0.9, 0, 1, 1);
   }
 
-  /* Začátek odletu */
+  /* Klid před odletem */
   6% {
-    opacity: 1;
+    opacity: .90;
   }
 
-  /* Duch odletí šikmo vzhůru */
+  /* Začátek odletu */
   10% {
     transform: translate(24px, -180px) rotate(26deg);
     opacity: .50;
     animation-timing-function: ease-out;
   }
 
-  /* Návrat zpět */
-  30% {
-    transform: translate(0, 0) rotate(0deg);
-    opacity: 1;
+  /* Let vzhůru */
+  20% {
+    transform: translate(24px, -180px) rotate(26deg);
+    opacity: .30;
   }
 
-  /* Klid do další animace */
+  /* Nahoře v nebi */
+  30% {
+    transform: translate(24px, -180px) rotate(26deg);
+    opacity: .16;
+  }
+
+  /* Okamžitý návrat */
+  31% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: .90;
+  }
+
+  /* Klid do dalšího odletu */
   100% {
     transform: translate(0, 0) rotate(0deg);
-    opacity: 1;
+    opacity: .90;
   }
 }
 
