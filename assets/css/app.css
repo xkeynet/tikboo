@@ -525,7 +525,7 @@ body{
   -webkit-user-drag: none;
 
   position: relative;
-  top: 24px;
+  top: 30px;
 
   animation: swipe-bounce 3s infinite;
 }
@@ -548,6 +548,24 @@ body{
   100% {
     transform: translate(0, 0) rotate(0deg);
   }
+}
+
+.legal{
+  width:100%;
+  max-width:none;
+  margin:16px auto 10px;
+
+  font-size:14px;
+  line-height:1.35;
+  font-weight:600;
+  color:rgba(255,255,255,.50);
+  opacity:1;
+
+  text-align:center;
+  white-space:normal;
+
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
 }
 
 .legal span{
