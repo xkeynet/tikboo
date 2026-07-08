@@ -527,6 +527,8 @@ body{
   position: relative;
   top: 24px;
 
+  opacity: 0.85; 
+
   animation: swipe-bounce 3s infinite;
 }
 
