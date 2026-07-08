@@ -531,22 +531,36 @@ body{
 }
 
 @keyframes swipe-bounce {
+
+  /* Výchozí stav */
   0% {
     transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
     animation-timing-function: cubic-bezier(0.9, 0, 1, 1);
   }
 
+  /* Začátek odletu */
+  6% {
+    opacity: 1;
+  }
+
+  /* Duch vystřelí nahoru a začne se měnit v přízrak */
   10% {
     transform: translate(10px, -50px) rotate(12deg);
+    opacity: .50;
     animation-timing-function: ease-out;
   }
 
+  /* Návrat zpět */
   30% {
     transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
   }
 
+  /* Klid do další animace */
   100% {
     transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
   }
 }
 
