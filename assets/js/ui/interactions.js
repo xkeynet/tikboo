@@ -228,15 +228,13 @@ export function initInteractions({
     });
   }, true);
 
-  function watchLayers() {
+  document.addEventListener('tikboo:swipe:commit', () => {
     renderLikes();
-    requestAnimationFrame(watchLayers);
-  }
+  });
 
   loadLocalLikedState();
   renderLikes();
   loadRemoteLikes();
-  requestAnimationFrame(watchLayers);
 
   return {
     renderLikes
