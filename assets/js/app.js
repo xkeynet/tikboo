@@ -470,15 +470,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function hideAll(layer) {
-    const v = layer.querySelector('video');
-    const im = layer.querySelector('img');
+  function getLayerMedia(layer) {
+    if (layer === refs.layerPrev) {
+      return {
+        video: refs.videoPrev,
+        image: refs.imgPrev
+      };
+    }
 
-    v.style.display = 'none';
-    im.style.display = 'none';
-    im.style.opacity = '0';
-    im.onload = null;
-    im.onerror = null;
+    if (layer === refs.layerCurrent) {
+      return {
+        video: refs.videoCurrent,
+        image: refs.imgCurrent
+      };
+    }
+
+    if (layer === refs.layerNext) {
+      return {
+        video: refs.videoNext,
+        image: refs.imgNext
+      };
+    }
+
+    return {
+      video: null,
+      image: null
+    };
+  }
+
+  function hideAll(layer) {
+    const media = getLayerMedia(layer);
+    const v = media.video;
+    const im = media.image;
+
+    if (v) {
+      v.style.display = 'none';
+    }
+
+    if (im) {
+      im.style.display = 'none';
+      im.style.opacity = '0';
+      im.onload = null;
+      im.onerror = null;
+    }
   }
 
   // =========================================================
@@ -580,8 +614,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setLayerContent(layer, item, forNext) {
-    const v = layer.querySelector('video');
-    const im = layer.querySelector('img');
+    const media = getLayerMedia(layer);
+    const v = media.video;
+    const im = media.image;
+
+    if (!v || !im) return;
 
     setLayerVideoMeta(layer, item);
 
