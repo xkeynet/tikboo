@@ -359,6 +359,8 @@
       state.isAnimating = false;
       resetActiveCommit();
 
+      document.dispatchEvent(new CustomEvent('tikboo:swipe:commit'));
+
       bindAutoAdvanceForCurrent();
 
       if (playlist[state.index].type === 'video') {
