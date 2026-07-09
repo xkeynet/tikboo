@@ -671,9 +671,9 @@ body{
   color:#FFFFFF;
 
   /* o chlup luxusnější tmavší fialová */
-  background:rgba(0,0,0,.90);
+  background:rgba(0,0,0,.50);
 
-  border:2px solid rgba(255,255,255,.50);
+  border:1px solid rgba(255,255,255,.50);
   border-radius:4px;
 
   /* o trochu vyšší */
