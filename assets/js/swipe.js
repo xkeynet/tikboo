@@ -21,7 +21,6 @@
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
-    const PRECOMMIT_ACTIVATE_PROGRESS = 0.82;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -44,8 +43,6 @@
     let playbackGuardTimers = [];
     let gestureHeight = 0;
     let touchBlocked = false;
-    let preActivatedDir = 0;
-    let preActivatedIndex = null;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -79,41 +76,6 @@
 
       if (els.sideMenu) els.sideMenu.style.opacity = opacity;
       if (els.videoMeta) els.videoMeta.style.opacity = opacity;
-    }
-
-    function resetPreCommitActivation() {
-      preActivatedDir = 0;
-      preActivatedIndex = null;
-    }
-
-    function activateTargetVideoOnce(dir) {
-      const targetIndex = normalizeIndex(state.index + dir);
-
-      if (preActivatedDir === dir && preActivatedIndex === targetIndex) return;
-
-      const targetItem = playlist[targetIndex];
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-      preActivatedDir = dir;
-      preActivatedIndex = targetIndex;
-
-      if (!targetItem || targetItem.type !== 'video' || !targetVideo) return;
-
-      targetVideo.muted = state.isMuted;
-      targetVideo.playsInline = true;
-      targetVideo.setAttribute('playsinline', '');
-      targetVideo.setAttribute('webkit-playsinline', '');
-
-      try {
-        if (targetVideo.readyState === 0) {
-          targetVideo.load();
-          return;
-        }
-      } catch (e) {}
-
-      if (targetVideo.paused && targetVideo.readyState >= 2) {
-        tryPlay(targetVideo);
-      }
     }
 
     function resetSeekUiImmediate() {
@@ -243,7 +205,6 @@
 
       resetQueue();
       resetActiveCommit();
-      resetPreCommitActivation();
 
       state.isAnimating = false;
 
@@ -311,8 +272,6 @@
 
     function prepareNextForDirection(dir) {
       const height = gestureHeight || vh();
-
-      resetPreCommitActivation();
 
       if (dir > 0) {
         prepareForwardLayer(height);
@@ -399,7 +358,6 @@
 
       state.isAnimating = false;
       resetActiveCommit();
-      resetPreCommitActivation();
 
       bindAutoAdvanceForCurrent();
 
@@ -535,7 +493,6 @@
 
       clearPendingCommit();
       resetQueue();
-      resetPreCommitActivation();
 
       state.isAnimating = true;
 
@@ -656,7 +613,6 @@
 
       dragging = true;
       preparedDir = 0;
-      resetPreCommitActivation();
 
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -719,7 +675,6 @@
 
         dragging = true;
         preparedDir = 0;
-        resetPreCommitActivation();
         gestureHeight = gestureHeight || vh();
 
         startY = e.touches[0].clientY;
@@ -777,10 +732,6 @@
           const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
           
-          if (progress >= PRECOMMIT_ACTIVATE_PROGRESS && preparedDir !== 0) {
-            activateTargetVideoOnce(preparedDir);
-          }
-
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
           setTr(refs.layerCurrent, dy);
@@ -813,7 +764,6 @@
         clearPlaybackGuard();
         clearPendingCommit();
         resetQueue();
-        resetPreCommitActivation();
       }
     }, { passive: true });
 
