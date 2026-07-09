@@ -671,7 +671,7 @@ body{
   color:#FFFFFF;
 
   /* o chlup luxusnější tmavší fialová */
-  background:#14C8D8;
+  background:rgba(0,0,0,.90);
 
   border:2px solid rgba(255,255,255,.50);
   border-radius:4px;
