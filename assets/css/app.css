@@ -597,7 +597,7 @@ body{
   justify-content:center;
   gap:1px;
 
-  border:1px solid rgba(255,255,255,.50);
+  border:2px solid rgba(255,255,255,.50);
   border-radius:4px;
 
   /* široké, ale ne nafouknuté */
@@ -672,7 +672,7 @@ body{
 
   background:transparent;
 
-  border:1px solid #FFFFFF;
+  border:2px solid rgba(255,255,255,.50);
   border-radius:4px;
 
   /* o trochu vyšší */
