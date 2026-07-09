@@ -605,9 +605,9 @@ body{
 
   font-weight:800;
   letter-spacing:0;
-  color:#FFFFFF;
+  color:#000000;
 
-  background:transparent;
+  background:rgba(255,255,255,.90);
 
   box-shadow:none;
 
