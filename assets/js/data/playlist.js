@@ -1,6 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-008.mp4', creator: 'julianomass', caption: "So locked @ultrapouches", followUrl: 'https://www.instagram.com/julianomass/', avatar: '/assets/avatars/julianomass.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JackDoherty.mp4', creator: 'jackdoherty', caption: "Dream life 💎 #jackdoherty", followUrl: 'https://www.instagram.com/jackdoherty/', avatar: '/assets/avatars/jackdoherty.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jackdoherty-003.mp4', creator: 'jackdoherty', caption: "What you saying", followUrl: 'https://www.instagram.com/jackdoherty/', avatar: '/assets/avatars/jackdoherty.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jackdoherty-002.mp4', creator: 'jackdoherty', caption: "I’m the reason she know how a jet feel 🛩️", followUrl: 'https://www.instagram.com/jackdoherty/', avatar: '/assets/avatars/jackdoherty.jpg' },
