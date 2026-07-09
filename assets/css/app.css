@@ -597,8 +597,8 @@ body{
   justify-content:center;
   gap:1px;
 
-  border:1px solid rgba(255,255,255,.90);
-  border-radius:4px;
+  border:2px solid rgba(255,255,255,.90);
+  border-radius:2px;
 
   /* široké, ale ne nafouknuté */
   padding:9px 18px;
@@ -607,7 +607,7 @@ body{
   letter-spacing:0;
   color:#FFFFFF;
 
-  background:#000000;
+  background:transparent;
 
   box-shadow:none;
 
@@ -673,8 +673,8 @@ body{
   /* o chlup luxusnější tmavší fialová */
   background:transparent;
 
-  border:1px solid rgba(255,255,255,.90);
-  border-radius:4px;
+  border:2px solid rgba(255,255,255,.90);
+  border-radius:2px;
 
   /* o trochu vyšší */
   padding:7px 16px;
