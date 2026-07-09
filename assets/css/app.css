@@ -644,7 +644,7 @@ body{
   flex-direction:column;
 
   /* více vzduchu mezi pilulkami */
-  gap:9px;
+  gap:8px;
 
   align-items:center;
 
