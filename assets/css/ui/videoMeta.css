@@ -33,7 +33,7 @@
 .video-meta-creator{
   margin-left:0;
 
-  color:rgba(255,255,255,.90);
+  color:#FFFFFF;
 
   font-size:14px;
   font-weight:600;
@@ -60,7 +60,7 @@
 
   background:transparent;
 
-  color:#ffffff;
+  color:#FFFFFF;
 
   text-decoration:none;
 
@@ -85,7 +85,7 @@
 
   margin-top:4px;
 
-  color:rgba(255,255,255,.80);
+  color:rgba(255,255,255,.90);
 
   font-size:14px;
   font-weight:400;
