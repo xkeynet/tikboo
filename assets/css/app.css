@@ -518,14 +518,14 @@ body{
 }
 
 .gate-logo {
-  width: 70px;
+  width: 80px;
   height: auto;
   display: block;
   user-select: none;
   -webkit-user-drag: none;
 
   position: relative;
-  top: 26px;
+  top: 20px;
 
   animation: swipe-bounce 3s infinite;
 }
