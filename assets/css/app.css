@@ -518,11 +518,11 @@ body{
 }
 
 .gate-logo {
-  width: 72px;
-  height: auto;
-  display: block;
-  user-select: none;
-  -webkit-user-drag: none;
+  width:70px;
+  height:auto;
+  display:block;
+  user-select:none;
+  -webkit-user-drag:none;
 
   position: relative;
   top: 22px;
