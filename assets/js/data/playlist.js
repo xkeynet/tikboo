@@ -1,6 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly-100.mp4', creator: 'angelyoungsonly', caption: "Yes lawd #avn #avnawards", followUrl: 'https://www.instagram.com/angelyoungsonly/', avatar: '/assets/avatars/angelyoungsonly.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alice.rosenblum-004.mp4', creator: 'alice.rosenblum', caption: "your fav islander @nelkboys @kyle", followUrl: 'https://www.instagram.com/alice.rosenblum/', avatar: '/assets/avatars/alice.rosenblum.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/emjayrinaudo-007.mp4', creator: 'emjayrinaudo', caption: "BTS from my femme fatale shoot yesterday", followUrl: 'https://www.instagram.com/emjayrinaudo/', avatar: '/assets/avatars/emjayrinaudo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/abbyy.irl-008.mp4', creator: 'abbyy.irl', caption: "do I look Brazilian? I had about 10 people speak", followUrl: 'https://www.instagram.com/abbyy.irl/', avatar: '/assets/avatars/abbyy.irl.jpg' },
