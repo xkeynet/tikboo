@@ -518,7 +518,7 @@ body{
 }
 
 .gate-logo {
-  width:60px;
+  width:54px;
   height:auto;
   display:block;
   user-select:none;
@@ -575,7 +575,7 @@ body{
   justify-content:center;
   gap:1px;
 
-  border:2px solid rgba(255,255,255,1);
+  border:3px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* široké, ale ne nafouknuté */
@@ -651,7 +651,7 @@ body{
   /* o chlup luxusnější tmavší fialová */
   background:transparent;
 
-  border:2px solid rgba(255,255,255,1);
+  border:3px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* o trochu vyšší */
