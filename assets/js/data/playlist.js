@@ -83,7 +83,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly_1.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/gloriameshii.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/daddysjuiced_.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/kirstentoosweet.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/notconnieperignon.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/erinmiaajames.mp4' },
