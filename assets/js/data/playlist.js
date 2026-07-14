@@ -79,7 +79,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/dangershewrote.mp4', creator: 'dangershewrote', caption: "and I know you're giving to people", followUrl: 'https://www.instagram.com/dangershewrote/', avatar: '/assets/avatars/dangershewrote.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rmcleodxo.mp4', creator: 'rebeccamcleoddd', caption: "Always certified baddies ⭐️", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rmcleodxo_2.mp4', creator: 'rebeccamcleoddd', caption: "Rolling through Miami in a boujee limo", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/carlynicolee54.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/carlynicolee54.mp4', creator: 'carlynicolee54', caption: "I'm..Like Instagram modeling 😂", followUrl: 'https://www.instagram.com/carlynicolee54/', avatar: '/assets/avatars/carlynicolee54.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jullflexx.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/katalinacarttmel.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jadeella2.0.mp4' },
