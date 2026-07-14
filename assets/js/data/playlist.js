@@ -134,7 +134,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/%40alice.rosenblum-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Cool.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/End.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/000.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/000.mp4', creator: 'momycarterx', caption: "Should I pump or blowjob first?", followUrl: 'https://www.instagram.com/momycarterx/', avatar: '/assets/avatars/momycarterx.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/111.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Last.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/222.mp4' },
