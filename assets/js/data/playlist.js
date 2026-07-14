@@ -204,7 +204,5 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Thoughts.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/OTD.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/dole.mp4' }
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' }
 ];
