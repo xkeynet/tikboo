@@ -1,6 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/aleabramovich-001.mp4', creator: 'aleabramovich', caption: "EL VIDEO DE NUESTRAS VIDAS 🇦🇷 ⭐️", followUrl: 'https://www.instagram.com/aleabramovich/', avatar: '/assets/avatars/aleabramovich.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/wizkhalifa-001.mp4', creator: 'wizkhalifa', caption: "Anyone else stoned at the World Cup?", followUrl: 'https://www.instagram.com/wizkhalifa/', avatar: '/assets/avatars/wizkhalifa.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly-100.mp4', creator: 'angelyoungsonly', caption: "Yes lawd #avn #avnawards", followUrl: 'https://www.instagram.com/angelyoungsonly/', avatar: '/assets/avatars/angelyoungsonly.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alice.rosenblum-004.mp4', creator: 'alice.rosenblum', caption: "your fav islander @nelkboys @kyle", followUrl: 'https://www.instagram.com/alice.rosenblum/', avatar: '/assets/avatars/alice.rosenblum.jpg' },
