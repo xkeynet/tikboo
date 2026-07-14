@@ -188,7 +188,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fucking.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tereza.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lifewniic.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Pracka%20.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fiitwniic.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Sunday.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/DKR.mp4' },
