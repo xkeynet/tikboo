@@ -46,6 +46,8 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-003.mp4', creator: 'lianalovexo', caption: "Chasing the sun 🌞🧡", followUrl: 'https://www.instagram.com/lianalovexo/', avatar: '/assets/avatars/lianalovexo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/theallierae-001.mp4', creator: 'theallierae', caption: "So I was on this pink raft and lowkey caught major feelings for a croc 💚", followUrl: 'https://www.instagram.com/theallierae/', avatar: '/assets/avatars/theallierae.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/livvvvvk2.0-001.mp4', creator: 'livvvvvk2.0', caption: "Beautiful eyes? 😉", followUrl: 'https://www.instagram.com/livvvvvk2.0/', avatar: '/assets/avatars/livvvvvk2.0.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4', creator: 'rebeccamcleoddd', caption: "Hot Cowgirl!👢Let's go...", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4', creator: 'rebeccamcleoddd', caption: "Hot Cowgirl?", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ambss.woods-001.mp4', creator: 'ambss.woods', caption: "Fav sweats 🔹 mirror VIDEO selfie", followUrl: 'https://www.instagram.com/ambss.woods/', avatar: '/assets/avatars/ambss.woods.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/allie_brink13-001.mp4', creator: 'allie_brink13', caption: "I live for teasing in these tiny Daisy Dukes", followUrl: 'https://www.instagram.com/allie_brink13/', avatar: '/assets/avatars/allie_brink13.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/julianomass-001.mp4', creator: 'julianomass', caption: "#julianomassarelli", followUrl: 'https://www.instagram.com/julianomass/', avatar: '/assets/avatars/julianomass.jpg' },
@@ -201,7 +203,5 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Thoughts.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' }
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' }
 ];
