@@ -200,7 +200,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Thoughts.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sydneylint.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Kila.mp4', creator: 'lopirova', caption: "Чиллим дома", followUrl: 'https://www.instagram.com/lopirova/', avatar: '/assets/avatars/lopirova.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' },
