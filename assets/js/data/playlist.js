@@ -44,7 +44,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/violeta_london-001.mp4', creator: 'violeta_london', caption: "Bloody hell, it’s absolutely roasting today", followUrl: 'https://www.instagram.com/violeta_london/', avatar: '/assets/avatars/violeta_london.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-001.mp4', creator: 'lianalovexo', caption: "Got this whole ass waiting just for you. Don't make it wait too long", followUrl: 'https://www.instagram.com/lianalovexo/', avatar: '/assets/avatars/lianalovexo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-003.mp4', creator: 'lianalovexo', caption: "Chasing the sun 🌞🧡", followUrl: 'https://www.instagram.com/lianalovexo/', avatar: '/assets/avatars/lianalovexo.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/theallierae-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/theallierae-001.mp4', creator: 'theallierae', caption: "So I was on this pink raft and lowkey caught major feelings for a croc 💚", followUrl: 'https://www.instagram.com/theallierae/', avatar: '/assets/avatars/theallierae.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/livvvvvk2.0-001.mp4', creator: 'livvvvvk2.0', caption: "Beautiful eyes? 😉", followUrl: 'https://www.instagram.com/livvvvvk2.0/', avatar: '/assets/avatars/livvvvvk2.0.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ambss.woods-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/allie_brink13-001.mp4' },
