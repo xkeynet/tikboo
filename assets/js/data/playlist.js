@@ -201,7 +201,5 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tomat.mp4', creator: 'daddysjuiced_', caption: "Doing a quick taste test on this tomato", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/reecemariexx.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4', creator: 'dohmensamuel', caption: "got a new tattoo, ich finds zu krass 😍 danke an", followUrl: 'https://www.instagram.com/dohmensamuel/', avatar: '/assets/avatars/dohmensamuel.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Thoughts.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/MiamiBeach.mp4' }
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4', creator: 'dohmensamuel', caption: "got a new tattoo, ich finds zu krass 😍 danke an", followUrl: 'https://www.instagram.com/dohmensamuel/', avatar: '/assets/avatars/dohmensamuel.jpg' }
 ];
