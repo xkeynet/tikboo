@@ -40,7 +40,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angell_novikova-001.mp4', creator: 'angell_novikova', caption: "When you and your bestie finally got here", followUrl: 'https://www.instagram.com/angell_novikova/', avatar: '/assets/avatars/angell_novikova.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ripsigal-006.mp4', creator: 'ripsigal', caption: "Не отстаем от трендов 🤪🤘", followUrl: 'https://www.instagram.com/ripsigal/', avatar: '/assets/avatars/ripsigal.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ika_dauria-001.mp4', creator: 'ika_dauria', caption: "The fitting room is basically my second home", followUrl: 'https://www.instagram.com/ika_dauria/', avatar: '/assets/avatars/ika_dauria.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mariadmsanchez-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/mariadmsanchez-001.mp4', creator: 'mariadmsanchez', caption: "Todo un encato de mujer 💦😜", followUrl: 'https://www.instagram.com/mariadmsanchez/', avatar: '/assets/avatars/mariadmsanchez.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/violeta_london-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lianalovexo-003.mp4' },
@@ -204,7 +204,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-66.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-67.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tiger.mp4', creator: 'daddysjuiced_', caption: "Eye of the Tiger", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/KIT.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/KIT.mp4', creator: 'daddysjuiced_', caption: "Who said I love this game? ❌💵❌", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/OTD.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/dole.mp4' }
 ];
