@@ -131,7 +131,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jacobs_90.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/violeta_london.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/surfstree_beau.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-a.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-a.mp4', creator: 'rebeccamcleoddd', caption: "I get so lost at these big American stadiums", followUrl: 'https://www.instagram.com/rebeccamcleoddd/', avatar: '/assets/avatars/rebeccamcleoddd.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-b.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd-c.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/rebeccamcleoddd.mp4' },
