@@ -74,7 +74,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsmiaxa-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hbro__-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-004.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hayleydavies.bts-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hayleydavies.bts-001.mp4', creator: 'hayleydavies.bts', caption: "Morning coffee ASMR 😘", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/brattytal-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alexandramarianna-001.mp4' },
@@ -201,5 +201,5 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JLO.mp4', creator: 'jlo', caption: "Jennifer Lopez", followUrl: 'https://www.instagram.com/jlo/', avatar: '/assets/avatars/jlo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/King.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/reecemariexx.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4' }
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4', creator: 'hayleydavies.bts', caption: "How long can you keep eye contact for? 😘", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' },
 ];
