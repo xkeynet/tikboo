@@ -187,7 +187,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/GiannaBellucci.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/getting-ready.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/abigail.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/interview-kayley.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/interview-kayley.mp4', creator: 'kayleygunner', caption: "Pinkee favs with a real one Kayley Gunner", followUrl: 'https://www.instagram.com/kayleygunner/', avatar: '/assets/avatars/kayleygunner.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0002.mp4', creator: 'lady_s_dreamer', caption: "You ready?", followUrl: 'https://www.instagram.com/lady_s_dreamer/', avatar: '/assets/avatars/lady_s_dreamer.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0001.mp4', creator: 'lucysealu', caption: "Si dáme trojku ne ale 😂", followUrl: 'https://www.instagram.com/lucysealu/', avatar: '/assets/avatars/lucysealu.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fucking.mp4', creator: 'angelyoungsonly', caption: "OMG Derek! I ❤️ NY", followUrl: 'https://www.instagram.com/angelyoungsonly/', avatar: '/assets/avatars/angelyoungsonly.jpg' },
