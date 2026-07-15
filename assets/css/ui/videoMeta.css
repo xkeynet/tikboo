@@ -80,7 +80,6 @@
 
 .video-meta-caption{
   margin-left:0;
-
   margin-top:4px;
 
   color:#FFFFFF;
@@ -93,11 +92,24 @@
 
   text-shadow:none;
 
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
+  display:block;
+  width:100%;
 
+  white-space:nowrap;
   overflow:hidden;
+  text-overflow:ellipsis;
+
+  pointer-events:auto;
+  cursor:pointer;
+
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+
+.video-meta.expanded .video-meta-caption{
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
 }
 
 .video-meta.scrubbing,
