@@ -2,6 +2,7 @@
 
 export const PLAYLIST = [
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4', creator: 'chaadhewitt', caption: "The REAL Wolf of Wall Street", followUrl: 'https://www.instagram.com/chaadhewitt/', avatar: '/assets/avatars/chaadhewitt.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/aleabramovich-001.mp4', creator: 'aleabramovich', caption: "EL VIDEO DE NUESTRAS VIDAS 🇦🇷 ⭐️", followUrl: 'https://www.instagram.com/aleabramovich/', avatar: '/assets/avatars/aleabramovich.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Millennial.mp4', creator: 'Tikboo', caption: "Millennials by Tikboo", followUrl: 'https://tikboo.com/', avatar: '/assets/avatars/swipe-favicon.png' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lacikaysomers.mp4', creator: 'lacikaysomers', caption: "I can't hear you I'm in the Caribbean 🌴❤️", followUrl: 'https://www.instagram.com/lacikaysomers/', avatar: '/assets/avatars/lacikaysomers.jpg' },
@@ -180,7 +181,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Crazy.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/haha.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sunone.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4', creator: 'chaadhewitt', caption: "The REAL Wolf of Wall Street", followUrl: 'https://www.instagram.com/chaadhewitt/', avatar: '/assets/avatars/chaadhewitt.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/motorbikes.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Powerpuff.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ReturnGirls.mp4' },
