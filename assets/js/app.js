@@ -219,6 +219,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   // === Video Metadata Layer ===
   // =========================================================
+  function collapseAllVideoMeta() {
+    document.querySelectorAll('.video-meta.expanded').forEach((meta) => {
+      meta.classList.remove('expanded');
+    });
+  }
+
   function setLayerVideoMeta(layer, item) {
     if (!layer || !item) return;
 
@@ -234,6 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const caption = item.caption || '';
     const followUrl = item.followUrl || '';
     const avatar = item.avatar || '/assets/xxx.jpg';
+
+    meta.classList.remove('expanded');
 
     if (creatorEl) {
       creatorEl.textContent = creator;
@@ -275,6 +283,28 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
     }
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    const captionEl = e.target.closest('.video-meta-caption');
+    if (!captionEl) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const meta = captionEl.closest('.video-meta');
+    if (!meta) return;
+
+    if (meta.classList.contains('expanded')) {
+      meta.classList.remove('expanded');
+      return;
+    }
+
+    const isOverflowing = captionEl.scrollWidth > captionEl.clientWidth + 1;
+    if (!isOverflowing) return;
+
+    collapseAllVideoMeta();
+    meta.classList.add('expanded');
   }, true);
 
   // =========================================================
@@ -329,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isInteractiveTarget(target) {
-    return !!target?.closest('button, a, input, textarea, select, label, .nav, .side, .modal, .modal-backdrop, #gateOverlay');
+    return !!target?.closest('button, a, input, textarea, select, label, .nav, .side, .video-meta-caption, .modal, .modal-backdrop, #gateOverlay');
   }
 
   function clearAuto() {
