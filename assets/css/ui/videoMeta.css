@@ -99,35 +99,21 @@
   overflow:hidden;
   text-overflow:ellipsis;
 
-  max-height:1.3em;
-
   pointer-events:auto;
   cursor:pointer;
 
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
-
-  transition:
-    max-height 260ms cubic-bezier(.22,.61,.36,1),
-    opacity 180ms ease;
 }
 
 .video-meta.expanded .video-meta-caption{
   white-space:normal;
   overflow:hidden;
   text-overflow:clip;
-
-  max-height:7.8em;
 }
 
 .video-meta.scrubbing,
 .side.scrubbing ~ .video-meta{
   opacity:0;
   pointer-events:none;
-}
-
-@media (prefers-reduced-motion:reduce){
-  .video-meta-caption{
-    transition:none;
-  }
 }
