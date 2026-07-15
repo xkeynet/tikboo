@@ -3,6 +3,7 @@
 export const PLAYLIST = [
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/aleabramovich-001.mp4', creator: 'aleabramovich', caption: "EL VIDEO DE NUESTRAS VIDAS 🇦🇷 ⭐️", followUrl: 'https://www.instagram.com/aleabramovich/', avatar: '/assets/avatars/aleabramovich.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lacikaysomers.mp4', creator: 'lacikaysomers', caption: "I can't hear you I'm in the Caribbean 🌴❤️", followUrl: 'https://www.instagram.com/lacikaysomers/', avatar: '/assets/avatars/lacikaysomers.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/wizkhalifa-001.mp4', creator: 'wizkhalifa', caption: "Anyone else stoned at the World Cup?", followUrl: 'https://www.instagram.com/wizkhalifa/', avatar: '/assets/avatars/wizkhalifa.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/angelyoungsonly-100.mp4', creator: 'angelyoungsonly', caption: "Yes lawd #avn #avnawards", followUrl: 'https://www.instagram.com/angelyoungsonly/', avatar: '/assets/avatars/angelyoungsonly.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/alice.rosenblum-004.mp4', creator: 'alice.rosenblum', caption: "your fav islander @nelkboys @kyle", followUrl: 'https://www.instagram.com/alice.rosenblum/', avatar: '/assets/avatars/alice.rosenblum.jpg' },
@@ -118,7 +119,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/HBU.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/AQUA.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sunglasses.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lacikaysomers.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/thedandangler.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/misslexa.ox.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/surfsterre.mp4' },
