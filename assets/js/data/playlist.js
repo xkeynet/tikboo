@@ -74,7 +74,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/zinzinich.mp4', creator: 'dohmensamuel', caption: "got a new tattoo, ich finds zu krass 😍 danke an", followUrl: 'https://www.instagram.com/dohmensamuel/', avatar: '/assets/avatars/dohmensamuel.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/jul1ett3x-001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/itsmiaxa-001.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hbro__-001.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hbro__-001.mp4', creator: 'hbro__', caption: "Fuck...", followUrl: 'https://www.instagram.com/hbro__/', avatar: '/assets/avatars/hbro__.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/bellasweetsinclaiir-004.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/hayleydavies.bts-001.mp4', creator: 'hayleydavies.bts', caption: "Morning coffee ASMR 😘", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/brattytal-001.mp4' },
