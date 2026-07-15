@@ -180,7 +180,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Crazy.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/haha.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/sunone.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4', creator: 'chaadhewitt', caption: "The REAL Wolf of Wall Street", followUrl: 'https://www.instagram.com/chaadhewitt/', avatar: '/assets/avatars/chaadhewitt.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/motorbikes.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Powerpuff.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ReturnGirls.mp4' },
