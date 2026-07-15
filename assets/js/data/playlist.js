@@ -191,7 +191,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0002.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fucking.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tereza.mp4', creator: 'terollada', caption: "Když jdeš ve školce "po 0" 🤍🩷", followUrl: 'https://www.instagram.com/terollada/', avatar: '/assets/avatars/terollada.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tereza.mp4', creator: 'terollada', caption: "Kdyz jdes ve skolce "po 0" 🤍🩷", followUrl: 'https://www.instagram.com/terollada/', avatar: '/assets/avatars/terollada.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lifewniic.mp4', creator: 'liifewniic', caption: "Now these are more like super cars 🤍", followUrl: 'https://www.instagram.com/liifewniic/', avatar: '/assets/avatars/liifewniic.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fiitwniic.mp4', creator: 'liifewniic', caption: "Serving absolute heat in the fitting room", followUrl: 'https://www.instagram.com/liifewniic/', avatar: '/assets/avatars/liifewniic.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Sunday.mp4', creator: 'emjayrinaudo', caption: "Yeah baby!", followUrl: 'https://www.instagram.com/emjayrinaudo/', avatar: '/assets/avatars/emjayrinaudo.jpg' },
@@ -201,5 +201,5 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JLO.mp4', creator: 'jlo', caption: "Jennifer Lopez", followUrl: 'https://www.instagram.com/jlo/', avatar: '/assets/avatars/jlo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/King.mp4', creator: 'Tikboo', caption: "Lifestyle by Tikboo", followUrl: 'https://tikboo.com/', avatar: '/assets/avatars/swipe-favicon.png' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/reecemariexx.mp4', creator: 'reecemariexx', caption: "Gym CRASH! 😅", followUrl: 'https://www.instagram.com/reecemariexx/', avatar: '/assets/avatars/reecemariexx.jpg' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4', creator: 'hayleydavies.bts', caption: "How long can you keep eye contact for? 😘", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4', creator: 'hayleydavies.bts', caption: "How long can you keep eye contact for? 😘", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' }
 ];
