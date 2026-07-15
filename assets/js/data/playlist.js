@@ -3,6 +3,7 @@
 export const PLAYLIST = [
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/aleabramovich-001.mp4', creator: 'aleabramovich', caption: "EL VIDEO DE NUESTRAS VIDAS 🇦🇷 ⭐️", followUrl: 'https://www.instagram.com/aleabramovich/', avatar: '/assets/avatars/aleabramovich.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Millennial.mp4', creator: 'tikboo', caption: "Millennials by Tikboo", followUrl: 'https://tikboo.com/', avatar: '/assets/avatars/swipe-favicon.png' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lacikaysomers.mp4', creator: 'lacikaysomers', caption: "I can't hear you I'm in the Caribbean 🌴❤️", followUrl: 'https://www.instagram.com/lacikaysomers/', avatar: '/assets/avatars/lacikaysomers.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/7thsunday.mp4', creator: '7thsunday', caption: "7th Sunday Festival", followUrl: 'https://www.instagram.com/7thsunday/', avatar: '/assets/avatars/7thsunday.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/NSYNC.mp4', creator: 'nsync', caption: "I Want You Back", followUrl: 'https://www.instagram.com/nsync/', avatar: '/assets/avatars/nsync.jpg' },
@@ -184,7 +185,6 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Powerpuff.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ReturnGirls.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/GiannaBellucci.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Millennial.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/getting-ready.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/abigail.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/interview-kayley.mp4' },
