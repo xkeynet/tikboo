@@ -191,7 +191,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0002.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/tikboo-test-0001.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fucking.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tereza.mp4', creator: 'terollada', caption: "Kdyz jdes ve skolce po 0 🤍🩷", followUrl: 'https://www.instagram.com/terollada/', avatar: '/assets/avatars/terollada.jpg' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Tereza.mp4', creator: 'terollada', caption: "Když jdeš ve školce po 0 🤍🩷", followUrl: 'https://www.instagram.com/terollada/', avatar: '/assets/avatars/terollada.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/lifewniic.mp4', creator: 'liifewniic', caption: "Now these are more like super cars 🤍", followUrl: 'https://www.instagram.com/liifewniic/', avatar: '/assets/avatars/liifewniic.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fiitwniic.mp4', creator: 'liifewniic', caption: "Serving absolute heat in the fitting room", followUrl: 'https://www.instagram.com/liifewniic/', avatar: '/assets/avatars/liifewniic.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Sunday.mp4', creator: 'emjayrinaudo', caption: "Yeah baby!", followUrl: 'https://www.instagram.com/emjayrinaudo/', avatar: '/assets/avatars/emjayrinaudo.jpg' },
