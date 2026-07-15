@@ -198,7 +198,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/DKR.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ONEE.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Beach.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JLO.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JLO.mp4', creator: 'jlo', caption: "Jennifer Lopez", followUrl: 'https://www.instagram.com/jlo/', avatar: '/assets/avatars/jlo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/King.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/reecemariexx.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/LA.mp4' }
