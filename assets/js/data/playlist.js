@@ -196,7 +196,7 @@ export const PLAYLIST = [
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/fiitwniic.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Sunday.mp4' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/DKR.mp4' },
-  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ONEE.mp4' },
+  { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/ONEE.mp4', creator: 'momycarterx', caption: "Wanna fuck me in the closet? 🌸", followUrl: 'https://www.instagram.com/momycarterx/', avatar: '/assets/avatars/momycarterx.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Beach.mp4', creator: 'hayleydavies.bts', caption: "Think you can keep up? 🫦", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/JLO.mp4', creator: 'jlo', caption: "Jennifer Lopez", followUrl: 'https://www.instagram.com/jlo/', avatar: '/assets/avatars/jlo.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/King.mp4' },
