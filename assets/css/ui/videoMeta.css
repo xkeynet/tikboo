@@ -1,7 +1,7 @@
 .video-meta{
   position:absolute;
   left:16px;
-  bottom:68px;
+  bottom:65px;
   z-index:6;
 
   display:flex;
@@ -182,7 +182,7 @@
 }
 
 .video-meta-follow{
-  margin-left:8px;
+  margin-left:6px;
 
   height:22px;
 
