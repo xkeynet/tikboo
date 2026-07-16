@@ -9,9 +9,9 @@
 :root{
   --bg:#000;
   --text:#D6D6D6;
-  --muted:##D6D6D6;
+  --muted:#D6D6D6;
   --link:#D6D6D6;
-  --rule: rgba(255,255,255,0.10);
+  --rule:rgba(255,255,255,0.10);
 
   /* mikro-rytmus pro UI (header/hr) */
   --gap:4px;
@@ -20,13 +20,15 @@
   --section-gap:16px;
 }
 
-*{ box-sizing:border-box; }
+*{
+  box-sizing:border-box;
+}
 
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
   font-size:14px;
   line-height:1.45;
   padding:18px 14px 34px;
@@ -43,19 +45,24 @@ body{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin:0 0 20px; /* vzduch mezi title a last updated */
+  margin:0 0 20px;
 }
 
 .back-slot,
 .right-slot{
-  width:34px;          /* vyvážení pro perfektní center */
+  width:34px;
   height:28px;
   display:flex;
   align-items:center;
 }
 
-.back-slot{ justify-content:flex-start; }
-.right-slot{ justify-content:flex-end; } /* prázdný – jen vyvažuje */
+.back-slot{
+  justify-content:flex-start;
+}
+
+.right-slot{
+  justify-content:flex-end;
+}
 
 .back{
   width:28px;
@@ -73,31 +80,33 @@ body{
   width:12px;
   height:12px;
 
-  /* ✅ caret tvar, co se nikdy “nezlomí” */
   border-top:2px solid #fff;
   border-left:2px solid #fff;
 
-  /* ✅ start: míří DOPRAVA na title (caret-right) */
   transform-origin:50% 50%;
-  transform: rotate(135deg) translateZ(0);
+  transform:rotate(135deg) translateZ(0);
 
-  /* ✅ smoothness */
-  will-change: transform;
-  backface-visibility: hidden;
+  will-change:transform;
+  backface-visibility:hidden;
 }
 
 /* po 2 sekundách: 2 kolečka + konec “zpět” (doleva) */
 .back.spin::before{
-  animation: arrowSpin 1600ms cubic-bezier(.14,.92,.18,1) forwards;
+  animation:arrowSpin 1600ms cubic-bezier(.14,.92,.18,1) forwards;
 }
 
-/* ✅ 900° = 720° (2 spiny) + 180° (otočení na “back”) */
+/* 900° = 720° (2 spiny) + 180° (otočení na “back”) */
 @keyframes arrowSpin{
-  0%   { transform: rotate(135deg) translateZ(0); }   /* doprava → title */
-  100% { transform: rotate(1035deg) translateZ(0); }  /* 135 + 900 = 1035 => doleva */
+  0%{
+    transform:rotate(135deg) translateZ(0);
+  }
+
+  100%{
+    transform:rotate(1035deg) translateZ(0);
+  }
 }
 
-/* title (jen bílý) v jedné řadě se šipkou */
+/* title v jedné řadě se šipkou */
 .topbar h1{
   flex:1;
   margin:0;
@@ -121,7 +130,7 @@ body{
   margin:var(--gap) 0 var(--gap);
 }
 
-/* ✅ Sekční nadpis: mezera jen NAD, žádná POD */
+/* Sekční nadpis: mezera jen NAD, žádná POD */
 .sec-title{
   font-weight:700;
   color:var(--text);
@@ -129,20 +138,22 @@ body{
   font-size:14px;
 }
 
-/* první sekce ať nezačne “moc nízko” po HR */
+/* první sekce nezačne příliš nízko po HR */
 #legalRender .sec-title:first-of-type{
-  margin-top: var(--gap);
+  margin-top:var(--gap);
 }
 
-/* ✅ Legal wall: uvnitř sekce absolutně bez mezer */
-p{ margin:0; }
+/* Legal wall: uvnitř sekce bez mezer */
+p{
+  margin:0;
+}
 
-/* Listy také bez vertikálních mezer */
+/* Listy bez nadbytečných vertikálních mezer */
 ul{
   margin:0;
   padding:0;
   list-style:disc;
-  list-style-position:inside; /* 🔑 text začíná POD tečkou */
+  list-style-position:inside;
 }
 
 li{
@@ -157,7 +168,7 @@ a{
   word-break:break-word;
 }
 
-/* Zdrojový text – skryjeme po renderu */
+/* Zdrojový text se po renderu skryje */
 #legalSource{
   display:block;
   margin:0;
@@ -173,15 +184,9 @@ a{
   margin-top:18px;
 }
 
-/* footer plně šedý, kompaktní */
+/* Footer */
 .legal-footer{
   margin-top:var(--section-gap);
-}
-
-.legal-entity{
-  font-weight:700;
-  color:var(--text);
-  margin:0;
 }
 
 .service-provider-title{
@@ -190,14 +195,28 @@ a{
   margin:0;
 }
 
+.legal-entity{
+  color:var(--text);
+  font-weight:700;
+  margin:0;
+}
+
 .legal-footer-line{
   margin:0;
 }
 
-@media (min-width: 860px){
-  body{ font-size:14px; }
-  .topbar h1{ font-size:18px; }
-  .sec-title{ font-size:14px; }
+@media (min-width:860px){
+  body{
+    font-size:14px;
+  }
+
+  .topbar h1{
+    font-size:18px;
+  }
+
+  .sec-title{
+    font-size:14px;
+  }
 }
 </style>
 </head>
@@ -207,8 +226,7 @@ a{
 
   <div class="topbar">
     <div class="back-slot">
-      <!-- změň href na svou reálnou cestu zpět (např. / nebo /gate) -->
-      <a class="back" href="/"></a>
+      <a class="back" href="/" aria-label="Back"></a>
     </div>
 
     <h1>COOKIES POLICY</h1>
@@ -216,14 +234,11 @@ a{
     <div class="right-slot"></div>
   </div>
 
-  <div class="last-updated" id="lastUpdated">Last updated: August 27, 2025</div>
-  <div class="hr"></div>
+  <div class="last-updated" id="lastUpdated">
+    Last updated: August 27, 2025
+  </div>
 
-  <!-- =========================================================
-       1) SEM VLOŽ SVŮJ CELÝ COOKIES POLICY TEXT (1:1) DO <pre> NÍŽE
-       2) NIC NEOBALUJ, NIC NEPŘEPISUJ, JEN VLOŽ
-       3) Skript to sám převede na krásné odstavce + UL/LI
-       ========================================================= -->
+  <div class="hr"></div>
 
   <pre id="legalSource">
 COOKIES POLICY
@@ -327,8 +342,7 @@ Wilmington, Delaware 19801
 United States
 E-mail: support@tikboo.com
   </pre>
-    
-  <!-- Sem se vykreslí krásná verze -->
+
   <div id="legalRender" aria-label="Cookies Policy content"></div>
 
 </main>
@@ -338,57 +352,66 @@ E-mail: support@tikboo.com
   const src = document.getElementById('legalSource');
   const out = document.getElementById('legalRender');
   const lastUpdatedEl = document.getElementById('lastUpdated');
+
   if(!src || !out) return;
 
-  // 1) Načti text a normalizuj newlines
   let raw = src.textContent || "";
-  raw = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-  // Vykopni nadbytečné levé odsazení (často vznikne při vložení do <pre>)
-  raw = raw.replace(/^\s+/gm, (m) => (m.length >= 2 ? "" : m));
+  raw = raw
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
 
-  // 2) Helpery
-  const esc = (s) => s
+  raw = raw.replace(/^\s+/gm, (match) => {
+    return match.length >= 2 ? "" : match;
+  });
+
+  const esc = (value) => value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
-  // linkify už ESCAPED text (bezpečné) – jen http(s)
   const linkify = (escaped) => escaped.replace(
     /(https?:\/\/[^\s<]+[^\s<\.)\],;:"'!?])/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
   );
 
   const isBullet = (line) => /^[•●\-–—*]\s+/.test(line);
-  const stripBullet = (line) => line.replace(/^[•●\-–—*]\s+/, "");
 
-  // Nadpisy: 1  / 1. / 1) / 2.1 / 10. ... (tolerantní)
-  const headingMatch = (line) => line.match(/^(\d+(?:\.\d+)*)(?:[.)])?\s+(.+)$/);
+  const stripBullet = (line) => {
+    return line.replace(/^[•●\-–—*]\s+/, "");
+  };
 
-  // 3) Rozsekání na řádky a stavový parser
-  const lines = raw.split("\n").map(l => l.trimRight());
+  const headingMatch = (line) => {
+    return line.match(/^(\d+(?:\.\d+)*)(?:[.)])?\s+(.+)$/);
+  };
+
+  const lines = raw
+    .split("\n")
+    .map((line) => line.trimRight());
+
   const html = [];
-  let inList = false;
 
-  // Footer mód pro "Service Provider" blok
+  let inList = false;
   let inFooter = false;
   let footerEntityDone = false;
 
   const flushList = () => {
-    if(inList){ html.push("</ul>"); inList = false; }
+    if(!inList) return;
+
+    html.push("</ul>");
+    inList = false;
   };
 
-  // Auto-detekce "Last updated:" uvnitř textu -> přepíše horní řádek a uvnitř ho ignoruje
   const trySetLastUpdated = (line) => {
-    const m = line.match(/^Last updated:\s*(.+)\s*$/i);
-    if(m && lastUpdatedEl){
-      lastUpdatedEl.textContent = "Last updated: " + m[1];
-      return true;
-    }
-    return false;
+    const match = line.match(/^Last updated:\s*(.+)\s*$/i);
+
+    if(!match || !lastUpdatedEl) return false;
+
+    lastUpdatedEl.textContent = "Last updated: " + match[1];
+    return true;
   };
 
-  for(let i=0;i<lines.length;i++){
+  for(let i = 0; i < lines.length; i++){
     const lineRaw = lines[i];
     const line = lineRaw.trim();
 
@@ -398,7 +421,12 @@ E-mail: support@tikboo.com
     }
 
     const low = line.toLowerCase();
-    if(low === "privacy policy" || low === "terms and conditions" || low === "cookies policy"){
+
+    if(
+      low === "privacy policy" ||
+      low === "terms and conditions" ||
+      low === "cookies policy"
+    ){
       continue;
     }
 
@@ -406,49 +434,90 @@ E-mail: support@tikboo.com
       continue;
     }
 
-    // Start footer bloku: "Service Provider:"
-    if(low === "service provider:" ){
+    if(low === "service provider:"){
       flushList();
+
       inFooter = true;
       footerEntityDone = false;
 
-      // větší mezera před footer blokem (bez vlivu na zbytek)
       html.push('<div class="legal-footer">');
+      html.push(
+        '<p class="service-provider-title">' +
+        esc(line) +
+        '</p>'
+      );
 
-      html.push('<p class="service-provider-title">' + esc(line) + "</p>");
       continue;
     }
 
     if(inFooter){
       flushList();
 
-      if(!footerEntityDone && /^alienway\s+llc$/i.test(line)){
-        html.push('<div class="legal-entity">' + esc(line) + "</div>");
+      /*
+       * První neprázdný řádek za "Service Provider:"
+       * se vždy vykreslí tučně jako název společnosti.
+       * Parser už není závislý na starém ani konkrétním názvu.
+       */
+      if(!footerEntityDone){
+        html.push(
+          '<div class="legal-entity">' +
+          esc(line) +
+          '</div>'
+        );
+
         footerEntityDone = true;
         continue;
       }
 
-      html.push('<p class="legal-footer-line">' + esc(line) + "</p>");
+      html.push(
+        '<p class="legal-footer-line">' +
+        esc(line) +
+        '</p>'
+      );
+
       continue;
     }
 
-    const hm = headingMatch(line);
-    if(hm){
+    const heading = headingMatch(line);
+
+    if(heading){
       flushList();
-      const normalized = hm[1] + ". " + hm[2];
-      html.push('<div class="sec-title">' + linkify(esc(normalized)) + "</div>");
+
+      const normalized = heading[1] + ". " + heading[2];
+
+      html.push(
+        '<div class="sec-title">' +
+        linkify(esc(normalized)) +
+        '</div>'
+      );
+
       continue;
     }
 
     if(isBullet(line)){
-      if(!inList){ html.push("<ul>"); inList = true; }
+      if(!inList){
+        html.push("<ul>");
+        inList = true;
+      }
+
       const item = stripBullet(line).trim();
-      html.push("<li>" + linkify(esc(item)) + "</li>");
+
+      html.push(
+        "<li>" +
+        linkify(esc(item)) +
+        "</li>"
+      );
+
       continue;
     }
 
     flushList();
-    html.push("<p>" + linkify(esc(line)) + "</p>");
+
+    html.push(
+      "<p>" +
+      linkify(esc(line)) +
+      "</p>"
+    );
   }
 
   flushList();
@@ -463,13 +532,14 @@ E-mail: support@tikboo.com
 </script>
 
 <script>
-/* Arrow choreography:
-   - start: points to the title
-   - after 2s: 2 spins (720°) + ends as "back" */
 window.addEventListener("load", () => {
-  const el = document.querySelector(".back");
-  if(!el) return;
-  setTimeout(() => el.classList.add("spin"), 2000);
+  const back = document.querySelector(".back");
+
+  if(!back) return;
+
+  setTimeout(() => {
+    back.classList.add("spin");
+  }, 2000);
 });
 </script>
 
