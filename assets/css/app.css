@@ -247,25 +247,7 @@ body{
   gap: 0;
 }
 
-/* ✅ AVATAR (40x40) — overlay above column (does NOT push the column down) */
-.stack.avatar-stack{
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -65px;
-  pointer-events: auto;
-}
-.avatar{
-  width:40px;
-  height:40px;
-  border-radius:999px;
-  object-fit:cover;
-  display:block;
-  user-select:none;
-  -webkit-user-drag:none;
-}
-
-.side button:not(.avatarBtn){
+.side button{
   appearance: none;
   background: transparent;
   border: 0;
@@ -834,7 +816,6 @@ body{
 .side img,
 .nav img,
 .top img,
-.avatar,
 #playOverlay {
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
@@ -910,15 +891,6 @@ body.device-non-master.device-small .side{
   top:69%;
   right:4px;
   gap:10px;
-}
-
-body.device-non-master.device-small .stack.avatar-stack{
-  top:-58px;
-}
-
-body.device-non-master.device-small .avatar{
-  width:38px;
-  height:38px;
 }
 
 body.device-non-master.device-small .side button{
@@ -1031,7 +1003,7 @@ body.device-non-master.device-small .seek-time{
    TIKBOO — RIGHT COLUMN 90% WHITE FINAL OVERRIDE
    ========================================================= */
 
-.side button:not(.avatarBtn){
+.side button{
   color:rgba(255,255,255,.90);
 }
 
