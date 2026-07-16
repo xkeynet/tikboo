@@ -235,11 +235,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const captionEl = meta.querySelector('.video-meta-caption');
     const followEl = meta.querySelector('.video-meta-follow');
     const avatarEl = layer.querySelector('.avatar');
+    const avatarStack = avatarEl?.closest('.avatar-stack');
 
     const creator = item.creator || '';
     const caption = item.caption || '';
     const followUrl = item.followUrl || '';
-    const avatar = item.avatar || '/assets/xxx.jpg';
+    const avatar = item.avatar || '';
 
     meta.classList.remove('expanded');
 
@@ -267,8 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (avatarEl) {
-      avatarEl.src = avatar;
-      avatarEl.alt = creator ? `${creator} avatar` : 'Avatar';
+      if (avatar) {
+        avatarEl.src = avatar;
+        avatarEl.alt = creator ? `${creator} avatar` : 'Creator avatar';
+
+        if (avatarStack) {
+          avatarStack.style.display = '';
+        }
+      } else {
+        avatarEl.removeAttribute('src');
+        avatarEl.alt = '';
+
+        if (avatarStack) {
+          avatarStack.style.display = 'none';
+        }
+      }
     }
   }
 
