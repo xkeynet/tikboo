@@ -2,7 +2,7 @@
 
 export const PLAYLIST = [
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.jpg' },
-  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/eb96092a763fe9706f3a90c763afe3d4/manifest/video.m3u8, creator: 'maria__martinn', caption: "I'll never take a better video in my life 🇦🇷", followUrl: 'https://www.instagram.com/maria__martinn/', avatar: '/assets/avatars/maria__martinn.jpg' },
+  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/eb96092a763fe9706f3a90c763afe3d4/manifest/video.m3u8', creator: 'maria__martinn', caption: "I'll never take a better video in my life 🇦🇷", followUrl: 'https://www.instagram.com/maria__martinn/', avatar: '/assets/avatars/maria__martinn.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Afternoon.mp4', creator: 'chaadhewitt', caption: "The REAL Wolf of Wall Street", followUrl: 'https://www.instagram.com/chaadhewitt/', avatar: '/assets/avatars/chaadhewitt.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/aleabramovich-001.mp4', creator: 'aleabramovich', caption: "EL VIDEO DE NUESTRAS VIDAS 🇦🇷 ⭐️", followUrl: 'https://www.instagram.com/aleabramovich/', avatar: '/assets/avatars/aleabramovich.jpg' },
   { type: 'video', src: 'https://cdn.tikboo.com/videos/insta/Millennial.mp4', creator: 'Tikboo', caption: "Millennials by Tikboo", followUrl: 'https://tikboo.com/', avatar: '/assets/avatars/swipe-favicon.png' },
