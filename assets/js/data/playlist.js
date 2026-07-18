@@ -1,6 +1,7 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/37f5850f139ac0f23e0d4aab8d2046a9/manifest/video.m3u8', creator: 'alice.rosenblum', caption: "fit check", followUrl: 'https://www.instagram.com/alice.rosenblum/', avatar: '/assets/avatars/alice.rosenblum.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/19502d5fdd413b3f68c635108268342f/manifest/video.m3u8', creator: 'mosaffari', caption: "WATERMELON 🍉⚡️🍉", followUrl: 'https://www.instagram.com/mosaffari/', avatar: '/assets/avatars/mosaffari.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/1091032f4e845135af6f14487c2a3065/manifest/video.m3u8', creator: 'hbro__', caption: "The Big Background 😛", followUrl: 'https://www.instagram.com/hbro__/', avatar: '/assets/avatars/hbro__.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.avif' },
