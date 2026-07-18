@@ -1,6 +1,8 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/19502d5fdd413b3f68c635108268342f/manifest/video.m3u8', creator: 'mosaffari', caption: "WATERMELON 🍉⚡️🍉", followUrl: 'https://www.instagram.com/mosaffari/', avatar: '/assets/avatars/mosaffari.avif' },
+  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/1091032f4e845135af6f14487c2a3065/manifest/video.m3u8', creator: 'hbro__', caption: "The Big Background 😛", followUrl: 'https://www.instagram.com/hbro__/', avatar: '/assets/avatars/hbro__.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/79f8a1196581d864f477d687d7d5fb82/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Bearded Dragoon!", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/eb96092a763fe9706f3a90c763afe3d4/manifest/video.m3u8', creator: 'maria__martinn', caption: "I'll never take a better video in my life 🇦🇷", followUrl: 'https://www.instagram.com/maria__martinn/', avatar: '/assets/avatars/maria__martinn.avif' },
   { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/360c1f3586e0189e331da71e2d4284f1/manifest/video.m3u8', creator: 'chaadhewitt', caption: "The REAL Wolf of Wall Street", followUrl: 'https://www.instagram.com/chaadhewitt/', avatar: '/assets/avatars/chaadhewitt.avif' },
