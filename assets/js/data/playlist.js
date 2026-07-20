@@ -1,7 +1,8 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
-  { type: 'video', src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/6b251cc913b1509a98281fcc9b698803/manifest/video.m3u8', 
+  { type: 'video', 
+  src: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/6b251cc913b1509a98281fcc9b698803/manifest/video.m3u8', 
   creator: 'dangershewrote', 
   caption: "Wagyu Chopped Cheese with @dangershewrote", 
   followUrl: 'https://www.instagram.com/dangershewrote/', 
