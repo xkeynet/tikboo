@@ -66,26 +66,350 @@ document.addEventListener('DOMContentLoaded', () => {
   let ageGateUnlocked = false;
 
   // =========================================================
-  // === Age Gate Storage ===
+  // === HLS VIDEO CONTROLLER ===
   // =========================================================
-  const KEY = 'swipe_age_ok';
-  const gate = document.getElementById('gateOverlay');
-  const enterBtn = document.getElementById('enterBtn');
+  const videoControllers = new WeakMap();
 
-  function hideGate() {
-    if (!gate) return;
-    gate.classList.add('hidden');
+  function supportsNativeHls(videoEl) {
+    if (!videoEl) return false;
+
+    const canPlay = videoEl.canPlayType('application/vnd.apple.mpegurl');
+    return canPlay === 'probably' || canPlay === 'maybe';
   }
 
-  function showGate() {
-    if (!gate) return;
-    gate.classList.remove('hidden');
+  function createReadyController(videoEl, manifest) {
+    let resolveReady = null;
+
+    const controller = {
+      manifest,
+      token: Symbol('hls-source'),
+      hls: null,
+      ready: false,
+      failed: false,
+      destroyed: false,
+      decodedFrameRequested: false,
+      cleanupListeners: [],
+      readyPromise: null,
+      resolveReady: null
+    };
+
+    controller.readyPromise = new Promise((resolve) => {
+      resolveReady = resolve;
+    });
+
+    controller.resolveReady = resolveReady;
+
+    videoControllers.set(videoEl, controller);
+
+    return controller;
   }
 
-  try {
-    ageGateUnlocked = localStorage.getItem(KEY) === '1';
-  } catch (e) {
-    ageGateUnlocked = false;
+  function addControllerListener(controller, target, eventName, handler, options) {
+    target.addEventListener(eventName, handler, options);
+
+    controller.cleanupListeners.push(() => {
+      target.removeEventListener(eventName, handler, options);
+    });
+  }
+
+  function removeControllerListeners(controller) {
+    if (!controller) return;
+
+    controller.cleanupListeners.forEach((cleanup) => {
+      try {
+        cleanup();
+      } catch (e) {}
+    });
+
+    controller.cleanupListeners = [];
+  }
+
+  function resolveController(controller, ready) {
+    if (!controller || controller.destroyed) return;
+    if (controller.ready || controller.failed) return;
+
+    if (ready) {
+      controller.ready = true;
+    } else {
+      controller.failed = true;
+    }
+
+    controller.resolveReady(!!ready);
+  }
+
+  function revealDecodedVideo(videoEl, controller) {
+    if (!videoEl || !controller) return;
+    if (controller.destroyed || controller.failed) return;
+    if (videoControllers.get(videoEl) !== controller) return;
+
+    videoEl.style.visibility = 'visible';
+    videoEl.style.opacity = '1';
+
+    resolveController(controller, true);
+  }
+
+  function confirmDecodedFrame(videoEl, controller) {
+    if (!videoEl || !controller) return;
+    if (controller.destroyed || controller.ready || controller.failed) return;
+    if (videoControllers.get(videoEl) !== controller) return;
+    if (videoEl.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+    if (controller.decodedFrameRequested) return;
+
+    controller.decodedFrameRequested = true;
+
+    if (typeof videoEl.requestVideoFrameCallback === 'function') {
+      videoEl.requestVideoFrameCallback(() => {
+        if (videoControllers.get(videoEl) !== controller) return;
+        revealDecodedVideo(videoEl, controller);
+      });
+
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (videoControllers.get(videoEl) !== controller) return;
+        if (videoEl.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+          controller.decodedFrameRequested = false;
+          return;
+        }
+
+        revealDecodedVideo(videoEl, controller);
+      });
+    });
+  }
+
+  function destroyVideoController(videoEl, removeSource = true) {
+    if (!videoEl) return;
+
+    const controller = videoControllers.get(videoEl);
+
+    if (controller) {
+      controller.destroyed = true;
+
+      removeControllerListeners(controller);
+
+      if (controller.hls) {
+        try {
+          controller.hls.stopLoad();
+        } catch (e) {}
+
+        try {
+          controller.hls.detachMedia();
+        } catch (e) {}
+
+        try {
+          controller.hls.destroy();
+        } catch (e) {}
+
+        controller.hls = null;
+      }
+
+      if (!controller.ready && !controller.failed) {
+        controller.resolveReady(false);
+      }
+
+      videoControllers.delete(videoEl);
+    }
+
+    try {
+      videoEl.pause();
+    } catch (e) {}
+
+    videoEl.style.visibility = 'hidden';
+    videoEl.style.opacity = '0';
+
+    if (removeSource) {
+      try {
+        videoEl.removeAttribute('src');
+        videoEl.load();
+      } catch (e) {}
+    }
+  }
+
+  function bindVideoReadinessEvents(videoEl, controller) {
+    const checkDecodedFrame = () => {
+      confirmDecodedFrame(videoEl, controller);
+    };
+
+    const handleMediaError = () => {
+      if (videoControllers.get(videoEl) !== controller) return;
+
+      const mediaError = videoEl.error;
+
+      if (!mediaError) return;
+
+      resolveController(controller, false);
+    };
+
+    addControllerListener(controller, videoEl, 'loadeddata', checkDecodedFrame);
+    addControllerListener(controller, videoEl, 'canplay', checkDecodedFrame);
+    addControllerListener(controller, videoEl, 'playing', checkDecodedFrame);
+    addControllerListener(controller, videoEl, 'seeked', checkDecodedFrame);
+    addControllerListener(controller, videoEl, 'error', handleMediaError);
+  }
+
+  function attachNativeHls(videoEl, manifest, controller) {
+    videoEl.src = manifest;
+
+    try {
+      videoEl.load();
+    } catch (e) {}
+
+    if (videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      confirmDecodedFrame(videoEl, controller);
+    }
+  }
+
+  function attachHlsJs(videoEl, manifest, controller) {
+    if (!window.Hls || typeof window.Hls.isSupported !== 'function' || !window.Hls.isSupported()) {
+      resolveController(controller, false);
+      return;
+    }
+
+    const hls = new window.Hls({
+      autoStartLoad: true,
+      startPosition: -1,
+      capLevelToPlayerSize: true,
+      maxBufferLength: 12,
+      maxMaxBufferLength: 20,
+      backBufferLength: 6,
+      maxBufferHole: 0.25,
+      highBufferWatchdogPeriod: 1,
+      nudgeOffset: 0.1,
+      nudgeMaxRetry: 3,
+      fragLoadingTimeOut: 10000,
+      manifestLoadingTimeOut: 10000,
+      levelLoadingTimeOut: 10000,
+      enableWorker: true,
+      lowLatencyMode: false
+    });
+
+    controller.hls = hls;
+
+    hls.on(window.Hls.Events.MEDIA_ATTACHED, () => {
+      if (videoControllers.get(videoEl) !== controller) return;
+      hls.loadSource(manifest);
+    });
+
+    hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+      if (videoControllers.get(videoEl) !== controller) return;
+
+      if (videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        confirmDecodedFrame(videoEl, controller);
+      }
+    });
+
+    hls.on(window.Hls.Events.FRAG_BUFFERED, () => {
+      if (videoControllers.get(videoEl) !== controller) return;
+      confirmDecodedFrame(videoEl, controller);
+    });
+
+    hls.on(window.Hls.Events.ERROR, (event, data) => {
+      if (videoControllers.get(videoEl) !== controller) return;
+      if (!data?.fatal) return;
+
+      if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+        try {
+          hls.startLoad();
+          return;
+        } catch (e) {}
+      }
+
+      if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+        try {
+          hls.recoverMediaError();
+          return;
+        } catch (e) {}
+      }
+
+      resolveController(controller, false);
+    });
+
+    hls.attachMedia(videoEl);
+  }
+
+  function setVideoHls(videoEl, manifest) {
+    if (!videoEl || !manifest) {
+      return Promise.resolve(false);
+    }
+
+    const existing = videoControllers.get(videoEl);
+
+    if (existing && existing.manifest === manifest && !existing.destroyed) {
+      if (existing.ready) {
+        videoEl.style.visibility = 'visible';
+        videoEl.style.opacity = '1';
+        return Promise.resolve(true);
+      }
+
+      return existing.readyPromise;
+    }
+
+    destroyVideoController(videoEl, true);
+
+    videoEl.style.visibility = 'hidden';
+    videoEl.style.opacity = '0';
+    videoEl.dataset.manifest = manifest;
+
+    const controller = createReadyController(videoEl, manifest);
+
+    bindVideoReadinessEvents(videoEl, controller);
+
+    if (supportsNativeHls(videoEl)) {
+      attachNativeHls(videoEl, manifest, controller);
+    } else {
+      attachHlsJs(videoEl, manifest, controller);
+    }
+
+    return controller.readyPromise;
+  }
+
+  function isVideoReady(videoEl) {
+    if (!videoEl) return false;
+
+    const controller = videoControllers.get(videoEl);
+
+    return !!(
+      controller &&
+      controller.ready &&
+      !controller.destroyed &&
+      videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+    );
+  }
+
+  function waitForVideoReady(videoEl) {
+    if (!videoEl) return Promise.resolve(false);
+
+    const controller = videoControllers.get(videoEl);
+
+    if (!controller || controller.destroyed) {
+      return Promise.resolve(false);
+    }
+
+    if (controller.ready) {
+      return Promise.resolve(true);
+    }
+
+    return controller.readyPromise;
+  }
+
+  function waitForLayerReady(layer) {
+    const media = getLayerMedia(layer);
+
+    if (!media.video) {
+      return Promise.resolve(false);
+    }
+
+    return waitForVideoReady(media.video);
+  }
+
+  function isLayerReady(layer) {
+    const media = getLayerMedia(layer);
+
+    if (!media.video) return false;
+
+    return isVideoReady(media.video);
   }
 
   // =========================================================
@@ -101,11 +425,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
+    v.setAttribute('disablepictureinpicture', '');
+    v.setAttribute('x-webkit-airplay', 'deny');
 
     v.style.position = 'absolute';
     v.style.width = '1px';
     v.style.height = '1px';
     v.style.opacity = '0';
+    v.style.visibility = 'hidden';
     v.style.pointerEvents = 'none';
 
     document.body.appendChild(v);
@@ -118,18 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevItem = PLAYLIST[prevIndex];
     const nextItem = PLAYLIST[nextIndex];
 
-    if (prevItem?.type === 'video') {
-      if (preloadPrev.src !== prevItem.manifest) {
-        preloadPrev.src = prevItem.manifest;
-        preloadPrev.load();
-      }
+    if (prevItem?.type === 'video' && prevItem.manifest) {
+      setVideoHls(preloadPrev, prevItem.manifest);
+    } else {
+      destroyVideoController(preloadPrev, true);
     }
 
-    if (nextItem?.type === 'video') {
-      if (preloadNext.src !== nextItem.manifest) {
-        preloadNext.src = nextItem.manifest;
-        preloadNext.load();
-      }
+    if (nextItem?.type === 'video' && nextItem.manifest) {
+      setVideoHls(preloadNext, nextItem.manifest);
+    } else {
+      destroyVideoController(preloadNext, true);
     }
   }
 
@@ -198,10 +523,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
+  refs.videoPrev.preload = 'auto';
   refs.videoCurrent.preload = 'auto';
-  refs.videoNext.preload = 'metadata';
+  refs.videoNext.preload = 'auto';
 
-  [refs.videoCurrent, refs.videoNext].forEach((v) => {
+  [refs.videoPrev, refs.videoCurrent, refs.videoNext].forEach((v) => {
     v.playsInline = true;
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
@@ -209,6 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
     v.setAttribute('x-webkit-airplay', 'deny');
   });
 
+  refs.imgPrev.decoding = 'async';
   refs.imgCurrent.decoding = 'async';
   refs.imgNext.decoding = 'async';
 
@@ -369,6 +696,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function tryPlay(el) {
+    if (!el) return Promise.resolve();
+
     return el.play().catch(() => {});
   }
 
@@ -559,65 +888,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =========================================================
-  // === CODEC PICKER (HEVC primary, H264 fallback) ===
-  // =========================================================
-  function supportsHEVC() {
-    const v = document.createElement('video');
-    const can = v.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"');
-    return !!can && can !== 'no';
-  }
-
-  const USE_HEVC = false;
-
-  function deriveHevcSrc(h264Src) {
-    if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
-    return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
-  }
-
-  function setVideoSmart(el, h264Src) {
-    if (!h264Src) return;
-
-    const hevcSrc = deriveHevcSrc(h264Src);
-    const wantHevc = USE_HEVC && hevcSrc !== h264Src;
-
-    el.dataset.codecFallback = '0';
-
-    const current = el.getAttribute('src') || '';
-    const desired = wantHevc ? hevcSrc : h264Src;
-    if (current && current.endsWith(desired)) return;
-
-    if (wantHevc) {
-      el.dataset.codecFallback = 'hevc_try';
-
-      const onErr = () => {
-        el.dataset.codecFallback = '1';
-
-        const now = el.getAttribute('src') || '';
-        if (!now.endsWith(h264Src)) {
-          el.src = h264Src;
-          el.load();
-        }
-      };
-
-      el.addEventListener('error', onErr, { once: true });
-      el.src = hevcSrc;
-      el.load();
-      return;
-    }
-
-    el.src = h264Src;
-    el.load();
-  }
-
-  function setVideo(el, src) {
-    setVideoSmart(el, src);
-  }
-
   function clearVideo(el) {
-    el.pause?.();
-    el.removeAttribute('src');
-    el.load();
+    destroyVideoController(el, true);
   }
 
   function clearImage(el) {
@@ -649,12 +921,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function primeNextVideo(v) {
-    v.muted = true;
-    if (v.readyState >= 2) return;
+    if (!v) return;
 
-    try {
-      v.load();
-    } catch (e) {}
+    v.muted = true;
+
+    if (isVideoReady(v)) return;
+
+    const controller = videoControllers.get(v);
+
+    if (!controller) return;
+
+    if (controller.hls) {
+      try {
+        controller.hls.startLoad();
+      } catch (e) {}
+    } else {
+      try {
+        v.load();
+      } catch (e) {}
+    }
   }
 
   function setLayerContent(layer, item, forNext) {
@@ -662,30 +947,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const v = media.video;
     const im = media.image;
 
-    if (!v || !im) return;
+    if (!v || !im) return Promise.resolve(false);
 
     setLayerVideoMeta(layer, item);
 
     hideAll(layer);
 
     if (item.type === 'video') {
-      im.style.display = 'none';
+      clearImage(im);
+
       v.style.display = 'block';
+      v.style.visibility = 'hidden';
+      v.style.opacity = '0';
       v.muted = forNext ? true : state.isMuted;
-      setVideo(v, item.manifest);
+
+      const readyPromise = setVideoHls(v, item.manifest);
 
       if (!forNext) {
-        tryPlay(v);
+        readyPromise.then((ready) => {
+          if (!ready) return;
+          if (getLayerMedia(layer).video !== v) return;
+
+          v.muted = state.isMuted;
+          tryPlay(v);
+        });
       } else {
         primeNextVideo(v);
       }
 
-      return;
+      return readyPromise;
     }
 
     v.style.display = 'none';
     clearVideo(v);
     setImageSafe(im, item.manifest);
+
+    return Promise.resolve(true);
   }
 
   function bindPreviewLoopForCurrent() {
@@ -723,8 +1020,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     refs.videoCurrent.muted = true;
-    tryPlay(refs.videoCurrent);
-    showPlayOverlay(false);
+
+    waitForVideoReady(refs.videoCurrent).then((ready) => {
+      if (!ready) return;
+      if (autoBoundVideo !== refs.videoCurrent) return;
+
+      tryPlay(refs.videoCurrent);
+      showPlayOverlay(false);
+    });
   }
 
   function bindAutoAdvanceForCurrent() {
@@ -751,12 +1054,6 @@ document.addEventListener('DOMContentLoaded', () => {
       autoBoundVideo.onended = null;
 
       autoBoundVideo.onerror = () => {
-        const flag = refs.videoCurrent?.dataset?.codecFallback;
-        if (flag === '1' || flag === 'hevc_try') {
-          refs.videoCurrent.dataset.codecFallback = '0';
-          return;
-        }
-
         if (swipeEngine) swipeEngine.autoAdvance();
       };
 
@@ -764,13 +1061,19 @@ document.addEventListener('DOMContentLoaded', () => {
       autoBoundVideo.onpause = () => stopProg();
 
       autoBoundVideo.onloadedmetadata = () => {
-        if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
         startProg();
       };
 
       autoBoundVideo.onseeked = () => startProg();
 
-      startProg();
+      waitForVideoReady(refs.videoCurrent).then((ready) => {
+        if (!ready) return;
+        if (autoBoundVideo !== refs.videoCurrent) return;
+
+        refs.videoCurrent.muted = state.isMuted;
+        tryPlay(refs.videoCurrent);
+        startProg();
+      });
 
       refs.videoCurrent.addEventListener('timeupdate', updateSeekFill);
       timeupdateBoundEl = refs.videoCurrent;
@@ -975,6 +1278,8 @@ document.addEventListener('DOMContentLoaded', () => {
     syncSoundUI,
     showPlayOverlay,
     setLayerContent,
+    waitForLayerReady,
+    isLayerReady,
     ensureSoundOn,
     isInteractiveTarget,
     primeNextVideo
@@ -1002,8 +1307,13 @@ document.addEventListener('DOMContentLoaded', () => {
     hideGate();
 
     if (PLAYLIST[state.index]?.type === 'video') {
-      tryPlay(refs.videoCurrent);
-      showPlayOverlay(false);
+      waitForVideoReady(refs.videoCurrent).then((ready) => {
+        if (!ready) return;
+
+        refs.videoCurrent.muted = state.isMuted;
+        tryPlay(refs.videoCurrent);
+        showPlayOverlay(false);
+      });
     }
 
     defer(() => {
@@ -1139,6 +1449,18 @@ document.addEventListener('DOMContentLoaded', () => {
       activateFullFeed();
     });
   }
+
+  window.addEventListener('pagehide', () => {
+    [
+      refs.videoPrev,
+      refs.videoCurrent,
+      refs.videoNext,
+      preloadPrev,
+      preloadNext
+    ].filter(Boolean).forEach((videoEl) => {
+      destroyVideoController(videoEl, true);
+    });
+  });
 });
 
 /* === KILL: disable iOS “Save Image” on current top/gate images === */
