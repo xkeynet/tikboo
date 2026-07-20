@@ -119,15 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextItem = PLAYLIST[nextIndex];
 
     if (prevItem?.type === 'video') {
-      if (preloadPrev.src !== prevItem.src) {
-        preloadPrev.src = prevItem.src;
+      if (preloadPrev.src !== prevItem.manifest) {
+        preloadPrev.src = prevItem.manifest;
         preloadPrev.load();
       }
     }
 
     if (nextItem?.type === 'video') {
-      if (preloadNext.src !== nextItem.src) {
-        preloadNext.src = nextItem.src;
+      if (preloadNext.src !== nextItem.manifest) {
+        preloadNext.src = nextItem.manifest;
         preloadNext.load();
       }
     }
@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
       im.style.display = 'none';
       v.style.display = 'block';
       v.muted = forNext ? true : state.isMuted;
-      setVideo(v, item.src);
+      setVideo(v, item.manifest);
 
       if (!forNext) {
         tryPlay(v);
@@ -685,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     v.style.display = 'none';
     clearVideo(v);
-    setImageSafe(im, item.src);
+    setImageSafe(im, item.manifest);
   }
 
   function bindPreviewLoopForCurrent() {
