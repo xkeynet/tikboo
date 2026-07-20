@@ -1,16 +1,16 @@
 // /assets/js/swipe.js - ATOMIC VERSION
 (function () {
   function initTikbooSwipe(options) {
-    const { 
-      refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg, 
-      bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent, 
-      ensureSoundOn, isInteractiveTarget 
+    const {
+      refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg,
+      bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent,
+      waitForLayerReady, isLayerReady, ensureSoundOn, isInteractiveTarget
     } = options;
 
-    const THRESHOLD_RATIO = 0.50; 
-    const MOVE_ACTIVATE_PX = 3;    
-    const MIN_COMMIT_DY = 70;      
-    const MIN_COMMIT_VY = 0.42;    
+    const THRESHOLD_RATIO = 0.50;
+    const MOVE_ACTIVATE_PX = 3;
+    const MIN_COMMIT_DY = 70;
+    const MIN_COMMIT_VY = 0.42;
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
@@ -43,6 +43,7 @@
     let playbackGuardTimers = [];
     let gestureHeight = 0;
     let touchBlocked = false;
+    let pendingReadyCommitToken = 0;
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -102,6 +103,10 @@
       }
     }
 
+    function invalidatePendingReadyCommit() {
+      pendingReadyCommitToken += 1;
+    }
+
     function clearPlaybackGuard() {
       if (playbackGuardTimer) {
         clearTimeout(playbackGuardTimer);
@@ -137,18 +142,12 @@
         const video = refs.videoCurrent;
 
         if (!item || item.type !== 'video' || !video) return;
+        if (!isLayerReady(refs.layerCurrent)) return;
 
         video.muted = state.isMuted;
         video.playsInline = true;
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
-
-        if (video.readyState === 0) {
-          try {
-            video.load();
-          } catch (e) {}
-          return;
-        }
 
         if (video.paused && video.readyState >= 2) {
           tryPlay(video);
@@ -193,6 +192,7 @@
       settleTimer = 0;
 
       clearPendingCommit();
+      invalidatePendingReadyCommit();
       clearPlaybackGuard();
 
       dragging = false;
@@ -224,14 +224,19 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-        videoEl.currentTime = 0;
+
+        try {
+          if (videoEl.readyState >= 1) {
+            videoEl.currentTime = 0;
+          }
+        } catch (e) {}
       }
     }
 
     function prepareForwardLayer(heightOverride) {
       const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index + 1);
-      
+
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
@@ -248,7 +253,7 @@
 
       const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index - 1);
-      
+
       if (prevLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerPrev, playlist[targetIndex], true);
         prevLoadedIndex = targetIndex;
@@ -365,8 +370,15 @@
 
       if (playlist[state.index].type === 'video') {
         refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
-        guardCurrentPlayback('finishCommit');
+
+        waitForLayerReady(refs.layerCurrent).then((ready) => {
+          if (!ready) return;
+          if (state.isAnimating || dragging) return;
+
+          refs.videoCurrent.muted = state.isMuted;
+          tryPlay(refs.videoCurrent);
+          guardCurrentPlayback('finishCommit');
+        });
       }
 
       const queued = queuedDir;
@@ -397,25 +409,10 @@
       return true;
     }
 
-    function commit(dir) {
+    function beginCommit(dir, targetIndex, targetLayer, targetVideo) {
       const now = performance.now();
 
       if (now - lastCommitTime < COMMIT_COOLDOWN) {
-        return;
-      }
-
-      const targetIndex = normalizeIndex(state.index + dir);
-      const targetItem = playlist[targetIndex];
-      const targetLayer = dir > 0 ? refs.layerNext : refs.layerPrev;
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-      if (!targetLayer) {
-        snapBack();
-        return;
-      }
-
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
         return;
       }
 
@@ -425,7 +422,7 @@
 
       if (state.isAnimating) return;
       state.isAnimating = true;
-      
+
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
@@ -436,40 +433,16 @@
       clearTimeout(settleTimer);
 
       const height = gestureHeight || vh();
-      const duration = 160; 
+      const duration = 160;
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
       activeCommitTargetIndex = targetIndex;
       activeCommitVideoToPause = videoToPause;
 
-      if (targetItem?.type === 'video' && targetVideo) {
+      if (targetVideo) {
         targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
+        tryPlay(targetVideo);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -487,13 +460,74 @@
 
       settleTimer = setTimeout(() => {
         finishCommit(dir, targetIndex, videoToPause);
-      }, duration); 
+      }, duration);
+    }
+
+    function waitAndCommit(dir, targetIndex, targetLayer, targetVideo) {
+      const token = ++pendingReadyCommitToken;
+
+      state.isAnimating = true;
+
+      resetTransformsNoAnim();
+      resetSeekUiImmediate();
+
+      waitForLayerReady(targetLayer).then((ready) => {
+        if (token !== pendingReadyCommitToken) return;
+
+        state.isAnimating = false;
+
+        if (!ready) {
+          preparedDir = 0;
+          resetQueue();
+          resetTransformsNoAnim();
+          bindAutoAdvanceForCurrent();
+          guardCurrentPlayback('waitAndCommitFailed');
+          return;
+        }
+
+        if (targetVideo) {
+          targetVideo.muted = state.isMuted;
+          tryPlay(targetVideo);
+        }
+
+        beginCommit(dir, targetIndex, targetLayer, targetVideo);
+      });
+    }
+
+    function commit(dir) {
+      const targetIndex = normalizeIndex(state.index + dir);
+      const targetItem = playlist[targetIndex];
+      const targetLayer = dir > 0 ? refs.layerNext : refs.layerPrev;
+      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
+
+      if (!targetLayer) {
+        snapBack();
+        return;
+      }
+
+      if (dir > 0 && nextLoadedIndex !== targetIndex) {
+        prepareForwardLayer();
+      }
+
+      if (dir < 0 && prevLoadedIndex !== targetIndex) {
+        prepareBackwardLayer();
+      }
+
+      if (targetItem?.type === 'video' && targetVideo && !isLayerReady(targetLayer)) {
+        if (state.isAnimating) return;
+
+        waitAndCommit(dir, targetIndex, targetLayer, targetVideo);
+        return;
+      }
+
+      beginCommit(dir, targetIndex, targetLayer, targetVideo);
     }
 
     function snapBack() {
       if (state.isAnimating) return;
 
       clearPendingCommit();
+      invalidatePendingReadyCommit();
       resetQueue();
 
       state.isAnimating = true;
@@ -502,7 +536,7 @@
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
       const height = gestureHeight || vh();
-      
+
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       if (targetLayer) {
         targetLayer.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
@@ -543,7 +577,7 @@
       const endT = performance.now();
       const dt = Math.max(1, endT - startT);
       const height = gestureHeight || vh();
-      
+
       dragging = false;
       swipeSoundUnlocked = false;
       touchBlocked = false;
@@ -555,7 +589,7 @@
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
 
           if (isTap && refs.videoCurrent) {
-            if (refs.videoCurrent.paused) { 
+            if (refs.videoCurrent.paused) {
               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
               showPlayOverlay(false);
               guardCurrentPlayback('tapPlay');
@@ -620,18 +654,18 @@
       startX = e.touches[0].clientX;
       startT = performance.now();
       lastMoveY = startY;
-      
+
       clearAuto();
       stopProg();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-      
+
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
-      
+
       if (startY < gestureHeight * 0.45) {
         warmBackwardNext();
       } else {
@@ -730,19 +764,21 @@
           raf = 0;
 
           const height = gestureHeight;
-          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
-          
+          const targetReady = targetLayer && isLayerReady(targetLayer);
+          const visualDy = targetReady ? dy : 0;
+          const progress = Math.min(Math.abs(visualDy) / (height * 0.4), 1);
+          const currentOpacity = Math.max(1 - progress, 0.3);
+
           updateLayerEffects(refs.layerCurrent, currentOpacity);
 
-          setTr(refs.layerCurrent, dy);
+          setTr(refs.layerCurrent, visualDy);
 
           if (targetLayer) {
             if (preparedDir > 0) {
-              setTr(targetLayer, height + dy);
+              setTr(targetLayer, height + visualDy);
             } else if (preparedDir < 0) {
-              setTr(targetLayer, -height + dy);
+              setTr(targetLayer, -height + visualDy);
             }
           }
         });
@@ -763,6 +799,7 @@
       if (document.visibilityState === 'visible') {
         recoverVisibleState();
       } else {
+        invalidatePendingReadyCommit();
         clearPlaybackGuard();
         clearPendingCommit();
         resetQueue();
