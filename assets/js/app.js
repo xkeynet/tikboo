@@ -89,6 +89,122 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
+  // === HLS VIDEO LIFECYCLE ===
+  // =========================================================
+  function setVideoLifecycleState(el, nextState) {
+    if (!el) return;
+    el.dataset.mediaState = nextState;
+  }
+
+  function bindVideoLifecycleState(el) {
+    if (!el) return;
+    if (el.dataset.lifecycleBound === '1') return;
+
+    el.dataset.lifecycleBound = '1';
+    setVideoLifecycleState(el, 'empty');
+
+    el.addEventListener('loadstart', () => {
+      setVideoLifecycleState(el, 'loading');
+    });
+
+    el.addEventListener('loadedmetadata', () => {
+      setVideoLifecycleState(el, 'metadata');
+    });
+
+    el.addEventListener('loadeddata', () => {
+      setVideoLifecycleState(el, 'frame-ready');
+    });
+
+    el.addEventListener('canplay', () => {
+      if (el.paused) {
+        setVideoLifecycleState(el, 'frame-ready');
+      }
+    });
+
+    el.addEventListener('playing', () => {
+      setVideoLifecycleState(el, 'playing');
+    });
+
+    el.addEventListener('pause', () => {
+      if (!el.getAttribute('src')) {
+        setVideoLifecycleState(el, 'empty');
+        return;
+      }
+
+      if (el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        setVideoLifecycleState(el, 'paused');
+      }
+    });
+
+    el.addEventListener('emptied', () => {
+      setVideoLifecycleState(el, 'empty');
+    });
+
+    el.addEventListener('error', () => {
+      setVideoLifecycleState(el, 'error');
+    });
+  }
+
+  function normalizeMediaSrc(src) {
+    return typeof src === 'string' ? src.trim() : '';
+  }
+
+  function getAssignedVideoSrc(el) {
+    if (!el) return '';
+    return el.dataset.assignedSrc || el.getAttribute('src') || '';
+  }
+
+  function setHlsVideo(el, src) {
+    if (!el) return false;
+
+    const nextSrc = normalizeMediaSrc(src);
+    if (!nextSrc) return false;
+
+    const currentSrc = getAssignedVideoSrc(el);
+
+    if (currentSrc === nextSrc) {
+      return false;
+    }
+
+    el.pause();
+
+    el.dataset.assignedSrc = nextSrc;
+    setVideoLifecycleState(el, 'loading');
+
+    el.src = nextSrc;
+
+    try {
+      el.load();
+    } catch (e) {}
+
+    return true;
+  }
+
+  function clearVideo(el) {
+    if (!el) return;
+
+    el.pause();
+
+    el.onended = null;
+    el.onerror = null;
+    el.onplay = null;
+    el.onpause = null;
+    el.onloadedmetadata = null;
+    el.onseeked = null;
+    el.ontimeupdate = null;
+
+    delete el.dataset.assignedSrc;
+
+    el.removeAttribute('src');
+
+    try {
+      el.load();
+    } catch (e) {}
+
+    setVideoLifecycleState(el, 'empty');
+  }
+
+  // =========================================================
   // === HIDDEN PRELOAD BUFFERS ===
   // =========================================================
   const preloadPrev = document.createElement('video');
@@ -101,12 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
+    v.setAttribute('disablepictureinpicture', '');
+    v.setAttribute('x-webkit-airplay', 'deny');
 
     v.style.position = 'absolute';
     v.style.width = '1px';
     v.style.height = '1px';
     v.style.opacity = '0';
     v.style.pointerEvents = 'none';
+
+    bindVideoLifecycleState(v);
 
     document.body.appendChild(v);
   });
@@ -119,17 +239,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextItem = PLAYLIST[nextIndex];
 
     if (prevItem?.type === 'video') {
-      if (preloadPrev.src !== prevItem.src) {
-        preloadPrev.src = prevItem.src;
-        preloadPrev.load();
-      }
+      setHlsVideo(preloadPrev, prevItem.src);
     }
 
     if (nextItem?.type === 'video') {
-      if (preloadNext.src !== nextItem.src) {
-        preloadNext.src = nextItem.src;
-        preloadNext.load();
-      }
+      setHlsVideo(preloadNext, nextItem.src);
     }
   }
 
@@ -198,17 +312,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
+  refs.videoPrev.preload = 'auto';
   refs.videoCurrent.preload = 'auto';
-  refs.videoNext.preload = 'metadata';
+  refs.videoNext.preload = 'auto';
 
-  [refs.videoCurrent, refs.videoNext].forEach((v) => {
+  [refs.videoPrev, refs.videoCurrent, refs.videoNext].forEach((v) => {
     v.playsInline = true;
+
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
     v.setAttribute('disablepictureinpicture', '');
     v.setAttribute('x-webkit-airplay', 'deny');
+
+    bindVideoLifecycleState(v);
   });
 
+  refs.imgPrev.decoding = 'async';
   refs.imgCurrent.decoding = 'async';
   refs.imgNext.decoding = 'async';
 
@@ -326,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
   function updateSeekFill() {
     const d = refs.videoCurrent.duration;
+
     if (d && isFinite(d) && d > 0) {
       const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
       seekFill.style.width = (p * 100) + '%';
@@ -360,7 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function vh() {
-    return Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+    return Math.max(
+      window.innerHeight || 0,
+      document.documentElement.clientHeight || 0
+    );
   }
 
   function normalizeIndex(i) {
@@ -369,11 +492,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function tryPlay(el) {
-    return el.play().catch(() => {});
+    if (!el) return Promise.resolve();
+
+    const playPromise = el.play();
+
+    if (playPromise && typeof playPromise.catch === 'function') {
+      return playPromise.catch(() => {});
+    }
+
+    return Promise.resolve();
   }
 
   function isInteractiveTarget(target) {
-    return !!target?.closest('button, a, input, textarea, select, label, .nav, .side, .video-meta-caption, .modal, .modal-backdrop, #gateOverlay');
+    return !!target?.closest(
+      'button, a, input, textarea, select, label, .nav, .side, .video-meta-caption, .modal, .modal-backdrop, #gateOverlay'
+    );
   }
 
   function clearAuto() {
@@ -385,6 +518,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (autoBoundVideo) {
       autoBoundVideo.onended = null;
       autoBoundVideo.onerror = null;
+      autoBoundVideo.onplay = null;
+      autoBoundVideo.onpause = null;
+      autoBoundVideo.onloadedmetadata = null;
+      autoBoundVideo.onseeked = null;
+      autoBoundVideo.ontimeupdate = null;
       autoBoundVideo = null;
     }
   }
@@ -404,8 +542,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item.type !== 'video') return;
 
       const d = refs.videoCurrent.duration;
+
       if (d && isFinite(d) && d > 0) {
-        const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
+        const p = Math.max(
+          0,
+          Math.min(1, refs.videoCurrent.currentTime / d)
+        );
+
         seekFill.style.width = (p * 100) + '%';
       } else {
         seekFill.style.width = '0%';
@@ -450,14 +593,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateSeekUIFromCurrent() {
     const d = refs.videoCurrent.duration;
+
     if (!d || !isFinite(d) || d <= 0) {
       if (seekTime) {
         seekTime.innerHTML = `<span class="t-cur">00:00</span><span class="t-sep"> / </span><span class="t-tot">00:00</span>`;
       }
+
       return;
     }
 
-    const t = Math.max(0, Math.min(d, refs.videoCurrent.currentTime || 0));
+    const t = Math.max(
+      0,
+      Math.min(d, refs.videoCurrent.currentTime || 0)
+    );
 
     if (seekTime) {
       seekTime.innerHTML = `<span class="t-cur">${fmtTime(t)}</span><span class="t-sep"> / </span><span class="t-tot">${fmtTime(d)}</span>`;
@@ -484,7 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
     refs.videoCurrent.currentTime = t;
 
     const p = Math.max(0, Math.min(1, t / d));
-    if (seekFill) seekFill.style.width = (p * 100) + '%';
+
+    if (seekFill) {
+      seekFill.style.width = (p * 100) + '%';
+    }
 
     if (seekTime) {
       seekTime.innerHTML = `<span class="t-cur">${fmtTime(t)}</span><span class="t-sep"> / </span><span class="t-tot">${fmtTime(d)}</span>`;
@@ -559,67 +710,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =========================================================
-  // === CODEC PICKER (HEVC primary, H264 fallback) ===
-  // =========================================================
-  function supportsHEVC() {
-    const v = document.createElement('video');
-    const can = v.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"');
-    return !!can && can !== 'no';
-  }
-
-  const USE_HEVC = false;
-
-  function deriveHevcSrc(h264Src) {
-    if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
-    return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
-  }
-
-  function setVideoSmart(el, h264Src) {
-    if (!h264Src) return;
-
-    const hevcSrc = deriveHevcSrc(h264Src);
-    const wantHevc = USE_HEVC && hevcSrc !== h264Src;
-
-    el.dataset.codecFallback = '0';
-
-    const current = el.getAttribute('src') || '';
-    const desired = wantHevc ? hevcSrc : h264Src;
-    if (current && current.endsWith(desired)) return;
-
-    if (wantHevc) {
-      el.dataset.codecFallback = 'hevc_try';
-
-      const onErr = () => {
-        el.dataset.codecFallback = '1';
-
-        const now = el.getAttribute('src') || '';
-        if (!now.endsWith(h264Src)) {
-          el.src = h264Src;
-          el.load();
-        }
-      };
-
-      el.addEventListener('error', onErr, { once: true });
-      el.src = hevcSrc;
-      el.load();
-      return;
-    }
-
-    el.src = h264Src;
-    el.load();
-  }
-
-  function setVideo(el, src) {
-    setVideoSmart(el, src);
-  }
-
-  function clearVideo(el) {
-    el.pause?.();
-    el.removeAttribute('src');
-    el.load();
-  }
-
   function clearImage(el) {
     el.onload = null;
     el.onerror = null;
@@ -649,12 +739,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function primeNextVideo(v) {
-    v.muted = true;
-    if (v.readyState >= 2) return;
+    if (!v) return;
 
-    try {
-      v.load();
-    } catch (e) {}
+    v.muted = true;
+
+    if (!v.getAttribute('src')) return;
+    if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return;
+
+    if (v.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+      try {
+        v.load();
+      } catch (e) {}
+    }
   }
 
   function setLayerContent(layer, item, forNext) {
@@ -670,9 +766,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (item.type === 'video') {
       im.style.display = 'none';
+
       v.style.display = 'block';
       v.muted = forNext ? true : state.isMuted;
-      setVideo(v, item.src);
+
+      setHlsVideo(v, item.src);
 
       if (!forNext) {
         tryPlay(v);
@@ -684,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     v.style.display = 'none';
+
     clearVideo(v);
     setImageSafe(im, item.src);
   }
@@ -703,8 +802,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.type !== 'video') return;
 
     autoBoundVideo = refs.videoCurrent;
+
     autoBoundVideo.loop = false;
     autoBoundVideo.muted = true;
+
     autoBoundVideo.onended = null;
     autoBoundVideo.onerror = null;
     autoBoundVideo.onplay = null;
@@ -723,6 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     refs.videoCurrent.muted = true;
+
     tryPlay(refs.videoCurrent);
     showPlayOverlay(false);
   }
@@ -745,30 +847,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (item.type === 'video') {
       showSeek(true);
+
       autoBoundVideo = refs.videoCurrent;
       autoBoundVideo.loop = true;
 
       autoBoundVideo.onended = null;
 
       autoBoundVideo.onerror = () => {
-        const flag = refs.videoCurrent?.dataset?.codecFallback;
-        if (flag === '1' || flag === 'hevc_try') {
-          refs.videoCurrent.dataset.codecFallback = '0';
-          return;
-        }
-
         if (swipeEngine) swipeEngine.autoAdvance();
       };
 
-      autoBoundVideo.onplay = () => startProg();
-      autoBoundVideo.onpause = () => stopProg();
-
-      autoBoundVideo.onloadedmetadata = () => {
-        if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
+      autoBoundVideo.onplay = () => {
         startProg();
       };
 
-      autoBoundVideo.onseeked = () => startProg();
+      autoBoundVideo.onpause = () => {
+        stopProg();
+      };
+
+      autoBoundVideo.onloadedmetadata = () => {
+        startProg();
+      };
+
+      autoBoundVideo.onseeked = () => {
+        startProg();
+      };
 
       startProg();
 
@@ -776,6 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
       timeupdateBoundEl = refs.videoCurrent;
     } else {
       showSeek(false);
+
       autoTimer = setTimeout(() => {
         if (swipeEngine) swipeEngine.autoAdvance();
       }, 3000);
@@ -796,13 +900,18 @@ document.addEventListener('DOMContentLoaded', () => {
       pillTouching = true;
       pillSeeking = false;
       pillMoved = false;
+
       pillStartX = e.touches[0].clientX;
       pillStartY = e.touches[0].clientY;
 
       clearSeekInactiveTimer();
       setSeekActive(true);
 
-      wasPlayingBeforeSeek = !(refs.videoCurrent.paused || refs.videoCurrent.ended);
+      wasPlayingBeforeSeek = !(
+        refs.videoCurrent.paused ||
+        refs.videoCurrent.ended
+      );
+
       refs.videoCurrent.pause();
       stopProg();
 
@@ -817,16 +926,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
+
       const dx = x - pillStartX;
       const dy2 = y - pillStartY;
 
       if (!pillSeeking) {
         if (Math.abs(dx) >= 2 && Math.abs(dx) >= Math.abs(dy2)) {
           pillSeeking = true;
-        } else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
+        } else if (
+          Math.abs(dy2) > Math.abs(dx) &&
+          Math.abs(dy2) > 6
+        ) {
           pillTouching = false;
           setSeekActive(false);
-          if (wasPlayingBeforeSeek) tryPlay(refs.videoCurrent);
+
+          if (wasPlayingBeforeSeek) {
+            tryPlay(refs.videoCurrent);
+          }
+
           startProg();
           return;
         } else {
@@ -848,7 +965,12 @@ document.addEventListener('DOMContentLoaded', () => {
       pillTouching = false;
       pillSeeking = false;
 
-      if (!pillMoved && e && e.changedTouches && e.changedTouches[0]) {
+      if (
+        !pillMoved &&
+        e &&
+        e.changedTouches &&
+        e.changedTouches[0]
+      ) {
         queueSeek(e.changedTouches[0].clientX);
       }
 
@@ -860,6 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
       }
+
       startProg();
     }, { passive: false });
 
@@ -876,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
       }
+
       startProg();
     }, { passive: true });
   }
@@ -891,6 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pillTouching = true;
       pillSeeking = false;
       pillMoved = false;
+
       pillStartX = e.touches[0].clientX;
       pillStartY = e.touches[0].clientY;
     }, { passive: true });
@@ -903,12 +1028,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
+
       const dx = x - pillStartX;
       const dy2 = y - pillStartY;
 
       if (!pillSeeking) {
-        if (Math.abs(dx) > Math.abs(dy2) && Math.abs(dx) > 6) pillSeeking = true;
-        else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
+        if (
+          Math.abs(dx) > Math.abs(dy2) &&
+          Math.abs(dx) > 6
+        ) {
+          pillSeeking = true;
+        } else if (
+          Math.abs(dy2) > Math.abs(dx) &&
+          Math.abs(dy2) > 6
+        ) {
           pillTouching = false;
           return;
         } else {
@@ -917,8 +1050,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       pillMoved = true;
+
       e.preventDefault();
       e.stopPropagation();
+
       seekToClientX(x);
     }, { passive: false });
 
@@ -932,12 +1067,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const wasMoved = pillMoved;
+
       pillTouching = false;
       pillSeeking = false;
       pillMoved = false;
 
       if (!wasMoved) {
-        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        if (e && typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
 
         if (state.isMuted) {
           ensureSoundOn(true);
@@ -951,6 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!ageGateUnlocked) return;
       if (PLAYLIST[state.index].type !== 'video') return;
       if (pillMoved) return;
+
       e.preventDefault();
 
       if (state.isMuted) {
@@ -1019,7 +1158,12 @@ document.addEventListener('DOMContentLoaded', () => {
     state.isMuted = true;
     syncSoundUI();
 
-    setLayerContent(refs.layerCurrent, PLAYLIST[state.index], false);
+    setLayerContent(
+      refs.layerCurrent,
+      PLAYLIST[state.index],
+      false
+    );
+
     swipeEngine.resetTransformsNoAnim();
     showPlayOverlay(false);
 
@@ -1061,12 +1205,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (profileBtn) {
-    profileBtn.addEventListener('click', () => openProfile('bottom_nav'));
+    profileBtn.addEventListener('click', () => {
+      openProfile('bottom_nav');
+    });
   }
 
   document.addEventListener('click', (e) => {
     const avatarBtn = e.target.closest('.avatarBtn');
     if (!avatarBtn) return;
+
     openProfile('avatar');
   });
 
@@ -1107,17 +1254,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, true);
 
-  if (closeProfile) closeProfile.addEventListener('click', closeProfileFn);
+  if (closeProfile) {
+    closeProfile.addEventListener('click', closeProfileFn);
+  }
 
   if (profileModal) {
     profileModal.addEventListener('click', (e) => {
-      if (e.target === profileModal) closeProfileFn();
+      if (e.target === profileModal) {
+        closeProfileFn();
+      }
     });
   }
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (profileModal && profileModal.classList.contains('show')) closeProfileFn();
+      if (
+        profileModal &&
+        profileModal.classList.contains('show')
+      ) {
+        closeProfileFn();
+      }
     }
   });
 
