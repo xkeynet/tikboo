@@ -97,12 +97,7 @@
 
   border-radius:50%;
 
-  background:linear-gradient(
-    135deg,
-    #ffffff 0%,
-    #00D9FF 48%,
-    #6119DD 100%
-  );
+  background:#FFFFFF;
 
   padding:2.667px;
   box-sizing:border-box;
