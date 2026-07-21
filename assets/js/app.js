@@ -89,51 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
-  // === HIDDEN PRELOAD BUFFERS ===
-  // =========================================================
-  const preloadPrev = document.createElement('video');
-  const preloadNext = document.createElement('video');
-
-  [preloadPrev, preloadNext].forEach((v) => {
-    v.preload = 'auto';
-    v.muted = true;
-    v.playsInline = true;
-
-    v.setAttribute('playsinline', '');
-    v.setAttribute('webkit-playsinline', '');
-
-    v.style.position = 'absolute';
-    v.style.width = '1px';
-    v.style.height = '1px';
-    v.style.opacity = '0';
-    v.style.pointerEvents = 'none';
-
-    document.body.appendChild(v);
-  });
-
-  function warmMemoryBuffers() {
-    const prevIndex = normalizeIndex(state.index - 1);
-    const nextIndex = normalizeIndex(state.index + 1);
-
-    const prevItem = PLAYLIST[prevIndex];
-    const nextItem = PLAYLIST[nextIndex];
-
-    if (prevItem?.type === 'video') {
-      if (preloadPrev.src !== prevItem.manifest) {
-        preloadPrev.src = prevItem.manifest;
-        preloadPrev.load();
-      }
-    }
-
-    if (nextItem?.type === 'video') {
-      if (preloadNext.src !== nextItem.manifest) {
-        preloadNext.src = nextItem.manifest;
-        preloadNext.load();
-      }
-    }
-  }
-
-  // =========================================================
   // === GA4 SAFE HELPER ===
   // =========================================================
   function track(eventName, params = {}) {
@@ -198,10 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
+  refs.videoPrev.preload = 'auto';
   refs.videoCurrent.preload = 'auto';
-  refs.videoNext.preload = 'metadata';
+  refs.videoNext.preload = 'auto';
 
-  [refs.videoCurrent, refs.videoNext].forEach((v) => {
+  [refs.videoPrev, refs.videoCurrent, refs.videoNext].forEach((v) => {
     v.playsInline = true;
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
@@ -209,8 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
     v.setAttribute('x-webkit-airplay', 'deny');
   });
 
-  refs.imgCurrent.decoding = 'async';
-  refs.imgNext.decoding = 'async';
+  [refs.imgPrev, refs.imgCurrent, refs.imgNext].forEach((img) => {
+    img.decoding = 'async';
+  });
 
   function defer(fn) {
     setTimeout(fn, 0);
@@ -369,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function tryPlay(el) {
+    if (!el) return Promise.resolve();
     return el.play().catch(() => {});
   }
 
@@ -560,62 +518,214 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================
-  // === CODEC PICKER (HEVC primary, H264 fallback) ===
+  // === HLS-ONLY PIPELINE / POSTER COVER ===
   // =========================================================
-  function supportsHEVC() {
-    const v = document.createElement('video');
-    const can = v.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"');
-    return !!can && can !== 'no';
+  const hlsByVideo = new WeakMap();
+  const frameCleanupByVideo = new WeakMap();
+
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function derivePoster(manifest) {
+    if (!manifest) return '';
+
+    try {
+      const url = new URL(manifest, window.location.href);
+      url.pathname = url.pathname.replace(
+        /\/manifest\/video\.m3u8$/i,
+        '/thumbnails/thumbnail.jpg'
+      );
+      url.search = '';
+      url.searchParams.set('time', '0s');
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('height', '1080');
+      return url.toString();
+    } catch (e) {
+      return manifest.replace(
+        /\/manifest\/video\.m3u8(?:\?.*)?$/i,
+        '/thumbnails/thumbnail.jpg?time=0s&fit=crop&height=1080'
+      );
+    }
   }
 
-  const USE_HEVC = false;
+  function destroyHls(el) {
+    const hls = hlsByVideo.get(el);
 
-  function deriveHevcSrc(h264Src) {
-    if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
-    return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
+    if (hls) {
+      hls.destroy();
+      hlsByVideo.delete(el);
+    }
   }
 
-  function setVideoSmart(el, h264Src) {
-    if (!h264Src) return;
+  function clearFrameWatch(el) {
+    const cleanup = frameCleanupByVideo.get(el);
 
-    const hevcSrc = deriveHevcSrc(h264Src);
-    const wantHevc = USE_HEVC && hevcSrc !== h264Src;
+    if (cleanup) {
+      cleanup();
+      frameCleanupByVideo.delete(el);
+    }
+  }
 
-    el.dataset.codecFallback = '0';
+  function showPoster(img, src) {
+    if (!img || !src) return;
 
-    const current = el.getAttribute('src') || '';
-    const desired = wantHevc ? hevcSrc : h264Src;
-    if (current && current.endsWith(desired)) return;
+    img.onload = null;
+    img.onerror = null;
+    img.style.transition = 'none';
+    img.style.display = 'block';
+    img.style.opacity = '1';
 
-    if (wantHevc) {
-      el.dataset.codecFallback = 'hevc_try';
+    img.onerror = () => {
+      img.style.opacity = '1';
+      img.style.display = 'block';
+    };
 
-      const onErr = () => {
-        el.dataset.codecFallback = '1';
+    if (img.getAttribute('src') !== src) {
+      img.src = src;
+    }
+  }
 
-        const now = el.getAttribute('src') || '';
-        if (!now.endsWith(h264Src)) {
-          el.src = h264Src;
-          el.load();
+  function hidePoster(img) {
+    if (!img) return;
+
+    img.style.transition = 'opacity 120ms linear';
+    img.style.opacity = '0';
+
+    const finish = () => {
+      if (img.style.opacity === '0') {
+        img.style.display = 'none';
+      }
+    };
+
+    img.addEventListener('transitionend', finish, { once: true });
+    setTimeout(finish, 160);
+  }
+
+  function watchFirstRenderedFrame(video, poster) {
+    clearFrameWatch(video);
+
+    let revealed = false;
+    let frameRequest = 0;
+
+    const reveal = () => {
+      if (revealed || video.currentTime <= 0.05) return;
+
+      revealed = true;
+      clearFrameWatch(video);
+      hidePoster(poster);
+    };
+
+    const onTimeUpdate = () => {
+      reveal();
+    };
+
+    const onLoadedData = () => {
+      if (typeof video.requestVideoFrameCallback !== 'function') return;
+
+      frameRequest = video.requestVideoFrameCallback((now, metadata) => {
+        if ((metadata?.mediaTime ?? video.currentTime) > 0.05) {
+          reveal();
         }
-      };
+      });
+    };
 
-      el.addEventListener('error', onErr, { once: true });
-      el.src = hevcSrc;
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('loadeddata', onLoadedData);
+
+    frameCleanupByVideo.set(video, () => {
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('loadeddata', onLoadedData);
+
+      if (
+        frameRequest &&
+        typeof video.cancelVideoFrameCallback === 'function'
+      ) {
+        video.cancelVideoFrameCallback(frameRequest);
+      }
+    });
+
+    if (video.currentTime > 0.05) {
+      reveal();
+    }
+  }
+
+  function setVideo(el, manifest) {
+    if (!el || !manifest) return;
+
+    const currentManifest = el.dataset.manifest || '';
+
+    if (currentManifest === manifest) {
+      return;
+    }
+
+    clearFrameWatch(el);
+    destroyHls(el);
+
+    el.pause();
+    el.dataset.manifest = manifest;
+    el.removeAttribute('src');
+    el.load();
+
+    if (isIOS && el.canPlayType('application/vnd.apple.mpegurl')) {
+      el.src = manifest;
       el.load();
       return;
     }
 
-    el.src = h264Src;
-    el.load();
-  }
+    if (window.Hls && window.Hls.isSupported()) {
+      const hls = new window.Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        capLevelToPlayerSize: true,
+        startLevel: -1,
+        maxBufferLength: 5,
+        maxMaxBufferLength: 10,
+        backBufferLength: 0
+      });
 
-  function setVideo(el, src) {
-    setVideoSmart(el, src);
+      hlsByVideo.set(el, hls);
+
+      hls.on(window.Hls.Events.MEDIA_ATTACHED, () => {
+        if (el.dataset.manifest === manifest) {
+          hls.loadSource(manifest);
+        }
+      });
+
+      hls.on(window.Hls.Events.ERROR, (event, data) => {
+        if (!data?.fatal) return;
+
+        if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+          hls.startLoad();
+          return;
+        }
+
+        if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+          hls.recoverMediaError();
+          return;
+        }
+
+        destroyHls(el);
+      });
+
+      hls.attachMedia(el);
+      return;
+    }
+
+    if (el.canPlayType('application/vnd.apple.mpegurl')) {
+      el.src = manifest;
+      el.load();
+    }
   }
 
   function clearVideo(el) {
-    el.pause?.();
+    if (!el) return;
+
+    clearFrameWatch(el);
+    destroyHls(el);
+
+    el.pause();
+    delete el.dataset.manifest;
     el.removeAttribute('src');
     el.load();
   }
@@ -649,7 +759,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function primeNextVideo(v) {
+    if (!v) return;
+
     v.muted = true;
+
     if (v.readyState >= 2) return;
 
     try {
@@ -669,10 +782,15 @@ document.addEventListener('DOMContentLoaded', () => {
     hideAll(layer);
 
     if (item.type === 'video') {
-      im.style.display = 'none';
+      const poster = item.poster || derivePoster(item.manifest);
+
+      showPoster(im, poster);
+
       v.style.display = 'block';
       v.muted = forNext ? true : state.isMuted;
+
       setVideo(v, item.manifest);
+      watchFirstRenderedFrame(v, im);
 
       if (!forNext) {
         tryPlay(v);
@@ -685,6 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     v.style.display = 'none';
     clearVideo(v);
+    clearImage(im);
     setImageSafe(im, item.manifest);
   }
 
@@ -751,23 +870,12 @@ document.addEventListener('DOMContentLoaded', () => {
       autoBoundVideo.onended = null;
 
       autoBoundVideo.onerror = () => {
-        const flag = refs.videoCurrent?.dataset?.codecFallback;
-        if (flag === '1' || flag === 'hevc_try') {
-          refs.videoCurrent.dataset.codecFallback = '0';
-          return;
-        }
-
         if (swipeEngine) swipeEngine.autoAdvance();
       };
 
       autoBoundVideo.onplay = () => startProg();
       autoBoundVideo.onpause = () => stopProg();
-
-      autoBoundVideo.onloadedmetadata = () => {
-        if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
-        startProg();
-      };
-
+      autoBoundVideo.onloadedmetadata = () => startProg();
       autoBoundVideo.onseeked = () => startProg();
 
       startProg();
@@ -860,6 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
       }
+
       startProg();
     }, { passive: false });
 
@@ -876,6 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tryPlay(refs.videoCurrent);
         showPlayOverlay(false);
       }
+
       startProg();
     }, { passive: true });
   }
@@ -907,8 +1017,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const dy2 = y - pillStartY;
 
       if (!pillSeeking) {
-        if (Math.abs(dx) > Math.abs(dy2) && Math.abs(dx) > 6) pillSeeking = true;
-        else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
+        if (Math.abs(dx) > Math.abs(dy2) && Math.abs(dx) > 6) {
+          pillSeeking = true;
+        } else if (Math.abs(dy2) > Math.abs(dx) && Math.abs(dy2) > 6) {
           pillTouching = false;
           return;
         } else {
@@ -951,6 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!ageGateUnlocked) return;
       if (PLAYLIST[state.index].type !== 'video') return;
       if (pillMoved) return;
+
       e.preventDefault();
 
       if (state.isMuted) {
@@ -1009,7 +1121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     defer(() => {
       swipeEngine.warmForwardNext();
       swipeEngine.warmBackwardNext();
-      warmMemoryBuffers();
     });
 
     bindAutoAdvanceForCurrent();
@@ -1117,7 +1228,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (profileModal && profileModal.classList.contains('show')) closeProfileFn();
+      if (profileModal && profileModal.classList.contains('show')) {
+        closeProfileFn();
+      }
     }
   });
 
@@ -1167,4 +1280,3 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
-
