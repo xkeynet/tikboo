@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ATOMIC VERSION
+// /assets/js/swipe.js - ATOMIC VERSION (HLS & ZERO-BLACK-FRAME OPTIMIZED)
 (function () {
   function initTikbooSwipe(options) {
     const { 
@@ -224,7 +224,6 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-        videoEl.currentTime = 0;
       }
     }
 
@@ -338,8 +337,8 @@
         refs.imgCurrent = refs.imgPrev;
 
         refs.layerNext = oldCurrentLayer;
-        refs.videoNext = oldCurrentVideo;
-        refs.imgNext = oldCurrentImg;
+        refs.videoNext = oldNextVideo;
+        refs.imgNext = oldNextImg;
 
         refs.layerPrev = oldNextLayer;
         refs.videoPrev = oldNextVideo;
@@ -414,11 +413,6 @@
         return;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
-        return;
-      }
-
       clearPendingCommit();
       clearPlaybackGuard();
       lastCommitTime = now;
@@ -436,7 +430,7 @@
       clearTimeout(settleTimer);
 
       const height = gestureHeight || vh();
-      const duration = 160; 
+      const duration = 180; 
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -445,31 +439,7 @@
 
       if (targetItem?.type === 'video' && targetVideo) {
         targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
+        tryPlay(targetVideo);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
