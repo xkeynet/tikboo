@@ -1,7 +1,6 @@
 // /assets/js/app.js
 
 import { PLAYLIST } from './data/playlist.js';
-
 import { initInteractions } from './ui/interactions.js';
 
 // === iOS SAFARI: KILL ZOOM (pinch + gesture) ===
@@ -15,7 +14,7 @@ document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: fa
 
 document.addEventListener('DOMContentLoaded', () => {
   // =========================================================
-  // === State ===
+  // === State & Refs ===
   // =========================================================
   const refs = {
     layerPrev: document.getElementById('layerPrev'),
@@ -66,6 +65,67 @@ document.addEventListener('DOMContentLoaded', () => {
   let ageGateUnlocked = false;
 
   // =========================================================
+  // === HLS ENGINE MANAGER (POOL FOR MEMORY & GC) ===
+  // =========================================================
+  const hlsInstances = new WeakMap();
+
+  function isHlsSupportedNatively(videoEl) {
+    return videoEl.canPlayType('application/vnd.apple.mpegurl') !== '';
+  }
+
+  function destroyHlsInstance(videoEl) {
+    if (!videoEl) return;
+    const hls = hlsInstances.get(videoEl);
+    if (hls) {
+      try {
+        hls.detachMedia();
+        hls.destroy();
+      } catch (e) {
+        console.warn('HLS destroy error:', e);
+      }
+      hlsInstances.delete(videoEl);
+    }
+  }
+
+  function attachHlsStream(videoEl, url, isPreload = false) {
+    if (!videoEl || !url) return;
+
+    // Pokud už na tomto videu běží stejný stream, nezakládáme znovu
+    if (videoEl.dataset.currentSrc === url) {
+      return;
+    }
+
+    destroyHlsInstance(videoEl);
+    videoEl.dataset.currentSrc = url;
+
+    if (isHlsSupportedNatively(videoEl)) {
+      videoEl.src = url;
+      if (isPreload) {
+        videoEl.preload = 'metadata';
+      } else {
+        videoEl.preload = 'auto';
+        videoEl.load();
+      }
+    } else if (window.Hls && window.Hls.isSupported()) {
+      const hlsConfig = {
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 10,
+        maxBufferLength: isPreload ? 5 : 15,
+        maxMaxBufferLength: isPreload ? 10 : 30,
+        maxBufferSize: isPreload ? 2 * 1000 * 1000 : 10 * 1000 * 1000
+      };
+
+      const hls = new window.Hls(hlsConfig);
+      hls.loadSource(url);
+      hls.attachMedia(videoEl);
+      hlsInstances.set(videoEl, hls);
+    } else {
+      videoEl.src = url;
+    }
+  }
+
+  // =========================================================
   // === Age Gate Storage ===
   // =========================================================
   const KEY = 'swipe_age_ok';
@@ -88,49 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ageGateUnlocked = false;
   }
 
-  // =========================================================
-  // === HIDDEN PRELOAD BUFFERS ===
-  // =========================================================
-  const preloadPrev = document.createElement('video');
-  const preloadNext = document.createElement('video');
-
-  [preloadPrev, preloadNext].forEach((v) => {
-    v.preload = 'auto';
-    v.muted = true;
-    v.playsInline = true;
-
-    v.setAttribute('playsinline', '');
-    v.setAttribute('webkit-playsinline', '');
-
-    v.style.position = 'absolute';
-    v.style.width = '1px';
-    v.style.height = '1px';
-    v.style.opacity = '0';
-    v.style.pointerEvents = 'none';
-
-    document.body.appendChild(v);
-  });
-
   function warmMemoryBuffers() {
-    const prevIndex = normalizeIndex(state.index - 1);
-    const nextIndex = normalizeIndex(state.index + 1);
-
-    const prevItem = PLAYLIST[prevIndex];
-    const nextItem = PLAYLIST[nextIndex];
-
-    if (prevItem?.type === 'video') {
-      if (preloadPrev.src !== prevItem.manifest) {
-        preloadPrev.src = prevItem.manifest;
-        preloadPrev.load();
-      }
-    }
-
-    if (nextItem?.type === 'video') {
-      if (preloadNext.src !== nextItem.manifest) {
-        preloadNext.src = nextItem.manifest;
-        preloadNext.load();
-      }
-    }
+    // S HLS nepoužíváme skryté video elementy v DOMu. Preload řeší přímo HLS pool u videoNext/videoPrev.
   }
 
   // =========================================================
@@ -198,10 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
-  refs.videoCurrent.preload = 'auto';
-  refs.videoNext.preload = 'metadata';
-
-  [refs.videoCurrent, refs.videoNext].forEach((v) => {
+  [refs.videoPrev, refs.videoCurrent, refs.videoNext].filter(Boolean).forEach((v) => {
     v.playsInline = true;
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
@@ -209,8 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
     v.setAttribute('x-webkit-airplay', 'deny');
   });
 
-  refs.imgCurrent.decoding = 'async';
-  refs.imgNext.decoding = 'async';
+  if (refs.imgPrev) refs.imgPrev.decoding = 'async';
+  if (refs.imgCurrent) refs.imgCurrent.decoding = 'async';
+  if (refs.imgNext) refs.imgNext.decoding = 'async';
 
   function defer(fn) {
     setTimeout(fn, 0);
@@ -328,9 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const d = refs.videoCurrent.duration;
     if (d && isFinite(d) && d > 0) {
       const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
-      seekFill.style.width = (p * 100) + '%';
+      if (seekFill) seekFill.style.width = (p * 100) + '%';
     } else {
-      seekFill.style.width = '0%';
+      if (seekFill) seekFill.style.width = '0%';
     }
   }
 
@@ -369,7 +386,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function tryPlay(el) {
-    return el.play().catch(() => {});
+    if (!el) return Promise.reject();
+    const playPromise = el.play();
+    if (playPromise !== undefined) {
+      return playPromise.catch(() => {});
+    }
+    return Promise.resolve();
   }
 
   function isInteractiveTarget(target) {
@@ -406,9 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = refs.videoCurrent.duration;
       if (d && isFinite(d) && d > 0) {
         const p = Math.max(0, Math.min(1, refs.videoCurrent.currentTime / d));
-        seekFill.style.width = (p * 100) + '%';
+        if (seekFill) seekFill.style.width = (p * 100) + '%';
       } else {
-        seekFill.style.width = '0%';
+        if (seekFill) seekFill.style.width = '0%';
       }
 
       if (!refs.videoCurrent.paused && !refs.videoCurrent.ended) {
@@ -428,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!show) {
       clearSeekInactiveTimer();
       setSeekActive(false);
-      seekFill.style.width = '0%';
+      if (seekFill) seekFill.style.width = '0%';
       stopProg();
     }
   }
@@ -549,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (v) {
       v.style.display = 'none';
+      v.style.opacity = '0';
     }
 
     if (im) {
@@ -559,68 +582,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =========================================================
-  // === CODEC PICKER (HEVC primary, H264 fallback) ===
-  // =========================================================
-  function supportsHEVC() {
-    const v = document.createElement('video');
-    const can = v.canPlayType('video/mp4; codecs="hvc1.1.6.L93.B0"');
-    return !!can && can !== 'no';
-  }
-
-  const USE_HEVC = false;
-
-  function deriveHevcSrc(h264Src) {
-    if (!h264Src || !h264Src.endsWith('.mp4')) return h264Src;
-    return h264Src.replace(/\.mp4$/i, '-hevc.mp4');
-  }
-
-  function setVideoSmart(el, h264Src) {
-    if (!h264Src) return;
-
-    const hevcSrc = deriveHevcSrc(h264Src);
-    const wantHevc = USE_HEVC && hevcSrc !== h264Src;
-
-    el.dataset.codecFallback = '0';
-
-    const current = el.getAttribute('src') || '';
-    const desired = wantHevc ? hevcSrc : h264Src;
-    if (current && current.endsWith(desired)) return;
-
-    if (wantHevc) {
-      el.dataset.codecFallback = 'hevc_try';
-
-      const onErr = () => {
-        el.dataset.codecFallback = '1';
-
-        const now = el.getAttribute('src') || '';
-        if (!now.endsWith(h264Src)) {
-          el.src = h264Src;
-          el.load();
-        }
-      };
-
-      el.addEventListener('error', onErr, { once: true });
-      el.src = hevcSrc;
-      el.load();
-      return;
-    }
-
-    el.src = h264Src;
-    el.load();
-  }
-
-  function setVideo(el, src) {
-    setVideoSmart(el, src);
-  }
-
   function clearVideo(el) {
+    if (!el) return;
     el.pause?.();
+    destroyHlsInstance(el);
+    delete el.dataset.currentSrc;
     el.removeAttribute('src');
-    el.load();
+    el.removeAttribute('poster');
+    try {
+      el.load();
+    } catch (e) {}
   }
 
   function clearImage(el) {
+    if (!el) return;
     el.onload = null;
     el.onerror = null;
     el.style.opacity = '0';
@@ -649,14 +624,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function primeNextVideo(v) {
+    if (!v) return;
     v.muted = true;
     if (v.readyState >= 2) return;
 
     try {
-      v.load();
+      tryPlay(v).then(() => {
+        v.pause();
+      });
     } catch (e) {}
   }
 
+  // =========================================================
+  // === POSTER COVER & LAYER HYBRID CONTENT LOADING ===
+  // =========================================================
   function setLayerContent(layer, item, forNext) {
     const media = getLayerMedia(layer);
     const v = media.video;
@@ -666,13 +647,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setLayerVideoMeta(layer, item);
 
-    hideAll(layer);
-
     if (item.type === 'video') {
-      im.style.display = 'none';
+      // 1. Zobrazíme Poster Cover obrázek (zakryje načítání HLS)
+      if (item.poster) {
+        im.src = item.poster;
+        im.style.display = 'block';
+        im.style.opacity = '1';
+        v.setAttribute('poster', item.poster);
+      }
+
       v.style.display = 'block';
+      v.style.opacity = '0'; // Ponecháme skryté, dokud nepadne první frame
       v.muted = forNext ? true : state.isMuted;
-      setVideo(v, item.manifest);
+
+      // Unbind předchozí sledovače vykreslení
+      v.onplaying = null;
+      v.oncanplay = null;
+
+      const revealVideo = () => {
+        v.style.opacity = '1';
+        if (im && item.poster) {
+          im.style.opacity = '0';
+          setTimeout(() => {
+            if (v.style.opacity === '1') im.style.display = 'none';
+          }, 200);
+        }
+      };
+
+      v.onplaying = revealVideo;
+      v.oncanplay = revealVideo;
+
+      // Attach HLS stream přes bezpečný HLS Manager
+      attachHlsStream(v, item.manifest, forNext);
 
       if (!forNext) {
         tryPlay(v);
@@ -683,6 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Pro statické obrázky
     v.style.display = 'none';
     clearVideo(v);
     setImageSafe(im, item.manifest);
@@ -751,12 +758,6 @@ document.addEventListener('DOMContentLoaded', () => {
       autoBoundVideo.onended = null;
 
       autoBoundVideo.onerror = () => {
-        const flag = refs.videoCurrent?.dataset?.codecFallback;
-        if (flag === '1' || flag === 'hevc_try') {
-          refs.videoCurrent.dataset.codecFallback = '0';
-          return;
-        }
-
         if (swipeEngine) swipeEngine.autoAdvance();
       };
 
@@ -764,7 +765,6 @@ document.addEventListener('DOMContentLoaded', () => {
       autoBoundVideo.onpause = () => stopProg();
 
       autoBoundVideo.onloadedmetadata = () => {
-        if (refs.videoCurrent?.dataset) refs.videoCurrent.dataset.codecFallback = '0';
         startProg();
       };
 
