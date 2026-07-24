@@ -4,8 +4,7 @@ export const PLAYLIST = [
 
   { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/176a25b470027073f2ee5ec8756c85d9/manifest/video.m3u8', 
-  creator: 'daddysjuiced_', 
-  caption: "Real good option baby!", 
+  creator: 'daddysjuiced_',
   followUrl: 'https://www.instagram.com/daddysjuiced_/', 
   avatar: '/assets/avatars/daddysjuiced_.avif' },
   
