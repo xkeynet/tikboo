@@ -1,6 +1,12 @@
 // /assets/js/data/playlist.js
 
 export const PLAYLIST = [
+  { type: 'video', 
+   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/4b5735f972cdb657d5f60c7f267c5653/manifest/video.m3u8', 
+   creator: 'momycarterx', 
+   caption: "@momycarterx", 
+   followUrl: 'https://www.instagram.com/momycarterx/', 
+   avatar: '/assets/avatars/momycarterx.avif' },
 
   { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/176a25b470027073f2ee5ec8756c85d9/manifest/video.m3u8', 
@@ -108,7 +114,6 @@ export const PLAYLIST = [
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/01beb0b42926a3df565cf106eedb507d/manifest/video.m3u8', creator: 'liifewniic', caption: "Serving absolute heat in the fitting room", followUrl: 'https://www.instagram.com/liifewniic/', avatar: '/assets/avatars/liifewniic.avif' },
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/94a560f4b169d14057a2d85a48bf2385/manifest/video.m3u8', creator: 'emjayrinaudo', caption: "Yeah baby!", followUrl: 'https://www.instagram.com/emjayrinaudo/', avatar: '/assets/avatars/emjayrinaudo.avif' },
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/1ac51f8951e60e0c78a168ca435aee7d/manifest/video.m3u8', creator: 'daddysjuiced_', caption: "Da show ...", followUrl: 'https://www.instagram.com/daddysjuiced_/', avatar: '/assets/avatars/daddysjuiced_.avif' },
-  { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/4b5735f972cdb657d5f60c7f267c5653/manifest/video.m3u8', creator: 'momycarterx', caption: "Wanna fuck me in the closet? 🌸", followUrl: 'https://www.instagram.com/momycarterx/', avatar: '/assets/avatars/momycarterx.avif' },
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/f3acf0e619df0bc506dc6f8f5f9dc31e/manifest/video.m3u8', creator: 'hayleydavies.bts', caption: "Think you can keep up? 🫦", followUrl: 'https://www.instagram.com/hayleydavies.bts/', avatar: '/assets/avatars/hayleydavies.bts.avif' },
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/df8dab08795f651a0c0ae1e16fd59d34/manifest/video.m3u8', creator: 'jlo', caption: "Jennifer Lopez", followUrl: 'https://www.instagram.com/jlo/', avatar: '/assets/avatars/jlo.avif' },
   { type: 'video', manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/8ad388f9fbd3a15e4f6687d73a3475a5/manifest/video.m3u8', creator: 'Tikboo', caption: "Lifestyle by Tikboo", followUrl: 'https://tikboo.com/', avatar: '/assets/avatars/swipe-favicon.png' },
