@@ -5,13 +5,14 @@ export const PLAYLIST = [
   { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/176a25b470027073f2ee5ec8756c85d9/manifest/video.m3u8', 
   creator: 'daddysjuiced_',
+  caption: @daddysjuiced_
   followUrl: 'https://www.instagram.com/daddysjuiced_/', 
   avatar: '/assets/avatars/daddysjuiced_.avif' },
   
   { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/6b251cc913b1509a98281fcc9b698803/manifest/video.m3u8', 
   creator: 'dangershewrote', 
-  caption: "Wagyu Chopped Cheese with @dangershewrote", 
+  caption: @dangershewrote
   followUrl: 'https://www.instagram.com/dangershewrote/', 
   avatar: '/assets/avatars/dangershewrote.avif' }, 
 
