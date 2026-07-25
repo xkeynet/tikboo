@@ -1280,3 +1280,20 @@ document.addEventListener('DOMContentLoaded', () => {
     img.addEventListener('touchstart', () => {}, { passive: true });
   });
 })();
+
+// =========================================================
+// Service Worker
+// =========================================================
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then(() => {
+        console.log('[Tikboo] Service Worker registered');
+      })
+      .catch((err) => {
+        console.error('[Tikboo] Service Worker failed', err);
+      });
+  });
+}
