@@ -1,1 +1,50 @@
-
+{
+  "id": "/",
+  "name": "Tikboo",
+  "short_name": "Tikboo",
+  "description": "Tikboo is the 18+ subscription platform empowering creators to own their full potential, monetize their content, and develop authentic connections with their fans.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": [
+    "social",
+    "entertainment",
+    "video"
+  ],
+  "icons": [
+    {
+      "src": "/assets/swipe-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/swipe-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/swipe-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/swipe-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
