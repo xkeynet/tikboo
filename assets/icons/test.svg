@@ -1,16 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg
-    width="800px"
-    height="800px"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
->
-    <g transform="translate(24 0) scale(-1 1)">
-        <g transform="rotate(-90 12 12)">
-            <path
-                d="M1 18.5088C1 13.1679 4.90169 8.77098 9.99995 7.84598V5.51119C9.99995 3.63887 12.1534 2.58563 13.6313 3.73514L21.9742 10.224C23.1323 11.1248 23.1324 12.8752 21.9742 13.7761L13.6314 20.2649C12.1534 21.4144 10 20.3612 10 18.4888V16.5189C7.74106 16.9525 5.9625 18.1157 4.92778 19.6838C4.33222 20.5863 3.30568 20.7735 2.55965 20.5635C1.80473 20.3511 1.00011 19.6306 1 18.5088Z"
-                fill="#FFFFFF"
-            />
-        </g>
-    </g>
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+ "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="1290.000000pt" height="1290.000000pt" viewBox="0 0 1290.000000 1290.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,1290.000000) scale(0.100000,-0.100000)"
+fill="#000000" stroke="none">
+<path d="M1088 1533 c6 -2 18 -2 25 0 6 3 1 5 -13 5 -14 0 -19 -2 -12 -5z"/>
+</g>
 </svg>
