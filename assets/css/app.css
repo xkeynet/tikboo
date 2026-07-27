@@ -494,7 +494,7 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  margin-bottom:10px;
+  margin-bottom:12px;
   user-select:none;
   white-space:nowrap;
 }
