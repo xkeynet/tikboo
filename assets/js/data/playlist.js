@@ -2,11 +2,18 @@
 
 export const PLAYLIST = [
   { type: 'video', 
-   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/4b5735f972cdb657d5f60c7f267c5653/manifest/video.m3u8', 
-   creator: 'momycarterx', 
-   caption: "@momycarterx", 
-   followUrl: 'https://www.instagram.com/momycarterx/', 
-   avatar: '/assets/avatars/momycarterx.avif' },
+  manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/caf48c0d6c371e07379d085fd33c020d/manifest/video.m3u8', 
+  creator: 'anya_ru_', 
+  caption: "@anya_ru_", 
+  followUrl: 'https://www.instagram.com/anya_ru_/', 
+  avatar: '/assets/avatars/anya_ru_.jpg' },
+
+  { type: 'video', 
+  manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/4b5735f972cdb657d5f60c7f267c5653/manifest/video.m3u8', 
+  creator: 'momycarterx', 
+  caption: "@momycarterx", 
+  followUrl: 'https://www.instagram.com/momycarterx/', 
+  avatar: '/assets/avatars/momycarterx.avif' },
 
   { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/176a25b470027073f2ee5ec8756c85d9/manifest/video.m3u8', 
