@@ -97,7 +97,7 @@
 
   border-radius:50%;
 
-  background:rgba(255,255,255,.60);
+  background:linear-gradient(135deg,#FFFFFF 0%,#00D9FF 48%,#6119DD 100%);
 
   padding:2.667px;
   box-sizing:border-box;
