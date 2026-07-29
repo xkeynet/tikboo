@@ -558,11 +558,11 @@ body{
   border:3px solid rgba(255,255,255,1);
   border-radius:2px;
 
-  /* Široké a čisté */
-  padding:14px 18px;
+  /* Přesně sjednoceno s .consent-pill */
+  padding:7px 16px;
 
   font-weight:800;
-  letter-spacing:0;
+  letter-spacing:0.06em;
   color:#FFFFFF;
 
   background:transparent;
@@ -579,9 +579,9 @@ body{
 }
 
 .enterTop{
-  font-size:18px; /* Mírně zvětšeno, aby ENTER dominovalo */
+  font-size:10px; /* Sjednoceno s .consent-pill */
   line-height:1;
-  letter-spacing:0.04em;
+  letter-spacing:0.06em;
 }
 
 /* === CONSENT PILLS === */
