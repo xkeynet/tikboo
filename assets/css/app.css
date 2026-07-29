@@ -579,7 +579,7 @@ body{
 }
 
 .enterTop{
-  font-size:16px; /* Sjednoceno s .consent-pill */
+  font-size:18px; /* Sjednoceno s .consent-pill */
   line-height:1;
   letter-spacing:0.06em;
 }
