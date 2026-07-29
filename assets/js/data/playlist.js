@@ -2,6 +2,13 @@
 
 export const PLAYLIST = [
   { type: 'video', 
+  manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/6f44b8b49d3d991d5e8bfd746fafbdfa/manifest/video.m3u8', 
+  creator: 'alice.rosenblum', 
+  caption: "@alice.rosenblum", 
+  followUrl: 'https://www.instagram.com/alice.rosenblum/', 
+  avatar: '/assets/avatars/alice.rosenblum.avif' },
+  
+  { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/caf48c0d6c371e07379d085fd33c020d/manifest/video.m3u8', 
   creator: 'anya_ru_', 
   caption: "@anya_ru_", 
