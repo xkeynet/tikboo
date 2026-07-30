@@ -515,10 +515,10 @@ body{
   max-width:none;
   margin:16px auto 10px;
 
-  font-size:14px;
+  font-size:15px;
   line-height:1.35;
   font-weight:600;
-  color:rgba(255,255,255,.60);
+  color:rgba(255,255,255,.50);
   opacity:1;
 
   text-align:center;
