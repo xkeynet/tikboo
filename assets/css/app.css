@@ -41,6 +41,11 @@ body{
   height:100%;
 }
 
+html.cookie-consent-open,
+html.cookie-consent-open body{
+  background:#00B4D8 !important;
+}
+
 body{
   margin:0;
   background:var(--bg);
