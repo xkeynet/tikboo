@@ -671,7 +671,7 @@ body{
   line-height:1.16;
   letter-spacing:-0.015em;
 
-  text-align:left;
+  text-align:center;
   text-transform:none;
 
   -webkit-font-smoothing:antialiased;
@@ -692,7 +692,7 @@ body{
   line-height:1.55;
   letter-spacing:0;
 
-  text-align:left;
+  text-align:center;
 
   -webkit-font-smoothing:antialiased;
   text-rendering:geometricPrecision;
