@@ -25,7 +25,7 @@
   --cardMax:520px;
 
   /* === COOKIE SHEET === */
-  --cookieSheetHeight:48svh;
+  --cookieSheetHeight:35svh;
   --cookieSheetPadX:18px;
   --cookieSheetPadTop:24px;
   --cookieSheetButtonGap:10px;
@@ -601,7 +601,7 @@ body{
 
   width:100%;
   height:var(--cookieSheetHeight);
-  max-height:48svh;
+  max-height:35svh;
 
   margin:0;
   padding:0;
@@ -801,8 +801,8 @@ body.device-non-master.device-small .cookie-sheet__button{
 }
 
 body.device-short .cookie-sheet{
-  height:48svh;
-  max-height:48svh;
+  height:35svh;
+  max-height:35svh;
 }
 
 body.device-short .cookie-sheet__content{
