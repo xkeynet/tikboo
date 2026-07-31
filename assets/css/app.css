@@ -1,6 +1,6 @@
 /* =========================================================
    CSS: Root / Variables
-   ======================================================== */
+   ========================================================= */
 :root {
   --bg:#000;
   --fg:#fff;
@@ -23,6 +23,13 @@
   --gateBlue:#00E5E5;
   --gateWhite:#FFFFFF;
   --cardMax:520px;
+
+  /* === COOKIE SHEET === */
+  --cookieSheetHeight:55svh;
+  --cookieSheetPadX:18px;
+  --cookieSheetPadTop:24px;
+  --cookieSheetButtonGap:10px;
+  --cookieSheetButtonHeight:52px;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -50,7 +57,7 @@ body{
   transform:translateY(0px);
   will-change:transform;
   background:#000;
-  isolation:isolate; 
+  isolation:isolate;
 }
 .twincher-layer > video,
 .twincher-layer > img{
@@ -61,7 +68,7 @@ body{
   object-fit:cover;
   background:#000;
   display:none;
-  z-index:1; 
+  z-index:1;
 }
 .twincher-layer > img{
   opacity:0;
@@ -265,7 +272,7 @@ body{
 
   transform: translateZ(0);
   backface-visibility: hidden;
-  will-change: transform; 
+  will-change: transform;
 }
 .count{
   font-size:12px;
@@ -322,7 +329,7 @@ body{
 
   transform: translateZ(0);
   backface-visibility: hidden;
-  will-change: transform; 
+  will-change: transform;
 }
 
 /* =========================================================
@@ -468,25 +475,88 @@ body{
   align-items:center;
   justify-content:center;
   overflow:hidden;
+
+  opacity:1;
+  pointer-events:auto;
+
+  transition:opacity 520ms cubic-bezier(.22,1,.36,1);
+
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  will-change:opacity;
 }
-#gateOverlay.hidden{ display:none; }
+
+#gateOverlay.hidden{
+  display:none;
+}
+
+#gateOverlay.is-closing{
+  opacity:0;
+  pointer-events:none;
+}
 
 .wrap{
-  height:100svh;
-  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  position:fixed;
+  inset:0;
+
   width:100%;
+  height:100svh;
+
+  padding:0;
+
+  display:block;
+
+  overflow:hidden;
 }
 
-.top-g{
-  flex:0 0 auto;
+.card{
+  position:relative;
+
   width:100%;
+  height:100%;
+
+  margin:0;
+  padding:0;
+
+  background:transparent;
+  border:0;
+}
+
+/* === GATE LOGO POSITION === */
+.top-g{
+  position:absolute;
+  left:0;
+  right:0;
+  top:18svh;
+
+  width:100%;
+
   display:flex;
   flex-direction:column;
   align-items:center;
-  margin-top:0;
+  justify-content:center;
+
+  margin:0;
+  padding:0;
+
+  z-index:2;
+
+  pointer-events:none;
+
+  opacity:1;
+
+  transition:
+    opacity 420ms cubic-bezier(.22,1,.36,1),
+    transform 520ms cubic-bezier(.22,1,.36,1);
+
+  transform:translate3d(0,0,0);
+  backface-visibility:hidden;
+  will-change:opacity, transform;
+}
+
+#gateOverlay.is-closing .top-g{
+  opacity:0;
+  transform:translate3d(0,-8px,0);
 }
 
 /* === GATE BRAND LOGO === */
@@ -494,7 +564,9 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  margin-bottom:16px;
+
+  margin:0;
+
   user-select:none;
   white-space:nowrap;
 }
@@ -502,137 +574,271 @@ body{
 .gate-logo {
   width:90px;
   height:auto;
+
   display:block;
+
   user-select:none;
   -webkit-user-drag:none;
+  -webkit-touch-callout:none;
 
-  position: relative;
+  position:relative;
   top:2px;
+
+  transform:translateZ(0);
+  backface-visibility:hidden;
 }
 
-.legal{
+/* =========================================================
+   TIKBOO COOKIE SHEET
+   ========================================================= */
+
+.cookie-sheet{
+  position:absolute;
+
+  left:0;
+  right:0;
+  bottom:0;
+
   width:100%;
-  max-width:none;
-  margin:16px auto 10px;
+  height:var(--cookieSheetHeight);
+  max-height:55svh;
 
-  font-size:16px;
-  line-height:1.35;
-  font-weight:600;
-  color:transparent;
-  opacity:1;
+  margin:0;
+  padding:0;
 
-  text-align:center;
-  white-space:normal;
+  background:#000000;
+  color:#ffffff;
+
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+
+  overflow:hidden;
+
+  z-index:3;
+
+  pointer-events:none;
+
+  transform:translate3d(0,100%,0);
+
+  transition:
+    transform 920ms cubic-bezier(.22,1,.36,1);
+
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
+}
+
+.cookie-sheet.is-visible{
+  pointer-events:auto;
+  transform:translate3d(0,0,0);
+}
+
+.cookie-sheet.is-closing{
+  pointer-events:none;
+  transform:translate3d(0,100%,0);
+}
+
+.cookie-sheet__content{
+  width:100%;
+  height:100%;
+
+  margin:0;
+  padding:
+    var(--cookieSheetPadTop)
+    var(--cookieSheetPadX)
+    calc(18px + env(safe-area-inset-bottom));
+
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+
+  overflow:hidden;
+}
+
+.cookie-sheet__title{
+  width:100%;
+
+  margin:0 0 14px;
+  padding:0;
+
+  color:#ffffff;
+
+  font-family:inherit;
+  font-size:clamp(21px, 5.4vw, 28px);
+  font-weight:700;
+  line-height:1.16;
+  letter-spacing:-0.015em;
+
+  text-align:left;
+  text-transform:none;
 
   -webkit-font-smoothing:antialiased;
   text-rendering:geometricPrecision;
 }
 
-.legal span{
-  display:block;
-  white-space:nowrap;
+.cookie-sheet__text{
+  width:100%;
+
+  margin:0;
+  padding:0;
+
+  color:rgba(255,255,255,.88);
+
+  font-family:inherit;
+  font-size:clamp(13px, 3.45vw, 15px);
+  font-weight:400;
+  line-height:1.55;
+  letter-spacing:0;
+
+  text-align:left;
+
+  -webkit-font-smoothing:antialiased;
+  text-rendering:geometricPrecision;
 }
 
-/* === GATE BOTTOM (BUTTON + CONSENT LINKS) === */
-.bottom{
-  flex:0 0 auto;
+.cookie-sheet__actions{
   width:100%;
-  padding-top:8px;
-  padding-bottom:0;
+
+  margin-top:auto;
+  padding-top:20px;
+
   display:flex;
-  flex-direction:column;
-  align-items:center;
+  flex-direction:row;
+  align-items:stretch;
+  justify-content:center;
+
+  gap:var(--cookieSheetButtonGap);
 }
 
-/* === THE ENTER PILL === */
-.enterBtn{
-  width:100%;
-  max-width:580px;
+.cookie-sheet__button{
+  appearance:none;
+  -webkit-appearance:none;
 
-  margin:0 auto;
+  flex:1 1 0;
+  min-width:0;
+  height:var(--cookieSheetButtonHeight);
+
+  margin:0;
+  padding:6px 8px;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
-  border:4px solid rgba(255,255,255,1);
+  background:#ffffff;
+  color:#000000;
+
+  border:0;
   border-radius:2px;
-
-  /* Přesně sjednoceno s .consent-pill */
-  padding:7px 16px;
-
-  font-weight:800;
-  letter-spacing:0.06em;
-  color:#FFFFFF;
-
-  background:transparent;
-
   box-shadow:none;
 
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.enterBtn:active{
-  transform:scale(0.98);
-  filter:brightness(0.92);
-}
-
-.enterTop{
-  font-size:18px; /* Sjednoceno s .consent-pill */
-  line-height:1;
-  letter-spacing:0.06em;
-}
-
-/* === CONSENT PILLS === */
-.consent{
-  width:100%;
-  max-width:580px;
-
-  /* větší oddělení od ENTER */
-  margin-top:20px;
-
-  display:flex;
-  flex-direction:column;
-
-  /* více vzduchu mezi pilulkami */
-  gap:8px;
-
-  align-items:center;
-
-  pointer-events:auto;
-}
-
-.consent-pill{
-  width:100%;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  pointer-events:auto;
+  font-family:inherit;
+  font-size:clamp(11px, 2.9vw, 14px);
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:0;
 
   text-align:center;
-  text-decoration:none;
-
-  font-size:10px;
-  font-weight:800;
-
-  letter-spacing:0.06em;
-
-  color:#FFFFFF;
-
-  /* o chlup luxusnější tmavší fialová */
-  background:transparent;
-
-  border:4px solid rgba(255,255,255,1);
-  border-radius:2px;
-
-  /* o trochu vyšší */
-  padding:6px 16px;
+  white-space:normal;
 
   cursor:pointer;
+
   -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+
+  user-select:none;
+
+  transform:translate3d(0,0,0);
+  backface-visibility:hidden;
+  will-change:transform;
+}
+
+.cookie-sheet__button:active{
+  transform:translate3d(0,0,0) scale(.985);
+}
+
+.cookie-sheet__button:disabled{
+  pointer-events:none;
+  opacity:.65;
+}
+
+.cookie-sheet__button--decline,
+.cookie-sheet__button--accept{
+  background:#ffffff;
+  color:#000000;
+}
+
+/* =========================================================
+   COOKIE SHEET — SMALL / SHORT DEVICES
+   ========================================================= */
+
+body.device-non-master.device-small .cookie-sheet__content{
+  padding-left:14px;
+  padding-right:14px;
+}
+
+body.device-non-master.device-small .cookie-sheet__title{
+  margin-bottom:12px;
+  font-size:20px;
+}
+
+body.device-non-master.device-small .cookie-sheet__text{
+  font-size:12.5px;
+  line-height:1.48;
+}
+
+body.device-non-master.device-small .cookie-sheet__actions{
+  gap:8px;
+  padding-top:16px;
+}
+
+body.device-non-master.device-small .cookie-sheet__button{
+  height:48px;
+  padding:6px;
+  font-size:11px;
+}
+
+body.device-short .cookie-sheet{
+  height:55svh;
+  max-height:55svh;
+}
+
+body.device-short .cookie-sheet__content{
+  padding-top:18px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+}
+
+body.device-short .cookie-sheet__title{
+  margin-bottom:10px;
+  font-size:19px;
+}
+
+body.device-short .cookie-sheet__text{
+  font-size:12px;
+  line-height:1.42;
+}
+
+body.device-short .cookie-sheet__actions{
+  padding-top:12px;
+}
+
+body.device-short .cookie-sheet__button{
+  height:46px;
+  font-size:10.5px;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce){
+  #gateOverlay,
+  .top-g,
+  .cookie-sheet{
+    transition-duration:1ms !important;
+  }
 }
 
 .icon-heart{
@@ -661,7 +867,7 @@ body{
   height:35px;
   display:block;
   filter:brightness(0) invert(1);
-  transform: translateY(3px);   
+  transform: translateY(3px);
 }
 
 .icon-dots{
@@ -669,8 +875,8 @@ body{
   height:28px;
   display:block;
   filter:brightness(0) invert(1);
-  transform:translateY(-2px); 
-  opacity: 0.8; 
+  transform:translateY(-2px);
+  opacity: 0.8;
 }
 
 /* === Tikboo [ + ] === */
@@ -694,19 +900,19 @@ body{
 [aria-label="Search"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(-1px); 
+  transform: translateY(-1px);
 }
 
 [aria-label="Messages"] .nav-icon{
   width:26px;
   height:26px;
-  transform: translateY(-1px);  
+  transform: translateY(-1px);
 }
 
 [aria-label="Profile"] .nav-icon{
   width:25px;
   height:25px;
-  transform: translateY(-2px); 
+  transform: translateY(-2px);
 }
 
 .stack button[aria-label="Like"] + .count{ margin-top:-2px; }
@@ -778,7 +984,7 @@ body{
   filter:drop-shadow(0 4px 12px rgba(0,0,0,.25));
   background:transparent !important;
   backface-visibility:hidden;
-  will-change:transform, opacity; 
+  will-change:transform, opacity;
 }
 
 .icon-heart,
