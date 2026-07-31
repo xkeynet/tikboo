@@ -555,7 +555,7 @@ body{
   align-items:center;
   justify-content:center;
 
-  border:none;
+  border:4px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* Přesně sjednoceno s .consent-pill */
@@ -565,7 +565,7 @@ body{
   letter-spacing:0.06em;
   color:#FFFFFF;
 
-  background:rgba(0,0,0,.45);
+  background:transparent;
 
   box-shadow:none;
 
@@ -622,9 +622,10 @@ body{
 
   color:#FFFFFF;
 
-  background:rgba(0,0,0,.45);
+  /* o chlup luxusnější tmavší fialová */
+  background:transparent;
 
-  border:none;
+  border:4px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* o trochu vyšší */
