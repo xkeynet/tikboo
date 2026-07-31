@@ -102,42 +102,52 @@
   <!-- =========================================================
        HTML: Age Gate (LOCK ZONE S1 – 1:1)
        ========================================================== -->
-<div id="gateOverlay" aria-modal="true" role="dialog" data-nosnippet>
-  <main class="wrap">
-    <section class="card" id="gate" data-nosnippet>
-      <div class="top-g">
-        <div class="age-system">
-          <div class="gate-brand">
-            <img class="gate-logo" src="/assets/swipe-logo.png" alt="Swipe">
+  <div id="gateOverlay" aria-modal="true" role="dialog" data-nosnippet>
+    <main class="wrap">
+      <section class="card" id="gate" data-nosnippet>
+        <div class="top-g">
+          <div class="age-system">
+            <div class="gate-brand">
+              <img class="gate-logo" src="/assets/swipe-logo.png" alt="Swipe">
+            </div>
           </div>
         </div>
-      </div>
 
-        <div style="text-align:center; padding: 0 20px;" data-nosnippet>
-          <p class="legal" data-nosnippet>
-            <span>Let's create something amazing</span>
-          </p>
-        </div>
-
-        <div class="bottom">
-          <button class="enterBtn" id="enterBtn" type="button">
-            <span class="enterTop">ENTER</span>
-          </button>
-
-          <div class="consent" data-nosnippet>
-            <a class="consent-pill" href="/legal/cookies.html">
+        <section
+          class="cookie-sheet"
+          id="cookieSheet"
+          aria-labelledby="cookieSheetTitle"
+          aria-describedby="cookieSheetText"
+          data-nosnippet
+        >
+          <div class="cookie-sheet__content">
+            <h1 class="cookie-sheet__title" id="cookieSheetTitle">
               ACCEPT ALL COOKIES
-            </a>
+            </h1>
 
-            <a class="consent-pill" href="/legal/terms-and-conditions.html">
-              TERMS AND CONDITIONS
-            </a>
+            <p class="cookie-sheet__text" id="cookieSheetText">
+              We use cookies to keep Tikboo working, improve your experience and understand how the platform is used. You can accept all cookies or decline optional cookies.
+            </p>
 
-            <a class="consent-pill" href="/legal/privacy-policy.html">
-              PRIVACY POLICY
-            </a>
+            <div class="cookie-sheet__actions">
+              <button
+                class="cookie-sheet__button cookie-sheet__button--decline"
+                id="declineOptionalBtn"
+                type="button"
+              >
+                DECLINE OPTIONAL
+              </button>
+
+              <button
+                class="cookie-sheet__button cookie-sheet__button--accept"
+                id="acceptAllBtn"
+                type="button"
+              >
+                ACCEPT ALL
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
       </section>
     </main>
   </div>
