@@ -73,9 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const COOKIE_REVEAL_DELAY = 3000;
   const COOKIE_CLOSE_DURATION = 960;
 
-  const COOKIE_THEME_COLOR = '#00B4D8';
-  const APP_THEME_COLOR = '#000000';
-
   const gate = document.getElementById('gateOverlay');
   const cookieSheet = document.getElementById('cookieSheet');
   const declineOptionalBtn = document.getElementById('declineOptionalBtn');
@@ -83,23 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let cookieRevealTimer = 0;
   let cookieClosing = false;
-
-  function setBrowserThemeColor(color) {
-    const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
-
-    if (themeColorMetas.length) {
-      themeColorMetas.forEach((meta) => {
-        meta.setAttribute('content', color);
-      });
-
-      return;
-    }
-
-    const themeColorMeta = document.createElement('meta');
-    themeColorMeta.setAttribute('name', 'theme-color');
-    themeColorMeta.setAttribute('content', color);
-    document.head.appendChild(themeColorMeta);
-  }
 
   function clearCookieRevealTimer() {
     if (!cookieRevealTimer) return;
@@ -122,9 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function hideGate() {
     clearCookieRevealTimer();
-    setBrowserThemeColor(APP_THEME_COLOR);
-
-    document.documentElement.classList.remove('cookie-consent-open');
 
     if (!gate) return;
     gate.classList.add('hidden');
@@ -135,11 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearCookieRevealTimer();
     resetCookieGateVisualState();
-    setBrowserThemeColor(COOKIE_THEME_COLOR);
 
     gate.classList.remove('hidden');
-
-    document.documentElement.classList.add('cookie-consent-open');
 
     cookieRevealTimer = setTimeout(() => {
       cookieRevealTimer = 0;
