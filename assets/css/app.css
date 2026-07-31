@@ -507,7 +507,7 @@ body{
   -webkit-user-drag:none;
 
   position: relative;
-  top:-6px;
+  top:2px;
 }
 
 .legal{
@@ -555,7 +555,7 @@ body{
   align-items:center;
   justify-content:center;
 
-  border:4px solid rgba(255,255,255,1);
+  border:3px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* Přesně sjednoceno s .consent-pill */
@@ -625,7 +625,7 @@ body{
   /* o chlup luxusnější tmavší fialová */
   background:transparent;
 
-  border:2px solid rgba(255,255,255,1);
+  border:3px solid rgba(255,255,255,1);
   border-radius:2px;
 
   /* o trochu vyšší */
