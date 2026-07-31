@@ -527,7 +527,7 @@ body{
   position:absolute;
   left:0;
   right:0;
-  top:18svh;
+  top:calc(env(safe-area-inset-top) + 10px);
 
   width:100%;
 
@@ -572,7 +572,7 @@ body{
 }
 
 .gate-logo {
-  width:90px;
+  width:50px;
   height:auto;
 
   display:block;
