@@ -518,7 +518,7 @@ body{
   font-size:16px;
   line-height:1.35;
   font-weight:600;
-  color:rgba(255,255,255,.50);
+  color:transparent;
   opacity:1;
 
   text-align:center;
