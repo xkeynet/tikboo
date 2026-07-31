@@ -124,6 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
     clearCookieRevealTimer();
     setBrowserThemeColor(APP_THEME_COLOR);
 
+    document.documentElement.classList.remove('cookie-consent-open');
+
     if (!gate) return;
     gate.classList.add('hidden');
   }
@@ -136,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setBrowserThemeColor(COOKIE_THEME_COLOR);
 
     gate.classList.remove('hidden');
+
+    document.documentElement.classList.add('cookie-consent-open');
 
     cookieRevealTimer = setTimeout(() => {
       cookieRevealTimer = 0;
