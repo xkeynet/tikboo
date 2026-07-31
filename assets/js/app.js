@@ -66,20 +66,74 @@ document.addEventListener('DOMContentLoaded', () => {
   let ageGateUnlocked = false;
 
   // =========================================================
-  // === Age Gate Storage ===
+  // === Cookie Gate Storage / Animation ===
   // =========================================================
   const KEY = 'swipe_age_ok';
+  const COOKIE_CONSENT_KEY = 'tikboo_cookie_consent';
+  const COOKIE_REVEAL_DELAY = 3000;
+  const COOKIE_CLOSE_DURATION = 960;
+
   const gate = document.getElementById('gateOverlay');
-  const enterBtn = document.getElementById('enterBtn');
+  const cookieSheet = document.getElementById('cookieSheet');
+  const declineOptionalBtn = document.getElementById('declineOptionalBtn');
+  const acceptAllBtn = document.getElementById('acceptAllBtn');
+
+  let cookieRevealTimer = 0;
+  let cookieClosing = false;
+
+  function clearCookieRevealTimer() {
+    if (!cookieRevealTimer) return;
+
+    clearTimeout(cookieRevealTimer);
+    cookieRevealTimer = 0;
+  }
+
+  function resetCookieGateVisualState() {
+    if (gate) {
+      gate.classList.remove('is-closing');
+    }
+
+    if (cookieSheet) {
+      cookieSheet.classList.remove('is-visible', 'is-closing');
+    }
+
+    cookieClosing = false;
+  }
 
   function hideGate() {
+    clearCookieRevealTimer();
+
     if (!gate) return;
     gate.classList.add('hidden');
   }
 
   function showGate() {
     if (!gate) return;
+
+    clearCookieRevealTimer();
+    resetCookieGateVisualState();
+
     gate.classList.remove('hidden');
+
+    cookieRevealTimer = setTimeout(() => {
+      cookieRevealTimer = 0;
+
+      if (ageGateUnlocked || cookieClosing || !cookieSheet) return;
+
+      requestAnimationFrame(() => {
+        cookieSheet.classList.add('is-visible');
+      });
+    }, COOKIE_REVEAL_DELAY);
+  }
+
+  function setCookieButtonsDisabled(disabled) {
+    if (declineOptionalBtn) {
+      declineOptionalBtn.disabled = disabled;
+    }
+
+    if (acceptAllBtn) {
+      acceptAllBtn.disabled = disabled;
+    }
   }
 
   try {
@@ -1126,6 +1180,37 @@ document.addEventListener('DOMContentLoaded', () => {
     bindAutoAdvanceForCurrent();
   }
 
+  function completeCookieChoice(choice) {
+    if (ageGateUnlocked || cookieClosing) return;
+
+    cookieClosing = true;
+    clearCookieRevealTimer();
+    setCookieButtonsDisabled(true);
+
+    track('cookie_consent', {
+      choice,
+      method: 'button'
+    });
+
+    try {
+      localStorage.setItem(KEY, '1');
+      localStorage.setItem(COOKIE_CONSENT_KEY, choice);
+    } catch (e) {}
+
+    if (cookieSheet) {
+      cookieSheet.classList.remove('is-visible');
+      cookieSheet.classList.add('is-closing');
+    }
+
+    if (gate) {
+      gate.classList.add('is-closing');
+    }
+
+    setTimeout(() => {
+      activateFullFeed();
+    }, COOKIE_CLOSE_DURATION);
+  }
+
   function initFirst() {
     state.isMuted = true;
     syncSoundUI();
@@ -1234,22 +1319,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  if (enterBtn) {
-    enterBtn.addEventListener('click', function () {
-      track('age_gate_enter', {
-        gate: 'adult_enter',
-        method: 'button'
-      });
+  if (declineOptionalBtn) {
+    declineOptionalBtn.addEventListener('click', () => {
+      completeCookieChoice('decline_optional');
+    });
+  }
 
-      try {
-        localStorage.setItem(KEY, '1');
-      } catch (e) {}
-
-      this.textContent = 'ENTERED';
-      this.disabled = true;
-      this.style.opacity = '0.75';
-
-      activateFullFeed();
+  if (acceptAllBtn) {
+    acceptAllBtn.addEventListener('click', () => {
+      completeCookieChoice('accept_all');
     });
   }
 });
