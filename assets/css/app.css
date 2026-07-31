@@ -597,7 +597,7 @@ body{
 
   left:0;
   right:0;
-  bottom:calc(-1 * env(safe-area-inset-bottom));
+  bottom:0;
 
   width:100%;
   height:var(--cookieSheetHeight);
@@ -614,6 +614,8 @@ body{
   box-shadow:none;
 
   overflow:hidden;
+   
+  padding-bottom:env(safe-area-inset-bottom);
 
   z-index:3;
 
