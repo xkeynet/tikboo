@@ -735,7 +735,7 @@ body{
   box-shadow:none;
 
   font-family:inherit;
-  font-size:clamp(11px, 2.9vw, 14px);
+  font-size:clamp(13px, 3.2vw, 15px);
   font-weight:700;
   line-height:1.15;
   letter-spacing:0;
