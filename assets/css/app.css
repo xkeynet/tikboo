@@ -797,7 +797,7 @@ body.device-non-master.device-small .cookie-sheet__actions{
 body.device-non-master.device-small .cookie-sheet__button{
   height:48px;
   padding:6px;
-  font-size:11px;
+  font-size:clamp(12.5px,3.4vw,14px);
 }
 
 body.device-short .cookie-sheet{
@@ -826,7 +826,7 @@ body.device-short .cookie-sheet__actions{
 
 body.device-short .cookie-sheet__button{
   height:46px;
-  font-size:10.5px;
+  font-size:clamp(12px,3.2vw,13px);
 }
 
 /* =========================================================
