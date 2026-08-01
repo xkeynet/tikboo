@@ -202,7 +202,7 @@ body.cookie-consent-open {
 .cookie-sheet__actions {
   width: 100%;
 
-  margin-top: 0;
+  margin-top: var(--cookieButtonsOffsetY);
   padding-top: 0;
 
   display: flex;
@@ -211,12 +211,6 @@ body.cookie-consent-open {
   justify-content: center;
 
   gap: var(--cookieSheetButtonGap);
-
-  transform: translate3d(
-    0,
-    var(--cookieButtonsOffsetY),
-    0
-  );
 }
 
 .cookie-sheet__button {
