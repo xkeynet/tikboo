@@ -4,7 +4,8 @@
    ========================================================= */
 
 :root {
-  --cookieSheetHeight: 41svh;
+  /* Zvětšeno na 43svh pro viditelný posun nahoru pod srdíčko */
+  --cookieSheetHeight: 43svh;
   --cookieSheetPadX: 18px;
   --cookieSheetPadTop: 28px;
   --cookieSheetButtonGap: 10px;
@@ -33,9 +34,8 @@ body.cookie-consent-open {
   bottom: 0;
 
   width: 100%;
-  /* Vynucená minimální výška pro vytažení karty nahoru pod srdíčko */
-  min-height: var(--cookieSheetHeight);
-  height: auto;
+  /* VYNUCENÍ PEVNÉ VÝŠKY: Přepsáno z auto na natvrdo danou proměnnou */
+  height: var(--cookieSheetHeight) !important;
   max-height: none;
 
   box-sizing: border-box;
@@ -93,7 +93,7 @@ body.cookie-consent-open {
 
 .cookie-sheet__content {
   width: 100%;
-  min-height: var(--cookieSheetHeight);
+  height: 100%;
 
   box-sizing: border-box;
 
@@ -106,6 +106,7 @@ body.cookie-consent-open {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: space-between;
 
   overflow: hidden;
 }
@@ -113,7 +114,7 @@ body.cookie-consent-open {
 .cookie-sheet__title {
   width: 100%;
 
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   padding: 0;
 
   color: #ffffff;
@@ -134,8 +135,7 @@ body.cookie-consent-open {
 .cookie-sheet__text {
   width: 100%;
 
-  /* Přidán přímý spodní margin pro garanci odstupu od tlačítek */
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   padding: 0;
 
   color: rgba(255, 255, 255, .88);
@@ -284,13 +284,12 @@ body.device-non-master.device-small .cookie-sheet__button {
 }
 
 body.device-short .cookie-sheet {
-  min-height: auto;
-  height: auto;
+  height: auto !important;
   max-height: none;
 }
 
 body.device-short .cookie-sheet__content {
-  min-height: auto;
+  height: auto;
   padding-top: 18px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
