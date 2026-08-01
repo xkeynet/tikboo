@@ -9,6 +9,16 @@
   --cookieSheetPadTop:24px;
   --cookieSheetButtonGap:10px;
   --cookieSheetButtonHeight:52px;
+  --cookieSheetBackground:#00B4D8;
+}
+
+/* =========================================================
+   ROOT BACKGROUND WHILE COOKIE CONSENT IS OPEN
+   ========================================================= */
+
+html.cookie-consent-open,
+body.cookie-consent-open{
+  background:var(--cookieSheetBackground);
 }
 
 /* =========================================================
@@ -37,7 +47,7 @@
   margin:0;
   padding:0;
 
-  background:#00B4D8;
+  background:var(--cookieSheetBackground);
   color:#ffffff;
 
   border:0;
