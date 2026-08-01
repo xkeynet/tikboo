@@ -33,7 +33,7 @@ body.cookie-consent-open {
   bottom: 0;
 
   width: 100%;
-  height: auto;
+  height: var(--cookieSheetHeight);
   max-height: none;
 
   box-sizing: border-box;
