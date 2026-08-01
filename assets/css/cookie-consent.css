@@ -23,8 +23,16 @@
   bottom:0;
 
   width:100%;
-  height:var(--cookieSheetHeight);
-  max-height:40svh;
+  height:calc(
+    var(--cookieSheetHeight) +
+    env(safe-area-inset-bottom, 0px)
+  );
+  max-height:calc(
+    40svh +
+    env(safe-area-inset-bottom, 0px)
+  );
+
+  box-sizing:border-box;
 
   margin:0;
   padding:0;
@@ -37,8 +45,6 @@
   box-shadow:none;
 
   overflow:hidden;
-
-  padding-bottom:env(safe-area-inset-bottom);
 
   z-index:3;
 
@@ -69,11 +75,13 @@
   width:100%;
   height:100%;
 
+  box-sizing:border-box;
+
   margin:0;
   padding:
     var(--cookieSheetPadTop)
     var(--cookieSheetPadX)
-    calc(18px + env(safe-area-inset-bottom));
+    calc(20px + env(safe-area-inset-bottom, 0px));
 
   display:flex;
   flex-direction:column;
@@ -254,13 +262,23 @@ body.device-non-master.device-small .cookie-sheet__button{
 }
 
 body.device-short .cookie-sheet{
-  height:40svh;
-  max-height:40svh;
+  height:calc(
+    40svh +
+    env(safe-area-inset-bottom, 0px)
+  );
+
+  max-height:calc(
+    40svh +
+    env(safe-area-inset-bottom, 0px)
+  );
 }
 
 body.device-short .cookie-sheet__content{
   padding-top:18px;
-  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  padding-bottom:calc(
+    12px +
+    env(safe-area-inset-bottom, 0px)
+  );
 }
 
 body.device-short .cookie-sheet__title{
