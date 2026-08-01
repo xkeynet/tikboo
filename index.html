@@ -6,7 +6,7 @@
   <title>Tikboo</title>
 
   <!-- =========================================================
-       HEAD / SEO / META (LOCK ZONE S2 – 1:1)
+       HEAD / SEO / META
        ========================================================= -->
   <meta name="robots" content="index,follow" />
   <meta name="description" content="Tikboo is the subscription platform empowering creators to own their full potential, monetize their content, and develop authentic connections with their fans.">
@@ -101,7 +101,7 @@
   </div>
 
   <!-- =========================================================
-       HTML: Age Gate (LOCK ZONE S1 – 1:1)
+       HTML: Age Gate
        ========================================================== -->
   <div id="gateOverlay" aria-modal="true" role="dialog" data-nosnippet>
     <main class="wrap">
@@ -113,48 +113,51 @@
             </div>
           </div>
         </div>
-
-        <section
-          class="cookie-sheet"
-          id="cookieSheet"
-          aria-labelledby="cookieSheetTitle"
-          aria-describedby="cookieSheetText"
-          data-nosnippet
-        >
-          <div class="cookie-sheet__content">
-            <h1 class="cookie-sheet__title" id="cookieSheetTitle">
-              Allow cookies from Tikboo on this browser?
-            </h1>
-
-            <p class="cookie-sheet__text" id="cookieSheetText">
-              Tikboo uses cookies and similar technologies to provide, improve, protect and analyze our services. Essential cookies are necessary for our site to work as intended. By selecting "Allow all", you allow us to use optional cookies for additional purposes, such as measuring the effectiveness and relevance of ads, including personalized ads on Tikboo.com, depending on your settings. Optional cookies also help us do other things, such as better measure the performance of our advertising campaigns off Tikboo.com. Learn more about how we use cookies and manage your choices in our <a href="/legal/cookies.html" class="cookie-sheet__link">Cookies Policy</a>.
-            </p>
-
-            <div class="cookie-sheet__actions">
-              <button
-                class="cookie-sheet__button cookie-sheet__button--decline"
-                id="declineOptionalBtn"
-                type="button"
-              >
-                Decline optional
-              </button>
-
-              <button
-                class="cookie-sheet__button cookie-sheet__button--accept"
-                id="acceptAllBtn"
-                type="button"
-              >
-                Allow all
-              </button>
-            </div>
-          </div>
-        </section>
       </section>
     </main>
   </div>
 
   <!-- =========================================================
-       HTML: Video Stack (LOCK ZONE S3)
+       HTML: Cookie Sheet (Samostatně na kořeni body)
+       ========================================================== -->
+  <section
+    class="cookie-sheet"
+    id="cookieSheet"
+    aria-labelledby="cookieSheetTitle"
+    aria-describedby="cookieSheetText"
+    data-nosnippet
+  >
+    <div class="cookie-sheet__content">
+      <h1 class="cookie-sheet__title" id="cookieSheetTitle">
+        Allow cookies from Tikboo on this browser?
+      </h1>
+
+      <p class="cookie-sheet__text" id="cookieSheetText">
+        Tikboo uses cookies and similar technologies to provide, improve, protect and analyze our services. Essential cookies are necessary for our site to work as intended. By selecting "Allow all", you allow us to use optional cookies for additional purposes, such as measuring the effectiveness and relevance of ads, including personalized ads on Tikboo.com, depending on your settings. Optional cookies also help us do other things, such as better measure the performance of our advertising campaigns off Tikboo.com. Learn more about how we use cookies and manage your choices in our <a href="/legal/cookies.html" class="cookie-sheet__link">Cookies Policy</a>.
+      </p>
+
+      <div class="cookie-sheet__actions">
+        <button
+          class="cookie-sheet__button cookie-sheet__button--decline"
+          id="declineOptionalBtn"
+          type="button"
+        >
+          Decline optional
+        </button>
+
+        <button
+          class="cookie-sheet__button cookie-sheet__button--accept"
+          id="acceptAllBtn"
+          type="button"
+        >
+          Allow all
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       HTML: Video Stack
        ========================================================== -->
   <div id="video-stack">
     <div id="layerPrev" class="twincher-layer">
@@ -385,7 +388,7 @@
   </div>
 
   <!-- =========================================================
-       BOTTOM NAV (LOCK ZONE S5)
+       BOTTOM NAV
        ========================================================== -->
   <nav class="nav" aria-label="Primary">
     <div class="seek-wrap" id="seekWrap" aria-hidden="true">
