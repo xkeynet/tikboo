@@ -4,10 +4,9 @@
    ========================================================= */
 
 :root {
-  /* Zvětšeno na 43svh pro viditelný posun nahoru pod srdíčko */
-  --cookieSheetHeight: 43svh;
+  --cookieSheetHeight: 40svh;
   --cookieSheetPadX: 18px;
-  --cookieSheetPadTop: 28px;
+  --cookieSheetPadTop: 24px;
   --cookieSheetButtonGap: 10px;
   --cookieSheetButtonHeight: 52px;
   --cookieSheetBackground: #00B4D8;
@@ -34,8 +33,7 @@ body.cookie-consent-open {
   bottom: 0;
 
   width: 100%;
-  /* VYNUCENÍ PEVNÉ VÝŠKY: Přepsáno z auto na natvrdo danou proměnnou */
-  height: var(--cookieSheetHeight) !important;
+  height: auto;
   max-height: none;
 
   box-sizing: border-box;
@@ -93,7 +91,7 @@ body.cookie-consent-open {
 
 .cookie-sheet__content {
   width: 100%;
-  height: 100%;
+  height: auto;
 
   box-sizing: border-box;
 
@@ -106,7 +104,6 @@ body.cookie-consent-open {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between;
 
   overflow: hidden;
 }
@@ -114,7 +111,7 @@ body.cookie-consent-open {
 .cookie-sheet__title {
   width: 100%;
 
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   padding: 0;
 
   color: #ffffff;
@@ -135,7 +132,7 @@ body.cookie-consent-open {
 .cookie-sheet__text {
   width: 100%;
 
-  margin: 0 0 16px 0;
+  margin: 0;
   padding: 0;
 
   color: rgba(255, 255, 255, .88);
@@ -184,7 +181,7 @@ body.cookie-consent-open {
   width: 100%;
 
   margin-top: auto;
-  padding-top: 0;
+  padding-top: 20px;
 
   display: flex;
   flex-direction: row;
@@ -269,12 +266,11 @@ body.device-non-master.device-small .cookie-sheet__title {
 body.device-non-master.device-small .cookie-sheet__text {
   font-size: 12.5px;
   line-height: 1.48;
-  margin-bottom: 14px;
 }
 
 body.device-non-master.device-small .cookie-sheet__actions {
   gap: 8px;
-  padding-top: 0;
+  padding-top: 16px;
 }
 
 body.device-non-master.device-small .cookie-sheet__button {
@@ -284,12 +280,11 @@ body.device-non-master.device-small .cookie-sheet__button {
 }
 
 body.device-short .cookie-sheet {
-  height: auto !important;
+  height: auto;
   max-height: none;
 }
 
 body.device-short .cookie-sheet__content {
-  height: auto;
   padding-top: 18px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
@@ -302,11 +297,10 @@ body.device-short .cookie-sheet__title {
 body.device-short .cookie-sheet__text {
   font-size: 12px;
   line-height: 1.42;
-  margin-bottom: 10px;
 }
 
 body.device-short .cookie-sheet__actions {
-  padding-top: 0;
+  padding-top: 12px;
 }
 
 body.device-short .cookie-sheet__button {
