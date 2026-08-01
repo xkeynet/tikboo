@@ -10,6 +10,16 @@
   --cookieSheetButtonGap: 8px;
   --cookieSheetButtonHeight: 44px;
   --cookieSheetBackground: #00B4D8;
+
+  /* =======================================================
+     PIXEL POSITION CONTROLS
+     Kladná hodnota = posun dolů
+     Záporná hodnota = posun nahoru
+     ======================================================= */
+
+  --cookieTitleOffsetY: 5px;
+  --cookieTextOffsetY: 10px;
+  --cookieButtonsOffsetY: 20px;
 }
 
 /* =========================================================
@@ -96,7 +106,7 @@ body.cookie-consent-open {
   box-sizing: border-box;
 
   margin: 0;
-  padding: 
+  padding:
     var(--cookieSheetPadTop)
     var(--cookieSheetPadX)
     calc(12px + env(safe-area-inset-bottom, 0px));
@@ -125,6 +135,12 @@ body.cookie-consent-open {
   text-align: center;
   text-transform: none;
 
+  transform: translate3d(
+    0,
+    var(--cookieTitleOffsetY),
+    0
+  );
+
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
@@ -144,6 +160,12 @@ body.cookie-consent-open {
   letter-spacing: 0;
 
   text-align: center;
+
+  transform: translate3d(
+    0,
+    var(--cookieTextOffsetY),
+    0
+  );
 
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
@@ -189,6 +211,12 @@ body.cookie-consent-open {
   justify-content: center;
 
   gap: var(--cookieSheetButtonGap);
+
+  transform: translate3d(
+    0,
+    var(--cookieButtonsOffsetY),
+    0
+  );
 }
 
 .cookie-sheet__button {
