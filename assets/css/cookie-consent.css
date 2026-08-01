@@ -1,6 +1,6 @@
 /* =========================================================
    TIKBOO COOKIE CONSENT
-   Isolated component styles (Safari Full-Bleed Fix)
+   Isolated component styles (TikTok-Style Instant Dismissal Fix)
    ========================================================= */
 
 :root {
@@ -13,12 +13,12 @@
 }
 
 /* =========================================================
-   ROOT BACKGROUND WHILE COOKIE CONSENT IS OPEN
+   ROOT BACKGROUND CLEANUP (Bez natvrdo daného zbarvení body)
    ========================================================= */
 
 html.cookie-consent-open,
 body.cookie-consent-open {
-  background: var(--cookieSheetBackground) !important;
+  /* Ponecháno pro případné vnější přepínače, ale nenařizuje pozadí */
 }
 
 /* =========================================================
@@ -26,7 +26,6 @@ body.cookie-consent-open {
    ========================================================= */
 
 .cookie-sheet {
-  /* Změna na FIXED zajistí přikoupení k oknu prohlížeče, ne k nadřazenému kontejneru */
   position: fixed;
 
   left: 0;
@@ -34,7 +33,6 @@ body.cookie-consent-open {
   bottom: 0;
 
   width: 100%;
-  /* Místo natvrdo dané svh výšky necháme kartu přizpůsobit se obsahu + spodnímu bezpečnému okraji */
   height: auto;
   max-height: none;
 
@@ -56,9 +54,9 @@ body.cookie-consent-open {
 
   pointer-events: none;
 
+  /* Plynulý a elegantní nájezd nahoru */
   transform: translate3d(0, 100%, 0);
-
-  transition: transform 920ms cubic-bezier(.22, 1, .36, 1);
+  transition: transform 420ms cubic-bezier(.22, 1, .36, 1);
 
   will-change: transform;
   backface-visibility: hidden;
@@ -66,14 +64,29 @@ body.cookie-consent-open {
   text-rendering: geometricPrecision;
 }
 
+/* Modrý přetekající blok pod kartou pro iPhone bezpečné zóny */
+.cookie-sheet::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 300px;
+  background: var(--cookieSheetBackground);
+  pointer-events: none;
+}
+
 .cookie-sheet.is-visible {
   pointer-events: auto;
   transform: translate3d(0, 0, 0);
 }
 
+/* TIKTOK STYLE: Okamžitý zmizení bez zpětné animace dolů */
 .cookie-sheet.is-closing {
-  pointer-events: none;
-  transform: translate3d(0, 100%, 0);
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: none !important;
 }
 
 .cookie-sheet__content {
@@ -83,7 +96,6 @@ body.cookie-consent-open {
   box-sizing: border-box;
 
   margin: 0;
-  /* env(safe-area-inset-bottom) protáhne modrou až dolů pod lištu Safari, ale tlačítka udrží nad čárkou */
   padding: 
     var(--cookieSheetPadTop)
     var(--cookieSheetPadX)
