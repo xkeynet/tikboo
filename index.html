@@ -468,9 +468,10 @@
       body.classList.add('device-small');
     }
 
-    if (vh <= 760) {
+    /* VYŘAZENO: Třída device-short již nenarušuje výšku modalů */
+    /* if (vh <= 760) {
       body.classList.add('device-short');
-    }
+    } */
 
     if (vh >= 850 && vw <= 430) {
       body.classList.add('device-tall');
