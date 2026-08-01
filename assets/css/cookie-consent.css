@@ -6,7 +6,8 @@
 :root {
   --cookieSheetHeight: 40svh;
   --cookieSheetPadX: 18px;
-  --cookieSheetPadTop: 24px;
+  /* Mírně zvětšeno z 24px na 32px: vytáhne kartu o kousek výš a zakryje druhou ikonu pod srdíčkem */
+  --cookieSheetPadTop: 32px;
   --cookieSheetButtonGap: 10px;
   --cookieSheetButtonHeight: 52px;
   --cookieSheetBackground: #00B4D8;
@@ -181,7 +182,8 @@ body.cookie-consent-open {
   width: 100%;
 
   margin-top: auto;
-  padding-top: 20px;
+  /* Upraveno z 20px na 26px: jemný odstup textu od tlačítek bez zbytečného vzduchu */
+  padding-top: 26px;
 
   display: flex;
   flex-direction: row;
