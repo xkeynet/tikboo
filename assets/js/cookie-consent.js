@@ -5,14 +5,15 @@
 
   // =========================================================
   // Tikboo Cookie Consent
-  // Isolated component logic (Safari Repaint Fix)
+  // Isolated component logic (TikTok Instant Cut Fix)
   // =========================================================
 
   const AGE_GATE_STORAGE_KEY = 'swipe_age_ok';
   const COOKIE_CONSENT_STORAGE_KEY = 'tikboo_cookie_consent';
 
   const COOKIE_REVEAL_DELAY = 3000;
-  const COOKIE_CLOSE_DURATION = 960;
+  // OKAMŽITÝ STŘIH: Nulová prodleva pro zavření bez čekání
+  const COOKIE_CLOSE_DURATION = 0;
 
   const COOKIE_THEME_COLOR = '#00B4D8';
   const DEFAULT_THEME_COLOR = '#000000';
@@ -63,21 +64,6 @@
       document.body.classList.remove('cookie-consent-open');
 
       setThemeColor(DEFAULT_THEME_COLOR);
-    }
-
-    // FINTA PRO SAFARI: Vynutí okamžité překreslení systémové lišty na iOS
-    function forceSafariRepaint() {
-      disableCookiePageBackground();
-
-      requestAnimationFrame(() => {
-        document.body.style.opacity = '0.999';
-        void document.body.offsetHeight; // Vynutí okamžitý reflow v WebKitu
-
-        requestAnimationFrame(() => {
-          document.body.style.opacity = '1';
-          void document.body.offsetHeight;
-        });
-      });
     }
 
     function clearCookieRevealTimer() {
@@ -168,6 +154,9 @@
       clearCookieRevealTimer();
       setCookieButtonsDisabled(true);
 
+      // 1. KROK: Okamžitý reset pozadí a obarvení lišty zpět na černou
+      disableCookiePageBackground();
+
       if (typeof track === 'function') {
         track('cookie_consent', {
           choice,
@@ -178,6 +167,7 @@
       saveChoice(choice);
       unlocked = true;
 
+      // 2. KROK: Okamžité skrytí sheetu v DOMu bez animace
       if (cookieSheet) {
         cookieSheet.classList.remove('is-visible');
         cookieSheet.classList.add('is-closing');
@@ -185,16 +175,13 @@
 
       if (gate) {
         gate.classList.add('is-closing');
+        gate.classList.add('hidden');
       }
 
-      // VYNUCENÝ REPAINT: Okamžitý reset pozadí i obarvení lišty Safari
-      forceSafariRepaint();
-
-      window.setTimeout(() => {
-        if (typeof onComplete === 'function') {
-          onComplete(choice);
-        }
-      }, COOKIE_CLOSE_DURATION);
+      // 3. KROK: Okamžité vyvolání onComplete
+      if (typeof onComplete === 'function') {
+        onComplete(choice);
+      }
     }
 
     function handleDeclineOptional() {
@@ -240,3 +227,4 @@
     isUnlocked: readUnlockedState
   };
 })();
+
