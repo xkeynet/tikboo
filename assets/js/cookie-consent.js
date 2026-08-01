@@ -36,6 +36,11 @@
     const cookieSheet = document.getElementById('cookieSheet');
     const declineOptionalBtn = document.getElementById('declineOptionalBtn');
     const acceptAllBtn = document.getElementById('acceptAllBtn');
+
+    const isAndroid =
+      document.body.classList.contains('device-android') ||
+      /Android/i.test(navigator.userAgent || '');
+
     let themeColorMeta = document.getElementById('themeColorMeta');
 
     let cookieRevealTimer = 0;
@@ -56,7 +61,11 @@
       document.documentElement.classList.add('cookie-consent-open');
       document.body.classList.add('cookie-consent-open');
 
-      setThemeColor(COOKIE_THEME_COLOR);
+      if (isAndroid) {
+        setThemeColor(DEFAULT_THEME_COLOR);
+      } else {
+        setThemeColor(COOKIE_THEME_COLOR);
+      }
     }
 
     function disableCookiePageBackground() {
