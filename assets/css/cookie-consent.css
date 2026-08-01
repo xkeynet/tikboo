@@ -26,7 +26,7 @@
      Platí pouze pod body.device-android
      ======================================================= */
 
-  --cookieAndroidSheetHeight: 45dvh;
+  --cookieAndroidSheetHeight: 46dvh;
   --cookieAndroidSheetMaxHeight: calc(100dvh - 12px);
   --cookieAndroidPadTop: 16px;
   --cookieAndroidPadBottom: 12px;
