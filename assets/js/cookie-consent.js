@@ -168,9 +168,10 @@
         gate.classList.add('is-closing');
       }
 
-      window.setTimeout(() => {
-        disableCookiePageBackground();
+      // OKAMŽITÝ RESET: Sundáme modré pozadí i meta tag ihned při kliknutí
+      disableCookiePageBackground();
 
+      window.setTimeout(() => {
         if (typeof onComplete === 'function') {
           onComplete(choice);
         }
