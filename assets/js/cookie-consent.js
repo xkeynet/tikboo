@@ -5,7 +5,7 @@
 
   // =========================================================
   // Tikboo Cookie Consent
-  // Isolated component logic
+  // Isolated component logic (Safari Repaint Fix)
   // =========================================================
 
   const AGE_GATE_STORAGE_KEY = 'swipe_age_ok';
@@ -35,16 +35,20 @@
     const cookieSheet = document.getElementById('cookieSheet');
     const declineOptionalBtn = document.getElementById('declineOptionalBtn');
     const acceptAllBtn = document.getElementById('acceptAllBtn');
-    const themeColorMeta = document.getElementById('themeColorMeta');
+    let themeColorMeta = document.getElementById('themeColorMeta');
 
     let cookieRevealTimer = 0;
     let cookieClosing = false;
     let unlocked = readUnlockedState();
 
     function setThemeColor(color) {
-      if (!themeColorMeta) return;
+      if (!themeColorMeta) {
+        themeColorMeta = document.getElementById('themeColorMeta');
+      }
 
-      themeColorMeta.setAttribute('content', color);
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', color);
+      }
     }
 
     function enableCookiePageBackground() {
@@ -59,6 +63,21 @@
       document.body.classList.remove('cookie-consent-open');
 
       setThemeColor(DEFAULT_THEME_COLOR);
+    }
+
+    // FINTA PRO SAFARI: Vynutí okamžité překreslení systémové lišty na iOS
+    function forceSafariRepaint() {
+      disableCookiePageBackground();
+
+      requestAnimationFrame(() => {
+        document.body.style.opacity = '0.999';
+        void document.body.offsetHeight; // Vynutí okamžitý reflow v WebKitu
+
+        requestAnimationFrame(() => {
+          document.body.style.opacity = '1';
+          void document.body.offsetHeight;
+        });
+      });
     }
 
     function clearCookieRevealTimer() {
@@ -168,8 +187,8 @@
         gate.classList.add('is-closing');
       }
 
-      // OKAMŽITÝ RESET: Sundáme modré pozadí i meta tag ihned při kliknutí
-      disableCookiePageBackground();
+      // VYNUCENÝ REPAINT: Okamžitý reset pozadí i obarvení lišty Safari
+      forceSafariRepaint();
 
       window.setTimeout(() => {
         if (typeof onComplete === 'function') {
