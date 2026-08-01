@@ -20,6 +20,16 @@
   --cookieTitleOffsetY: 5px;
   --cookieTextOffsetY: 10px;
   --cookieButtonsOffsetY: 20px;
+
+  /* =======================================================
+     ANDROID COOKIE SHEET CONTROLS
+     Platí pouze pod body.device-android
+     ======================================================= */
+
+  --cookieAndroidSheetHeight: 68dvh;
+  --cookieAndroidSheetMaxHeight: calc(100dvh - 12px);
+  --cookieAndroidPadTop: 16px;
+  --cookieAndroidPadBottom: 12px;
 }
 
 /* =========================================================
@@ -330,6 +340,68 @@ body.device-short .cookie-sheet__actions {
 body.device-short .cookie-sheet__button {
   height: 40px;
   font-size: 12px;
+}
+
+/* =========================================================
+   COOKIE SHEET — ANDROID ONLY
+   Delší automatické překlady nesmí vytlačit tlačítka
+   ========================================================= */
+
+body.device-android .cookie-sheet {
+  height: var(--cookieAndroidSheetHeight);
+  max-height: var(--cookieAndroidSheetMaxHeight);
+}
+
+/*
+  Toto pravidlo má vyšší specificitu než obecné
+  body.device-short .cookie-sheet a zachová zvýšenou
+  Android výšku také na krátkých Android telefonech.
+*/
+
+body.device-android.device-short .cookie-sheet {
+  height: var(--cookieAndroidSheetHeight);
+  max-height: var(--cookieAndroidSheetMaxHeight);
+}
+
+body.device-android .cookie-sheet__content {
+  height: 100%;
+
+  padding-top: var(--cookieAndroidPadTop);
+  padding-bottom: calc(
+    var(--cookieAndroidPadBottom) +
+    env(safe-area-inset-bottom, 0px)
+  );
+
+  overflow: hidden;
+}
+
+body.device-android .cookie-sheet__title {
+  flex: 0 0 auto;
+}
+
+body.device-android .cookie-sheet__text {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+body.device-android .cookie-sheet__text::-webkit-scrollbar {
+  display: none;
+}
+
+body.device-android .cookie-sheet__actions {
+  flex: 0 0 auto;
+}
+
+body.device-android .cookie-sheet__button {
+  flex-shrink: 0;
 }
 
 /* =========================================================
