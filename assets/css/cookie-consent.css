@@ -4,10 +4,9 @@
    ========================================================= */
 
 :root {
-  --cookieSheetHeight: 40svh;
+  --cookieSheetHeight: 48svh;
   --cookieSheetPadX: 18px;
-  /* Mírně zvětšeno z 24px na 32px: vytáhne kartu o kousek výš a zakryje druhou ikonu pod srdíčkem */
-  --cookieSheetPadTop: 32px;
+  --cookieSheetPadTop: 28px;
   --cookieSheetButtonGap: 10px;
   --cookieSheetButtonHeight: 52px;
   --cookieSheetBackground: #00B4D8;
@@ -34,6 +33,8 @@ body.cookie-consent-open {
   bottom: 0;
 
   width: 100%;
+  /* Vynucená minimální výška pro vytažení karty nahoru pod srdíčko */
+  min-height: var(--cookieSheetHeight);
   height: auto;
   max-height: none;
 
@@ -92,7 +93,7 @@ body.cookie-consent-open {
 
 .cookie-sheet__content {
   width: 100%;
-  height: auto;
+  min-height: var(--cookieSheetHeight);
 
   box-sizing: border-box;
 
@@ -133,7 +134,8 @@ body.cookie-consent-open {
 .cookie-sheet__text {
   width: 100%;
 
-  margin: 0;
+  /* Přidán přímý spodní margin pro garanci odstupu od tlačítek */
+  margin: 0 0 20px 0;
   padding: 0;
 
   color: rgba(255, 255, 255, .88);
@@ -182,8 +184,7 @@ body.cookie-consent-open {
   width: 100%;
 
   margin-top: auto;
-  /* Upraveno z 20px na 26px: jemný odstup textu od tlačítek bez zbytečného vzduchu */
-  padding-top: 26px;
+  padding-top: 0;
 
   display: flex;
   flex-direction: row;
@@ -268,11 +269,12 @@ body.device-non-master.device-small .cookie-sheet__title {
 body.device-non-master.device-small .cookie-sheet__text {
   font-size: 12.5px;
   line-height: 1.48;
+  margin-bottom: 14px;
 }
 
 body.device-non-master.device-small .cookie-sheet__actions {
   gap: 8px;
-  padding-top: 16px;
+  padding-top: 0;
 }
 
 body.device-non-master.device-small .cookie-sheet__button {
@@ -282,11 +284,13 @@ body.device-non-master.device-small .cookie-sheet__button {
 }
 
 body.device-short .cookie-sheet {
+  min-height: auto;
   height: auto;
   max-height: none;
 }
 
 body.device-short .cookie-sheet__content {
+  min-height: auto;
   padding-top: 18px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
@@ -299,10 +303,11 @@ body.device-short .cookie-sheet__title {
 body.device-short .cookie-sheet__text {
   font-size: 12px;
   line-height: 1.42;
+  margin-bottom: 10px;
 }
 
 body.device-short .cookie-sheet__actions {
-  padding-top: 12px;
+  padding-top: 0;
 }
 
 body.device-short .cookie-sheet__button {
