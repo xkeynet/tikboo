@@ -2,6 +2,13 @@
 
 export const PLAYLIST = [
   { type: 'video', 
+  manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/19df972dcbaa2b83020ff341e345251f/manifest/video.m3u8', 
+  creator: 'daddysjuiced_', 
+  caption: "@daddysjuiced_", 
+  followUrl: 'https://www.instagram.com/daddysjuiced_/', 
+  avatar: '/assets/avatars/daddysjuiced_.avif' },
+  
+  { type: 'video', 
   manifest: 'https://customer-akbn1e8h41lg80xg.cloudflarestream.com/b8a27727cd98023614340abbdb5f49aa/manifest/video.m3u8', 
   creator: 'itsryanpownall', 
   caption: "@itsryanpownall", 
