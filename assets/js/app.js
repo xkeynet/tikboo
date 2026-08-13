@@ -1,6 +1,6 @@
 // /assets/js/app.js
 
-import { PLAYLIST } from './data/playlist.js';
+import { loadSupabaseFeed } from './feed/supabase-feed.js';
 
 import { initInteractions } from './ui/interactions.js';
 
