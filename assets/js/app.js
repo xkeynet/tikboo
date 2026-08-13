@@ -13,7 +13,7 @@ document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: 
 document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
 document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================
   // === State ===
   // =========================================================
