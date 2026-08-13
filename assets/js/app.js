@@ -14,6 +14,8 @@ document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive:
 document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const PLAYLIST = await loadSupabaseFeed();
+  
   // =========================================================
   // === State ===
   // =========================================================
