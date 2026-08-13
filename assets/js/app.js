@@ -15,6 +15,10 @@ document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: fa
 
 document.addEventListener('DOMContentLoaded', async () => {
   const PLAYLIST = await loadSupabaseFeed();
+
+  if (!PLAYLIST.length) {
+    throw new Error('[Tikboo] Supabase feed is empty.');
+  }
   
   // =========================================================
   // === State ===
