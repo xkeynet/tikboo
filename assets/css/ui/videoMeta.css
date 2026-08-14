@@ -1,7 +1,7 @@
 .video-meta{
   position:absolute;
   left:16px;
-  bottom:65px;
+  bottom:60px;
   z-index:6;
 
   display:flex;
