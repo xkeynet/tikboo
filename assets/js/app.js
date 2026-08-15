@@ -1,6 +1,7 @@
 // /assets/js/app.js
 
 import { loadSupabaseFeed } from './feed/supabase-feed.js';
+import { getVideoIdFromUrl } from './routing/video-route.js';
 
 import { initInteractions } from './ui/interactions.js';
 
@@ -49,6 +50,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     isAnimating: false,
     isMuted: true
   };
+
+  const requestedVideoId = getVideoIdFromUrl();
+
+  if (requestedVideoId !== null) {
+    const requestedIndex = PLAYLIST.findIndex(
+      (item) => String(item.id) === requestedVideoId
+    );
+
+    if (requestedIndex !== -1) {
+      state.index = requestedIndex;
+    }
+  }
 
   let swipeEngine = null;
   let cookieConsent = null;
@@ -1193,7 +1206,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   function activatePreviewMode() {
     ageGateUnlocked = false;
 
-    state.index = 0;
     state.isMuted = true;
 
     refs.videoCurrent.loop = true;
@@ -1436,4 +1448,3 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
