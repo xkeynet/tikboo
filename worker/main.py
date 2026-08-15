@@ -1112,8 +1112,7 @@ def find_stream_video_by_source(
     source_mp4,
 ):
     """
-    Cloudflare Stream supports video_name as a fast exact match
-    against meta.name.
+    Search Cloudflare Stream by video name.
 
     Every Tikboo Stream upload stores:
 
@@ -1133,7 +1132,7 @@ def find_stream_video_by_source(
             "/stream"
         ),
         params={
-            "video_name": (
+            "search": (
                 source_mp4
             ),
             "limit": 10,
@@ -1178,9 +1177,6 @@ def find_stream_video_by_source(
     if not matches:
         return None
 
-    # Deterministically prefer the oldest exact match.
-    #
-    # Under normal operation there must be only one.
     matches.sort(
         key=lambda item: (
             str(
@@ -1243,7 +1239,7 @@ def create_stream_video(
     )
 
     payload = {
-        "url": source_url,
+        "input": source_url,
         "meta": {
             "name": (
                 source_key
@@ -1508,9 +1504,6 @@ def acquire_stream_uid(
             "has no UID."
         )
 
-    # Critical durability point:
-    #
-    # Save UID immediately after Cloudflare returns it.
     save_stream_uid(
         row["id"],
         uid,
