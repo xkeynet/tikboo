@@ -388,6 +388,90 @@
   </div>
 
   <!-- =========================================================
+       SHARE SHEET
+       ========================================================== -->
+  <div
+    id="shareSheet"
+    class="share-sheet"
+    aria-hidden="true"
+  >
+    <button
+      id="shareSheetBackdrop"
+      class="share-sheet__backdrop"
+      type="button"
+      aria-label="Close share"
+    ></button>
+
+    <section
+      class="share-sheet__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shareSheetTitle"
+    >
+      <div class="share-sheet__handle" aria-hidden="true"></div>
+
+      <div class="share-sheet__header">
+        <h2
+          class="share-sheet__title"
+          id="shareSheetTitle"
+        >
+          Share
+        </h2>
+
+        <button
+          class="share-sheet__close"
+          id="shareCloseBtn"
+          type="button"
+          aria-label="Close share"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="share-sheet__actions">
+        <button
+          class="share-sheet__action"
+          id="shareCopyBtn"
+          type="button"
+        >
+          <span class="share-sheet__action-label">
+            Copy link
+          </span>
+        </button>
+
+        <button
+          class="share-sheet__action"
+          id="shareNativeBtn"
+          type="button"
+        >
+          <span class="share-sheet__action-label">
+            Share...
+          </span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================================
        BOTTOM NAV
        ========================================================== -->
   <nav class="nav" aria-label="Primary">
