@@ -1325,15 +1325,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     e.stopPropagation();
 
+    const currentItem = PLAYLIST[state.index];
+    const videoUrl = `https://tikboo.com/v/${currentItem.id}`;
+
     const shareData = {
       title: 'Tikboo',
       text: 'Watch this',
-      url: 'https://tikboo.com/'
+      url: videoUrl
     };
 
     try {
       track('share_tap', {
-        source: 'side_button'
+        source: 'side_button',
+        video_id: currentItem.id
       });
 
       if (navigator.share) {
