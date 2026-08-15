@@ -4,6 +4,10 @@ import { loadSupabaseFeed } from './feed/supabase-feed.js';
 import { getVideoIdFromUrl } from './routing/video-route.js';
 
 import { initInteractions } from './ui/interactions.js';
+import {
+  initVideoShareSheet,
+  openVideoShareSheet
+} from './ui/share.js';
 
 // === iOS SAFARI: KILL ZOOM (pinch + gesture) ===
 document.addEventListener('touchmove', (e) => {
@@ -337,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function isInteractiveTarget(target) {
     return !!target?.closest(
-      'button, a, input, textarea, select, label, .nav, .side, .video-meta-caption, .modal, .modal-backdrop, #gateOverlay'
+      'button, a, input, textarea, select, label, .nav, .side, .video-meta-caption, .modal, .modal-backdrop, .share-sheet, #gateOverlay'
     );
   }
 
@@ -1273,6 +1277,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     canInteract: () => ageGateUnlocked
   });
 
+  initVideoShareSheet();
+
   // =========================================================
   // === Profile Modal ===
   // =========================================================
@@ -1313,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================
   // === Share ===
   // =========================================================
-  document.addEventListener('click', async (e) => {
+  document.addEventListener('click', (e) => {
     if (!ageGateUnlocked) return;
 
     const shareBtn = e.target.closest(
@@ -1326,41 +1332,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.stopPropagation();
 
     const currentItem = PLAYLIST[state.index];
-    const videoUrl = `https://tikboo.com/v/${currentItem.id}`;
 
-    const shareData = {
-      title: 'Tikboo',
-      text: 'Watch this',
-      url: videoUrl
-    };
+    track('share_tap', {
+      source: 'side_button',
+      video_id: currentItem.id
+    });
 
-    try {
-      track('share_tap', {
-        source: 'side_button',
-        video_id: currentItem.id
-      });
-
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-
-      if (
-        navigator.clipboard &&
-        window.isSecureContext
-      ) {
-        await navigator.clipboard.writeText(
-          shareData.url
-        );
-
-        alert('Link copied');
-        return;
-      }
-
-      alert(shareData.url);
-    } catch (err) {
-      console.log('Share failed:', err);
-    }
+    openVideoShareSheet(currentItem);
   }, true);
 
   if (closeProfile) {
