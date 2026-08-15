@@ -5,9 +5,9 @@
   xmlns="http://www.w3.org/2000/svg"
 >
   <path
-    d="M3.5 9.5H8.5V14.5H3.5V9.5Z
+    d="M2 9.5H7V14.5H2V9.5Z
        M9.5 9.5H14.5V14.5H9.5V9.5Z
-       M15.5 9.5H20.5V14.5H15.5V9.5Z"
+       M17 9.5H22V14.5H17V9.5Z"
     fill="#ffffff"
   />
 </svg>
