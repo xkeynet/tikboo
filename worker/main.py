@@ -1,8 +1,7 @@
-#!/opt/tikboo-worker/venv/bin/python
+#!/usr/bin/env python3
 
 from __future__ import annotations
 
-import logging
 import os
 import random
 import re
@@ -24,35 +23,59 @@ from dotenv import load_dotenv
 #
 # PRODUCTION ARCHITECTURE
 #
-# R2
-#   Source MP4 storage only.
-#
-# Hetzner
-#   Discovery, creator selection, orchestration.
-#
-# Cloudflare Stream
-#   Video ingest, transcoding, HLS packaging and playback.
-#
-# Supabase
-#   Processing state and playback metadata.
-#
-# This worker NEVER:
-#
-#   - runs FFmpeg
-#   - runs ffprobe
-#   - downloads source MP4 to Hetzner
-#   - creates poster.webp
-#   - creates index.m3u8
-#   - creates .ts segments
-#   - creates .m4s segments
-#   - creates init.mp4
-#   - uploads playback files into R2
-#
-# Source MP4 files remain untouched:
+# Cloudflare R2
+#   Source storage ONLY.
 #
 #   creators/<creator_handle>/001.mp4
 #   creators/<creator_handle>/002.mp4
-#   ...
+#   creators/<creator_handle>/003.mp4
+#
+# Hetzner
+#   Automation / orchestration:
+#
+#   - discovers source MP4 files in R2
+#   - preserves creator/video selection logic
+#   - cooperates with Supabase
+#   - creates temporary signed GET URL for source MP4
+#   - sends that URL to Cloudflare Stream
+#   - waits for Stream processing
+#   - writes final playback metadata to Supabase
+#
+# Cloudflare Stream
+#   Final video processing and delivery:
+#
+#   - fetches source MP4
+#   - transcodes video
+#   - creates HLS
+#   - creates DASH
+#   - creates thumbnail
+#   - serves playback
+#
+# Supabase
+#   Processing state + Tikboo playback metadata.
+#
+#
+# ABSOLUTE R2 RULES
+#
+# This worker NEVER:
+#
+#   - deletes source MP4
+#   - modifies source MP4
+#   - creates index.m3u8 in R2
+#   - creates segment_*.ts in R2
+#   - creates segment_*.m4s in R2
+#   - creates init.mp4 in R2
+#   - creates poster.webp in R2
+#   - uploads playback output to R2
+#
+# There is intentionally NO:
+#
+#   s3.upload_file(...)
+#   s3.put_object(...)
+#   s3.delete_object(...)
+#
+# R2 is read-only from the worker's point of view,
+# except for normal LIST/GET/presigned GET operations.
 #
 # ============================================================
 
@@ -61,14 +84,12 @@ from dotenv import load_dotenv
 # VERSION
 # ============================================================
 
-
-WORKER_VERSION = "stream-2.0.0"
+WORKER_VERSION = "stream-3.1.0"
 
 
 # ============================================================
-# PATHS / ENV
+# PATHS / ENVIRONMENT
 # ============================================================
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = BASE_DIR / ".env"
@@ -77,34 +98,37 @@ load_dotenv(ENV_FILE)
 
 
 # ============================================================
-# EXISTING PRODUCTION ENVIRONMENT
+# R2 ENVIRONMENT
 # ============================================================
-
 
 R2_ENDPOINT = os.environ["R2_ENDPOINT"]
 R2_ACCESS_KEY = os.environ["R2_ACCESS_KEY"]
 R2_SECRET_KEY = os.environ["R2_SECRET_KEY"]
 R2_BUCKET = os.environ["R2_BUCKET"]
 
+
+# ============================================================
+# SUPABASE ENVIRONMENT
+# ============================================================
+
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
 
 # ============================================================
-# NEW CLOUDFLARE STREAM ENVIRONMENT
+# CLOUDFLARE STREAM ENVIRONMENT
 # ============================================================
 
-
 CLOUDFLARE_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+
 CLOUDFLARE_STREAM_API_TOKEN = os.environ[
     "CLOUDFLARE_STREAM_API_TOKEN"
 ]
 
 
 # ============================================================
-# OPTIONAL WORKER SETTINGS
+# OPTIONAL SETTINGS
 # ============================================================
-
 
 STREAM_POLL_SECONDS = int(
     os.getenv(
@@ -127,51 +151,41 @@ R2_PRESIGNED_URL_SECONDS = int(
     )
 )
 
+HTTP_TIMEOUT_SECONDS = int(
+    os.getenv(
+        "HTTP_TIMEOUT_SECONDS",
+        "60",
+    )
+)
+
 
 # ============================================================
 # CONSTANTS
 # ============================================================
 
-
 CREATORS_PREFIX = "creators/"
+
+CLOUDFLARE_API_BASE = (
+    "https://api.cloudflare.com/client/v4"
+)
 
 SOURCE_PATTERN = re.compile(
     r"^creators/([^/]+)/(\d+)\.mp4$",
     re.IGNORECASE,
 )
 
-CLOUDFLARE_API_BASE = (
-    "https://api.cloudflare.com/client/v4"
-)
-
 STREAM_UID_MARKER_PREFIX = "cfstream://"
 
-HTTP_TIMEOUT_SECONDS = 60
-
-
-# ============================================================
-# LOGGING
-# ============================================================
-
-
-logging.basicConfig(
-    level=logging.INFO,
-    format=(
-        "%(asctime)s | "
-        "%(levelname)s | "
-        "%(message)s"
-    ),
-)
-
-logger = logging.getLogger(
-    "tikboo-worker"
+STREAM_UID_FROM_URL_PATTERN = re.compile(
+    r"(?:cloudflarestream\.com|videodelivery\.net)"
+    r"/([A-Za-z0-9_-]{10,64})/",
+    re.IGNORECASE,
 )
 
 
 # ============================================================
 # HTTP SESSION
 # ============================================================
-
 
 http = requests.Session()
 
@@ -187,7 +201,6 @@ http.headers.update(
 # ============================================================
 # R2 CLIENT
 # ============================================================
-
 
 s3 = boto3.client(
     "s3",
@@ -209,10 +222,11 @@ s3 = boto3.client(
 # EXCEPTIONS
 # ============================================================
 
+class TikbooWorkerError(RuntimeError):
+    pass
 
-class CloudflareStreamError(
-    RuntimeError
-):
+
+class CloudflareStreamError(TikbooWorkerError):
     pass
 
 
@@ -226,17 +240,16 @@ class CloudflareStreamProcessingError(
 # GENERIC HELPERS
 # ============================================================
 
-
-def now_iso():
+def now_iso() -> str:
     return datetime.now(
         timezone.utc
     ).isoformat()
 
 
 def truncate_error(
-    value,
-    limit=4000,
-):
+    value: Any,
+    limit: int = 4000,
+) -> str:
     text = str(value)
 
     if len(text) <= limit:
@@ -246,13 +259,14 @@ def truncate_error(
 
 
 def duration_to_int(
-    value,
-):
+    value: Any,
+) -> Optional[int]:
     if value is None:
         return None
 
     try:
         duration = float(value)
+
     except (
         TypeError,
         ValueError,
@@ -268,13 +282,13 @@ def duration_to_int(
 
 
 # ============================================================
-# SUPABASE
+# SUPABASE HEADERS
 # ============================================================
 
-
 def supabase_headers(
-    prefer="return=representation",
-):
+    prefer: Optional[str] = None,
+) -> Dict[str, str]:
+
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": (
@@ -294,10 +308,15 @@ def supabase_headers(
     return headers
 
 
+# ============================================================
+# SUPABASE GENERIC GET
+# ============================================================
+
 def supabase_get(
-    table,
-    params,
-):
+    table: str,
+    params: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+
     response = http.get(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=supabase_headers(),
@@ -313,18 +332,23 @@ def supabase_get(
         rows,
         list,
     ):
-        raise RuntimeError(
-            f"Unexpected Supabase response "
-            f"for table {table}."
+        raise TikbooWorkerError(
+            "Unexpected Supabase response "
+            f"for table '{table}'."
         )
 
     return rows
 
 
+# ============================================================
+# SUPABASE GENERIC INSERT
+# ============================================================
+
 def supabase_insert(
-    table,
-    payload,
-):
+    table: str,
+    payload: Dict[str, Any],
+) -> Dict[str, Any]:
+
     response = http.post(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=supabase_headers(
@@ -342,19 +366,24 @@ def supabase_insert(
         not isinstance(rows, list)
         or not rows
     ):
-        raise RuntimeError(
-            f"Supabase did not return "
-            f"inserted {table} row."
+        raise TikbooWorkerError(
+            "Supabase did not return "
+            f"inserted '{table}' row."
         )
 
     return rows[0]
 
 
+# ============================================================
+# SUPABASE GENERIC PATCH
+# ============================================================
+
 def supabase_patch(
-    table,
-    params,
-    payload,
-):
+    table: str,
+    params: Dict[str, Any],
+    payload: Dict[str, Any],
+) -> None:
+
     response = http.patch(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=supabase_headers(
@@ -369,31 +398,39 @@ def supabase_patch(
 
 
 # ============================================================
-# SOURCE VIDEO DISCOVERY
+# SOURCE MP4 DISCOVERY
 # ============================================================
 
-
-def list_source_videos():
+def list_source_videos() -> List[
+    Dict[str, Any]
+]:
     """
-    Read ONLY original source MP4 objects:
+    Read ONLY original source MP4 objects.
 
-        creators/<creator_handle>/<number>.mp4
+    ACCEPTED:
 
-    Historical folders such as:
+        creators/abbyy.irl/001.mp4
+        creators/abbyy.irl/002.mp4
+        creators/creator/100.mp4
 
-        creators/<creator>/001/index.m3u8
-        creators/<creator>/001/poster.webp
-        creators/<creator>/001/segment_*.ts
-        creators/<creator>/001/segment_*.m4s
+    IGNORED:
 
-    do not match SOURCE_PATTERN and are ignored.
+        creators/abbyy.irl/001/index.m3u8
+        creators/abbyy.irl/001/poster.webp
+        creators/abbyy.irl/001/init.mp4
+        creators/abbyy.irl/001/segment_00001.m4s
+        creators/abbyy.irl/001/segment_00001.ts
+
+    The worker only LISTS objects here.
     """
 
     paginator = s3.get_paginator(
         "list_objects_v2"
     )
 
-    videos = []
+    videos: List[
+        Dict[str, Any]
+    ] = []
 
     for page in paginator.paginate(
         Bucket=R2_BUCKET,
@@ -455,35 +492,43 @@ def list_source_videos():
 # ============================================================
 # SELECTION ENGINE V1
 # ============================================================
-#
-# IMPORTANT:
-#
-# This logic intentionally preserves the actual production
-# Selection Engine from the original Hetzner worker.
-#
-# - one worker run = maximum one newly selected video
-# - creators are randomized
-# - most recently published creator is avoided when alternatives
-#   exist
-# - videos inside one creator remain numerically ordered
-# - candidates are interleaved across creators
-#
-# ============================================================
-
 
 def order_candidates_for_selection(
-    videos,
-):
+    videos: List[
+        Dict[str, Any]
+    ],
+) -> List[
+    Dict[str, Any]
+]:
+    """
+    Preserve existing Tikboo Selection Engine v1.
+
+    - creators randomized
+    - latest ready creator is avoided
+      when alternatives exist
+    - numeric video order inside creator
+    - candidates interleaved across creators
+    - one worker execution processes
+      maximum one selected video
+    """
+
     if not videos:
         return []
 
-    by_creator = {}
+    by_creator: Dict[
+        str,
+        List[Dict[str, Any]],
+    ] = {}
 
     for video in videos:
-        by_creator.setdefault(
+        creator_handle = (
             video[
                 "creator_handle"
-            ],
+            ]
+        )
+
+        by_creator.setdefault(
+            creator_handle,
             [],
         ).append(
             video
@@ -503,13 +548,9 @@ def order_candidates_for_selection(
     last_creator = None
 
     try:
-        response = requests.get(
-            (
-                f"{SUPABASE_URL}"
-                "/rest/v1/videos"
-            ),
-            headers=supabase_headers(),
-            params={
+        rows = supabase_get(
+            "videos",
+            {
                 "select": (
                     "creator_handle"
                 ),
@@ -521,12 +562,7 @@ def order_candidates_for_selection(
                 ),
                 "limit": "1",
             },
-            timeout=30,
         )
-
-        response.raise_for_status()
-
-        rows = response.json()
 
         if rows:
             last_creator = (
@@ -536,10 +572,9 @@ def order_candidates_for_selection(
             )
 
     except Exception as exc:
-        logger.warning(
+        print(
             "Selection Engine: "
-            "could not read last "
-            "creator: %s",
+            "could not read last creator:",
             exc,
         )
 
@@ -564,7 +599,9 @@ def order_candidates_for_selection(
             last_creator
         )
 
-    ordered = []
+    ordered: List[
+        Dict[str, Any]
+    ] = []
 
     while True:
         added = False
@@ -576,29 +613,29 @@ def order_candidates_for_selection(
                 ]
             )
 
-            if creator_videos:
-                ordered.append(
-                    creator_videos.pop(
-                        0
-                    )
-                )
+            if not creator_videos:
+                continue
 
-                added = True
+            ordered.append(
+                creator_videos.pop(
+                    0
+                )
+            )
+
+            added = True
 
         if not added:
             break
 
-    logger.info(
-        "Selection Engine v1 | "
-        "creators=%s | "
-        "source_candidates=%s",
-        len(creators),
-        len(ordered),
+    print(
+        "Selection Engine v1:",
+        f"{len(creators)} creators,",
+        f"{len(ordered)} source candidates.",
     )
 
     if last_creator:
-        logger.info(
-            "Last ready creator | %s",
+        print(
+            "Last ready creator:",
             last_creator,
         )
 
@@ -606,13 +643,37 @@ def order_candidates_for_selection(
 
 
 # ============================================================
-# SUPABASE VIDEO LOOKUP
+# CREATOR LOOKUP
 # ============================================================
 
+def creator_exists(
+    handle: str,
+) -> bool:
+
+    rows = supabase_get(
+        "creators",
+        {
+            "select": "id,handle",
+            "handle": (
+                f"eq.{handle}"
+            ),
+            "limit": "1",
+        },
+    )
+
+    return bool(rows)
+
+
+# ============================================================
+# VIDEO LOOKUP
+# ============================================================
 
 def get_video_by_source(
-    source_mp4,
-):
+    source_mp4: str,
+) -> Optional[
+    Dict[str, Any]
+]:
+
     rows = supabase_get(
         "videos",
         {
@@ -624,104 +685,117 @@ def get_video_by_source(
         },
     )
 
+    if not rows:
+        return None
+
+    return rows[0]
+
+
+# ============================================================
+# STREAM UID EXTRACTION
+# ============================================================
+
+def extract_stream_uid_from_value(
+    value: Any,
+) -> Optional[str]:
+
+    if not isinstance(
+        value,
+        str,
+    ):
+        return None
+
+    value = value.strip()
+
+    if not value:
+        return None
+
+    if value.startswith(
+        STREAM_UID_MARKER_PREFIX
+    ):
+        uid = value[
+            len(
+                STREAM_UID_MARKER_PREFIX
+            ):
+        ].strip()
+
+        return (
+            uid
+            if uid
+            else None
+        )
+
+    match = (
+        STREAM_UID_FROM_URL_PATTERN.search(
+            value
+        )
+    )
+
+    if not match:
+        return None
+
+    return match.group(1)
+
+
+def extract_stream_uid_from_row(
+    row: Dict[str, Any],
+) -> Optional[str]:
+
+    for column in (
+        "video_url",
+        "manifest_url",
+        "hls_url",
+        "poster_url",
+    ):
+        uid = (
+            extract_stream_uid_from_value(
+                row.get(column)
+            )
+        )
+
+        if uid:
+            return uid
+
+    return None
+
+
+# ============================================================
+# CHECK WHETHER ROW ALREADY USES STREAM
+# ============================================================
+
+def row_uses_cloudflare_stream(
+    row: Dict[str, Any],
+) -> bool:
+
+    uid = extract_stream_uid_from_row(
+        row
+    )
+
+    if not uid:
+        return False
+
     return (
-        rows[0]
-        if rows
-        else None
-    )
-
-
-def video_exists_in_supabase(
-    source_mp4,
-):
-    """
-    Preserve production semantics.
-
-    A row for source_mp4 means this source has already entered
-    the processing pipeline.
-
-    The caller decides whether to resume processing or skip.
-    """
-
-    return get_video_by_source(
-        source_mp4
-    )
-
-
-def creator_exists(
-    handle,
-):
-    response = requests.get(
-        (
-            f"{SUPABASE_URL}"
-            "/rest/v1/creators"
-        ),
-        headers=supabase_headers(),
-        params={
-            "select": (
-                "id,handle"
-            ),
-            "handle": (
-                f"eq.{handle}"
-            ),
-            "limit": "1",
-        },
-        timeout=30,
-    )
-
-    response.raise_for_status()
-
-    rows = response.json()
-
-    return bool(rows)
-
-
-def get_processing_video():
-    """
-    Resume an existing Stream processing row before creating
-    another Stream upload.
-
-    This is critical for idempotency.
-
-    If a server restarts while Cloudflare Stream is encoding,
-    the next worker run continues that same source video rather
-    than selecting a new one.
-    """
-
-    rows = supabase_get(
-        "videos",
-        {
-            "select": "*",
-            "processing_status": (
-                "eq.processing"
-            ),
-            "order": (
-                "created_at.asc"
-            ),
-            "limit": "1",
-        },
-    )
-
-    return (
-        rows[0]
-        if rows
-        else None
+        row.get(
+            "processing_status"
+        )
+        == "ready"
+        and row.get(
+            "hls_ready"
+        )
+        is True
     )
 
 
 # ============================================================
-# SUPABASE PROCESSING STATE
+# INSERT NEW PROCESSING ROW
 # ============================================================
-
 
 def insert_processing_row(
-    video,
-):
+    video: Dict[str, Any],
+) -> Dict[str, Any]:
     """
-    Create durable DB state BEFORE sending the source MP4 to
-    Cloudflare Stream.
-
-    No playback URL exists at this point.
+    Uses only columns already present in the
+    existing production worker/schema.
     """
 
     payload = {
@@ -731,23 +805,9 @@ def insert_processing_row(
             ]
         ),
         "video_url": None,
-        "manifest_url": None,
-        "poster_url": None,
-        "hls_url": None,
         "video_number": (
             video[
                 "video_number"
-            ]
-        ),
-        "is_active": False,
-        "created_by_worker": True,
-        "processing_status": (
-            "processing"
-        ),
-        "duration_seconds": None,
-        "file_size_bytes": (
-            video[
-                "size"
             ]
         ),
         "source_mp4": (
@@ -755,12 +815,19 @@ def insert_processing_row(
                 "key"
             ]
         ),
+        "file_size_bytes": (
+            video[
+                "size"
+            ]
+        ),
+        "is_active": False,
+        "created_by_worker": True,
+        "processing_status": (
+            "processing"
+        ),
         "hls_ready": False,
         "worker_version": (
             WORKER_VERSION
-        ),
-        "last_processed_at": (
-            now_iso()
         ),
         "error_message": None,
     }
@@ -771,34 +838,74 @@ def insert_processing_row(
     )
 
 
+# ============================================================
+# SAVE STREAM UID DURING PROCESSING
+# ============================================================
+
 def save_stream_uid(
-    row_id,
-    stream_uid,
-):
+    row_id: Any,
+    stream_uid: str,
+    preserve_existing_playback: bool,
+) -> None:
     """
-    Current Supabase schema has no dedicated stream_uid column.
+    For NEW rows:
+        temporarily stores cfstream://UID
+        in video_url.
 
-    Until a deliberate DB migration adds one, the UID is stored
-    DURING PROCESSING in video_url as:
+    For EXISTING R2 rows:
+        does NOT overwrite working playback
+        while Stream is still encoding.
 
-        cfstream://<uid>
-
-    The row remains:
-        processing_status = processing
-        is_active = false
-        hls_ready = false
-
-    Therefore this marker can never be exposed as an active feed
-    playback URL.
-
-    Once Stream is ready, video_url is replaced with the real
-    Cloudflare Stream HLS URL.
+    Existing rows can recover the UID via
+    Stream meta.name search if worker restarts.
     """
 
-    marker = (
-        STREAM_UID_MARKER_PREFIX
-        + stream_uid
+    payload: Dict[
+        str,
+        Any,
+    ] = {
+        "worker_version": (
+            WORKER_VERSION
+        ),
+        "last_processed_at": (
+            now_iso()
+        ),
+        "error_message": None,
+    }
+
+    if not preserve_existing_playback:
+        payload.update(
+            {
+                "video_url": (
+                    STREAM_UID_MARKER_PREFIX
+                    + stream_uid
+                ),
+                "processing_status": (
+                    "processing"
+                ),
+                "hls_ready": False,
+                "is_active": False,
+            }
+        )
+
+    supabase_patch(
+        "videos",
+        {
+            "id": (
+                f"eq.{row_id}"
+            ),
+        },
+        payload,
     )
+
+
+# ============================================================
+# KEEP NEW ROW IN PROCESSING STATE
+# ============================================================
+
+def mark_new_row_processing(
+    row_id: Any,
+) -> None:
 
     supabase_patch(
         "videos",
@@ -808,7 +915,6 @@ def save_stream_uid(
             ),
         },
         {
-            "video_url": marker,
             "processing_status": (
                 "processing"
             ),
@@ -825,49 +931,14 @@ def save_stream_uid(
     )
 
 
-def mark_video_processing(
-    row_id,
-):
-    supabase_patch(
-        "videos",
-        {
-            "id": (
-                f"eq.{row_id}"
-            ),
-        },
-        {
-            "processing_status": (
-                "processing"
-            ),
-            "hls_ready": False,
-            "is_active": False,
-            "worker_version": (
-                WORKER_VERSION
-            ),
-            "last_processed_at": (
-                now_iso()
-            ),
-            "error_message": None,
-        },
-    )
-
+# ============================================================
+# MARK VIDEO READY
+# ============================================================
 
 def mark_video_ready(
-    row_id,
-    stream_video,
-):
-    """
-    Cloudflare Stream is authoritative for playback.
-
-    We reuse the existing Supabase playback columns:
-
-        video_url
-        manifest_url
-        hls_url
-        poster_url
-
-    No R2 playback path is written.
-    """
+    row_id: Any,
+    stream_video: Dict[str, Any],
+) -> None:
 
     uid = stream_video.get(
         "uid"
@@ -876,7 +947,7 @@ def mark_video_ready(
     if not uid:
         raise CloudflareStreamError(
             "Cloudflare Stream ready "
-            "response has no UID."
+            "response contains no UID."
         )
 
     playback = (
@@ -925,21 +996,21 @@ def mark_video_ready(
         "manifest_url": (
             hls_url
         ),
-        "poster_url": (
-            poster_url
-        ),
         "hls_url": (
             hls_url
         ),
-        "is_active": True,
-        "created_by_worker": True,
-        "processing_status": (
-            "ready"
+        "poster_url": (
+            poster_url
         ),
         "duration_seconds": (
             duration_seconds
         ),
+        "processing_status": (
+            "ready"
+        ),
         "hls_ready": True,
+        "is_active": True,
+        "created_by_worker": True,
         "worker_version": (
             WORKER_VERSION
         ),
@@ -959,38 +1030,35 @@ def mark_video_ready(
         payload,
     )
 
-    logger.info(
-        "READY | row_id=%s | "
-        "stream_uid=%s | "
-        "hls=%s",
-        row_id,
-        uid,
-        hls_url,
+    print()
+    print(
+        "Supabase READY"
+    )
+    print(
+        f"Row ID:     {row_id}"
+    )
+    print(
+        f"Stream UID: {uid}"
+    )
+    print(
+        f"HLS:        {hls_url}"
+    )
+    print(
+        f"Poster:     {poster_url}"
+    )
+    print(
+        f"Duration:   {duration_seconds}"
     )
 
 
-def mark_video_failed(
-    row_id,
-    error_message,
-):
-    payload = {
-        "processing_status": (
-            "error"
-        ),
-        "hls_ready": False,
-        "is_active": False,
-        "worker_version": (
-            WORKER_VERSION
-        ),
-        "last_processed_at": (
-            now_iso()
-        ),
-        "error_message": (
-            truncate_error(
-                error_message
-            )
-        ),
-    }
+# ============================================================
+# MARK NEW VIDEO FAILED
+# ============================================================
+
+def mark_new_video_failed(
+    row_id: Any,
+    error_message: Any,
+) -> None:
 
     supabase_patch(
         "videos",
@@ -999,7 +1067,72 @@ def mark_video_failed(
                 f"eq.{row_id}"
             ),
         },
-        payload,
+        {
+            "processing_status": (
+                "error"
+            ),
+            "hls_ready": False,
+            "is_active": False,
+            "worker_version": (
+                WORKER_VERSION
+            ),
+            "last_processed_at": (
+                now_iso()
+            ),
+            "error_message": (
+                truncate_error(
+                    error_message
+                )
+            ),
+        },
+    )
+
+
+# ============================================================
+# RECORD MIGRATION ERROR
+# ============================================================
+
+def mark_existing_migration_error(
+    row_id: Any,
+    error_message: Any,
+) -> None:
+    """
+    Existing R2 playback is deliberately preserved.
+
+    If Stream migration fails, this function
+    does NOT alter:
+
+        video_url
+        manifest_url
+        hls_url
+        poster_url
+        processing_status
+        hls_ready
+        is_active
+
+    It only records diagnostics.
+    """
+
+    supabase_patch(
+        "videos",
+        {
+            "id": (
+                f"eq.{row_id}"
+            ),
+        },
+        {
+            "worker_version": (
+                WORKER_VERSION
+            ),
+            "last_processed_at": (
+                now_iso()
+            ),
+            "error_message": (
+                truncate_error(
+                    error_message
+                )
+            ),
+        },
     )
 
 
@@ -1007,18 +1140,13 @@ def mark_video_failed(
 # R2 PRESIGNED SOURCE URL
 # ============================================================
 
-
 def create_presigned_source_url(
-    source_key,
-):
+    source_key: str,
+) -> str:
     """
-    Cloudflare Stream fetches the original MP4 directly from R2.
+    Creates temporary READ-ONLY GET URL.
 
-    Hetzner does not download the MP4.
-    Hetzner does not transcode the MP4.
-    Hetzner does not create playback segments.
-
-    The source object itself remains unchanged in R2.
+    No R2 object is changed.
     """
 
     return s3.generate_presigned_url(
@@ -1035,11 +1163,14 @@ def create_presigned_source_url(
 
 
 # ============================================================
-# CLOUDFLARE STREAM API
+# CLOUDFLARE HEADERS
 # ============================================================
 
+def cloudflare_headers() -> Dict[
+    str,
+    str,
+]:
 
-def cloudflare_headers():
     return {
         "Authorization": (
             "Bearer "
@@ -1054,12 +1185,21 @@ def cloudflare_headers():
     }
 
 
+# ============================================================
+# CLOUDFLARE REQUEST
+# ============================================================
+
 def cloudflare_request(
-    method,
-    path,
-    params=None,
-    json_body=None,
-):
+    method: str,
+    path: str,
+    params: Optional[
+        Dict[str, Any]
+    ] = None,
+    json_body: Optional[
+        Dict[str, Any]
+    ] = None,
+) -> Dict[str, Any]:
+
     url = (
         CLOUDFLARE_API_BASE
         + path
@@ -1076,10 +1216,11 @@ def cloudflare_request(
 
     try:
         payload = response.json()
+
     except ValueError:
         raise CloudflareStreamError(
             "Cloudflare returned "
-            "non-JSON response: "
+            "non-JSON response. "
             f"HTTP {response.status_code}: "
             f"{response.text}"
         )
@@ -1095,8 +1236,7 @@ def cloudflare_request(
         "success"
     ) is not True:
         raise CloudflareStreamError(
-            "Cloudflare API request "
-            f"failed: "
+            "Cloudflare API request failed: "
             f"{payload.get('errors')}"
         )
 
@@ -1104,24 +1244,25 @@ def cloudflare_request(
 
 
 # ============================================================
-# STREAM DUPLICATE PROTECTION
+# FIND STREAM VIDEO BY SOURCE
 # ============================================================
 
-
 def find_stream_video_by_source(
-    source_mp4,
-):
+    source_mp4: str,
+) -> Optional[
+    Dict[str, Any]
+]:
     """
-    Search Cloudflare Stream by video name.
+    Duplicate protection.
 
-    Every Tikboo Stream upload stores:
+    Every Stream video created by this worker gets:
 
         meta.name = creators/<handle>/<number>.mp4
 
-    Therefore if Cloudflare accepted an upload and Hetzner died
-    before saving the UID to Supabase, the next worker run can
-    recover the existing Stream object instead of uploading the
-    same source twice.
+    Cloudflare Stream search is used to recover
+    an upload after a Hetzner restart.
+
+    Exact meta.name is checked after search.
     """
 
     response = cloudflare_request(
@@ -1132,26 +1273,25 @@ def find_stream_video_by_source(
             "/stream"
         ),
         params={
-            "search": (
-                source_mp4
-            ),
-            "limit": 10,
+            "search": source_mp4,
         },
     )
 
-    results = response.get(
+    result = response.get(
         "result"
     )
 
     if not isinstance(
-        results,
+        result,
         list,
     ):
         return None
 
-    matches = []
+    matches: List[
+        Dict[str, Any]
+    ] = []
 
-    for item in results:
+    for item in result:
         if not isinstance(
             item,
             dict,
@@ -1165,14 +1305,28 @@ def find_stream_video_by_source(
             or {}
         )
 
-        if (
-            isinstance(meta, dict)
-            and meta.get("name")
-            == source_mp4
+        if not isinstance(
+            meta,
+            dict,
         ):
-            matches.append(
-                item
-            )
+            continue
+
+        if (
+            meta.get("name")
+            != source_mp4
+        ):
+            continue
+
+        uid = item.get(
+            "uid"
+        )
+
+        if not uid:
+            continue
+
+        matches.append(
+            item
+        )
 
     if not matches:
         return None
@@ -1196,36 +1350,33 @@ def find_stream_video_by_source(
 
     selected = matches[0]
 
-    uid = selected.get(
-        "uid"
+    print()
+    print(
+        "Recovered existing "
+        "Cloudflare Stream object:"
     )
-
-    if not uid:
-        return None
-
-    logger.info(
-        "STREAM RECOVERY | "
-        "source=%s | uid=%s",
-        source_mp4,
-        uid,
+    print(
+        f"Source: {source_mp4}"
+    )
+    print(
+        f"UID:    {selected['uid']}"
     )
 
     return selected
 
 
 # ============================================================
-# STREAM UPLOAD FROM R2
+# CREATE STREAM VIDEO FROM R2 SOURCE
 # ============================================================
 
-
 def create_stream_video(
-    video,
-):
+    video: Dict[str, Any],
+) -> Dict[str, Any]:
     """
-    R2 source MP4 -> Cloudflare Stream.
+    Cloudflare Stream fetches the source MP4
+    directly from a temporary signed R2 URL.
 
-    Cloudflare Stream receives a temporary presigned HTTP URL
-    and fetches the original source itself.
+    Hetzner does NOT download the source MP4.
     """
 
     source_key = video[
@@ -1239,7 +1390,7 @@ def create_stream_video(
     )
 
     payload = {
-        "input": source_url,
+        "url": source_url,
         "meta": {
             "name": (
                 source_key
@@ -1263,9 +1414,12 @@ def create_stream_video(
         },
     }
 
-    logger.info(
-        "STREAM CREATE | source=%s",
-        source_key,
+    print()
+    print(
+        "Cloudflare Stream ingest"
+    )
+    print(
+        f"Source: {source_key}"
     )
 
     response = cloudflare_request(
@@ -1287,7 +1441,7 @@ def create_stream_video(
         dict,
     ):
         raise CloudflareStreamError(
-            "Cloudflare Stream copy "
+            "Cloudflare Stream /copy "
             "returned no result object."
         )
 
@@ -1297,28 +1451,28 @@ def create_stream_video(
 
     if not uid:
         raise CloudflareStreamError(
-            "Cloudflare Stream copy "
+            "Cloudflare Stream /copy "
             "returned no UID."
         )
 
-    logger.info(
-        "STREAM CREATED | "
-        "source=%s | uid=%s",
-        source_key,
-        uid,
+    print(
+        "Stream accepted video"
+    )
+    print(
+        f"UID: {uid}"
     )
 
     return result
 
 
 # ============================================================
-# STREAM VIDEO DETAILS
+# GET STREAM VIDEO DETAILS
 # ============================================================
 
-
 def get_stream_video(
-    uid,
-):
+    uid: str,
+) -> Dict[str, Any]:
+
     response = cloudflare_request(
         "GET",
         (
@@ -1337,156 +1491,75 @@ def get_stream_video(
         dict,
     ):
         raise CloudflareStreamError(
-            "Cloudflare Stream "
-            f"returned no video "
-            f"details for UID {uid}."
+            "Cloudflare Stream returned "
+            "no video details for UID "
+            f"{uid}."
         )
 
     return result
 
 
 # ============================================================
-# STREAM UID RECOVERY FROM SUPABASE
-# ============================================================
-
-
-STREAM_URL_UID_PATTERN = re.compile(
-    r"cloudflarestream\.com/"
-    r"([A-Za-z0-9_-]{10,64})/"
-)
-
-
-def extract_stream_uid_from_value(
-    value,
-):
-    if not isinstance(
-        value,
-        str,
-    ):
-        return None
-
-    value = value.strip()
-
-    if not value:
-        return None
-
-    if value.startswith(
-        STREAM_UID_MARKER_PREFIX
-    ):
-        uid = value[
-            len(
-                STREAM_UID_MARKER_PREFIX
-            ):
-        ].strip()
-
-        return (
-            uid
-            if uid
-            else None
-        )
-
-    match = (
-        STREAM_URL_UID_PATTERN.search(
-            value
-        )
-    )
-
-    if match:
-        return match.group(1)
-
-    return None
-
-
-def extract_stream_uid_from_row(
-    row,
-):
-    """
-    During processing the UID normally lives in video_url as
-    cfstream://UID.
-
-    This helper also recognizes final Cloudflare playback URLs,
-    making state recovery more defensive.
-    """
-
-    for column in (
-        "video_url",
-        "manifest_url",
-        "hls_url",
-        "poster_url",
-    ):
-        uid = (
-            extract_stream_uid_from_value(
-                row.get(
-                    column
-                )
-            )
-        )
-
-        if uid:
-            return uid
-
-    return None
-
-
-# ============================================================
 # ACQUIRE STREAM UID
 # ============================================================
 
-
 def acquire_stream_uid(
-    row,
-    video,
-):
+    row: Dict[str, Any],
+    video: Dict[str, Any],
+    preserve_existing_playback: bool,
+) -> str:
     """
     Idempotency order:
 
-    1. Reuse UID already persisted in Supabase.
-    2. Search Cloudflare Stream using exact meta.name.
-    3. Only if neither exists, create a new Stream upload.
+    1. UID already present in Supabase
+    2. Existing Stream video by exact source name
+    3. New Stream /copy request
 
-    This protects against server restarts and crashes.
+    This prevents duplicate Stream videos after
+    normal worker restarts.
     """
 
-    source_mp4 = video[
+    source_key = video[
         "key"
     ]
 
-    uid = (
+    existing_uid = (
         extract_stream_uid_from_row(
             row
         )
     )
 
-    if uid:
-        logger.info(
-            "STREAM RESUME | "
-            "source=%s | uid=%s",
-            source_mp4,
-            uid,
+    if existing_uid:
+        print()
+        print(
+            "Resuming Stream UID "
+            "from Supabase:"
+        )
+        print(
+            f"UID: {existing_uid}"
         )
 
-        return uid
+        return existing_uid
 
     recovered = (
         find_stream_video_by_source(
-            source_mp4
+            source_key
         )
     )
 
     if recovered:
-        recovered_uid = (
-            recovered.get(
-                "uid"
-            )
+        uid = recovered.get(
+            "uid"
         )
 
-        if recovered_uid:
+        if uid:
             save_stream_uid(
                 row["id"],
-                recovered_uid,
+                uid,
+                preserve_existing_playback,
             )
 
-            return recovered_uid
+            return uid
 
     created = (
         create_stream_video(
@@ -1501,35 +1574,37 @@ def acquire_stream_uid(
     if not uid:
         raise CloudflareStreamError(
             "Created Stream video "
-            "has no UID."
+            "contains no UID."
         )
 
     save_stream_uid(
         row["id"],
         uid,
+        preserve_existing_playback,
     )
 
     return uid
 
 
 # ============================================================
-# WAIT FOR CLOUDFLARE STREAM
+# WAIT FOR STREAM
 # ============================================================
 
-
 def wait_for_stream_ready(
-    uid,
-):
+    uid: str,
+) -> Optional[
+    Dict[str, Any]
+]:
     """
-    Poll Cloudflare Stream until:
+    Poll until Cloudflare Stream reports:
 
         readyToStream == true
 
-    or until Stream reports an error.
+    If the configured wait window expires while
+    Cloudflare is still processing, return None.
 
-    If the configured wait window ends while processing is still
-    valid, return None and leave Supabase in processing state.
-    The next worker run resumes the same Stream UID.
+    The next worker run resumes the same Stream
+    object instead of creating another one.
     """
 
     deadline = (
@@ -1538,14 +1613,14 @@ def wait_for_stream_ready(
     )
 
     while True:
-        video = (
+        stream_video = (
             get_stream_video(
                 uid
             )
         )
 
         status = (
-            video.get(
+            stream_video.get(
                 "status"
             )
             or {}
@@ -1562,20 +1637,18 @@ def wait_for_stream_ready(
         )
 
         ready_to_stream = (
-            video.get(
+            stream_video.get(
                 "readyToStream"
             )
             is True
         )
 
-        logger.info(
-            "STREAM STATUS | "
-            "uid=%s | state=%s | "
-            "pct=%s | ready=%s",
-            uid,
-            state,
-            pct_complete,
-            ready_to_stream,
+        print(
+            "Stream status:",
+            f"UID={uid}",
+            f"state={state}",
+            f"progress={pct_complete}",
+            f"ready={ready_to_stream}",
         )
 
         if state == "error":
@@ -1605,7 +1678,7 @@ def wait_for_stream_ready(
 
         if ready_to_stream:
             playback = (
-                video.get(
+                stream_video.get(
                     "playback"
                 )
                 or {}
@@ -1614,7 +1687,7 @@ def wait_for_stream_ready(
             if playback.get(
                 "hls"
             ):
-                return video
+                return stream_video
 
         if (
             time.monotonic()
@@ -1628,94 +1701,107 @@ def wait_for_stream_ready(
 
 
 # ============================================================
-# SOURCE VIDEO FROM SUPABASE ROW
+# SELECT SOURCE THAT STILL NEEDS STREAM
 # ============================================================
 
-
-def video_from_processing_row(
-    row,
-):
+def select_pending_video() -> Optional[
+    Dict[str, Any]
+]:
     """
-    Rebuild the minimal source-video object from an existing
-    Supabase processing row.
+    Existing Tikboo videos are migrated IN PLACE.
+
+    Cases:
+
+    1. No Supabase row:
+       -> create new processing row.
+
+    2. Existing Supabase row with old R2 playback:
+       -> reuse that row.
+       -> preserve old playback while Stream processes.
+       -> replace playback only after Stream is ready.
+
+    3. Existing ready Cloudflare Stream row:
+       -> skip.
+
+    No duplicate Supabase row is created for an
+    existing source_mp4.
     """
 
-    source_mp4 = row.get(
-        "source_mp4"
+    all_sources = (
+        list_source_videos()
     )
 
-    if (
-        not isinstance(
-            source_mp4,
-            str,
+    ordered = (
+        order_candidates_for_selection(
+            all_sources
         )
-        or not source_mp4
-    ):
-        raise RuntimeError(
-            "Processing row has "
-            "no source_mp4."
-        )
-
-    match = SOURCE_PATTERN.match(
-        source_mp4
     )
 
-    if not match:
-        raise RuntimeError(
-            "Invalid source_mp4 in "
-            f"processing row: "
-            f"{source_mp4}"
-        )
+    print(
+        "Original MP4 files found:",
+        len(ordered),
+    )
 
-    creator_handle = (
-        row.get(
+    for video in ordered:
+        source_key = video[
+            "key"
+        ]
+
+        creator_handle = video[
             "creator_handle"
-        )
-        or match.group(1)
-    )
+        ]
 
-    video_number = (
-        row.get(
-            "video_number"
-        )
-    )
-
-    if video_number is None:
-        video_number = int(
-            match.group(2)
-        )
-
-    file_size = (
-        row.get(
-            "file_size_bytes"
-        )
-        or 0
-    )
-
-    return {
-        "key": source_mp4,
-        "creator_handle": (
+        if not creator_exists(
             creator_handle
-        ),
-        "video_number": int(
-            video_number
-        ),
-        "size": int(
-            file_size
-        ),
-    }
+        ):
+            print(
+                "Skipping source: "
+                "creator missing in Supabase:"
+            )
+            print(
+                source_key
+            )
+
+            continue
+
+        existing_row = (
+            get_video_by_source(
+                source_key
+            )
+        )
+
+        if existing_row:
+            if row_uses_cloudflare_stream(
+                existing_row
+            ):
+                continue
+
+            return {
+                "video": video,
+                "row": existing_row,
+                "existing_row": True,
+            }
+
+        return {
+            "video": video,
+            "row": None,
+            "existing_row": False,
+        }
+
+    return None
 
 
 # ============================================================
-# PROCESS STREAM VIDEO
+# PROCESS ONE VIDEO
 # ============================================================
 
-
-def process_stream_video(
-    row,
-    video,
-):
-    row_id = row["id"]
+def process_video(
+    video: Dict[str, Any],
+    row: Optional[
+        Dict[str, Any]
+    ],
+    existing_row: bool,
+) -> bool:
 
     source_key = video[
         "key"
@@ -1729,43 +1815,74 @@ def process_stream_video(
         "video_number"
     ]
 
-    logger.info(
+    print()
+    print(
+        "=" * 72
+    )
+    print(
+        "TIKBOO CLOUDFLARE STREAM WORKER"
+    )
+    print(
+        "=" * 72
+    )
+    print(
+        f"Creator: {creator_handle}"
+    )
+    print(
+        f"Source:  {source_key}"
+    )
+    print(
+        f"Video:   {video_number:03d}"
+    )
+
+    if existing_row:
+        print(
+            "Mode:    migrate existing "
+            "Supabase row"
+        )
+    else:
+        print(
+            "Mode:    new source video"
+        )
+
+    print(
         "=" * 72
     )
 
-    logger.info(
-        "Creator: %s",
-        creator_handle,
-    )
+    if not creator_exists(
+        creator_handle
+    ):
+        raise TikbooWorkerError(
+            "Creator "
+            f"'{creator_handle}' "
+            "does not exist in "
+            "Supabase creators."
+        )
 
-    logger.info(
-        "Source: %s",
-        source_key,
-    )
+    if row is None:
+        row = insert_processing_row(
+            video
+        )
 
-    logger.info(
-        "Video number: %03d",
-        video_number,
-    )
+        print()
+        print(
+            "Supabase processing row created"
+        )
+        print(
+            f"Row ID: {row['id']}"
+        )
 
-    logger.info(
-        "=" * 72
-    )
+    row_id = row[
+        "id"
+    ]
 
     try:
-        if not creator_exists(
-            creator_handle
-        ):
-            raise RuntimeError(
-                "Creator "
-                f"'{creator_handle}' "
-                "is not present in "
-                "Supabase creators."
-            )
-
         uid = acquire_stream_uid(
             row,
             video,
+            preserve_existing_playback=(
+                existing_row
+            ),
         )
 
         stream_video = (
@@ -1775,15 +1892,20 @@ def process_stream_video(
         )
 
         if stream_video is None:
-            mark_video_processing(
-                row_id
+            print()
+            print(
+                "Cloudflare Stream is "
+                "still processing."
             )
 
-            logger.info(
-                "STREAM STILL PROCESSING | "
-                "source=%s | uid=%s",
-                source_key,
-                uid,
+            if not existing_row:
+                mark_new_row_processing(
+                    row_id
+                )
+
+            print(
+                "Worker will resume the "
+                "same Stream object later."
             )
 
             return False
@@ -1793,123 +1915,101 @@ def process_stream_video(
             stream_video,
         )
 
-        logger.info(
-            "Video completed "
-            "successfully."
+        print()
+        print(
+            "Video completed successfully."
         )
 
         return True
 
     except Exception as exc:
-        logger.error(
-            "PROCESSING ERROR | "
-            "source=%s | %s",
-            source_key,
-            exc,
+        print()
+        print(
+            "PROCESSING ERROR:"
+        )
+        print(
+            exc
         )
 
         try:
-            mark_video_failed(
-                row_id,
-                exc,
-            )
+            if existing_row:
+                mark_existing_migration_error(
+                    row_id,
+                    exc,
+                )
+
+            else:
+                mark_new_video_failed(
+                    row_id,
+                    exc,
+                )
 
         except Exception as db_exc:
-            logger.error(
-                "Could not write "
-                "error state to "
-                "Supabase: %s",
-                db_exc,
+            print()
+            print(
+                "Could not save error "
+                "state to Supabase:"
+            )
+            print(
+                db_exc
             )
 
         raise
 
 
 # ============================================================
-# SELECT NEW PENDING SOURCE
-# ============================================================
-
-
-def select_pending_video():
-    """
-    Preserve the original production candidate behavior.
-
-    All R2 source MP4s are passed through Selection Engine v1.
-    Existing Supabase source_mp4 rows are skipped.
-
-    The first genuinely new candidate is selected.
-    """
-
-    all_sources = (
-        list_source_videos()
-    )
-
-    ordered = (
-        order_candidates_for_selection(
-            all_sources
-        )
-    )
-
-    logger.info(
-        "Source MP4 files found: %s",
-        len(ordered),
-    )
-
-    for video in ordered:
-        source_key = video[
-            "key"
-        ]
-
-        existing = (
-            video_exists_in_supabase(
-                source_key
-            )
-        )
-
-        if existing:
-            continue
-
-        if not creator_exists(
-            video[
-                "creator_handle"
-            ]
-        ):
-            logger.warning(
-                "Creator '%s' does not "
-                "exist in Supabase. "
-                "Skipping source %s.",
-                video[
-                    "creator_handle"
-                ],
-                source_key,
-            )
-
-            continue
-
-        return video
-
-    return None
-
-
-# ============================================================
 # PREFLIGHT
 # ============================================================
 
-
-def preflight():
+def preflight() -> None:
     """
-    Configuration validation only.
+    Validate configuration.
 
     No R2 mutation.
     No Supabase mutation.
     No Stream upload.
     """
 
+    required_values = {
+        "R2_ENDPOINT": (
+            R2_ENDPOINT
+        ),
+        "R2_ACCESS_KEY": (
+            R2_ACCESS_KEY
+        ),
+        "R2_SECRET_KEY": (
+            R2_SECRET_KEY
+        ),
+        "R2_BUCKET": (
+            R2_BUCKET
+        ),
+        "SUPABASE_URL": (
+            SUPABASE_URL
+        ),
+        "SUPABASE_KEY": (
+            SUPABASE_KEY
+        ),
+        "CLOUDFLARE_ACCOUNT_ID": (
+            CLOUDFLARE_ACCOUNT_ID
+        ),
+        "CLOUDFLARE_STREAM_API_TOKEN": (
+            CLOUDFLARE_STREAM_API_TOKEN
+        ),
+    }
+
+    for name, value in (
+        required_values.items()
+    ):
+        if not value:
+            raise TikbooWorkerError(
+                f"{name} is empty."
+            )
+
     if (
         STREAM_POLL_SECONDS
         <= 0
     ):
-        raise RuntimeError(
+        raise TikbooWorkerError(
             "STREAM_POLL_SECONDS "
             "must be greater than 0."
         )
@@ -1918,7 +2018,7 @@ def preflight():
         STREAM_WAIT_SECONDS
         <= 0
     ):
-        raise RuntimeError(
+        raise TikbooWorkerError(
             "STREAM_WAIT_SECONDS "
             "must be greater than 0."
         )
@@ -1927,28 +2027,54 @@ def preflight():
         R2_PRESIGNED_URL_SECONDS
         <= 0
     ):
-        raise RuntimeError(
+        raise TikbooWorkerError(
             "R2_PRESIGNED_URL_SECONDS "
             "must be greater than 0."
         )
 
-    logger.info(
+    if (
+        HTTP_TIMEOUT_SECONDS
+        <= 0
+    ):
+        raise TikbooWorkerError(
+            "HTTP_TIMEOUT_SECONDS "
+            "must be greater than 0."
+        )
+
+    print(
         "Tikboo Worker"
     )
-
-    logger.info(
-        "Version: %s",
-        WORKER_VERSION,
+    print(
+        f"Version: {WORKER_VERSION}"
     )
-
-    logger.info(
-        "Bucket: %s",
-        R2_BUCKET,
+    print(
+        f"R2 bucket: {R2_BUCKET}"
     )
-
-    logger.info(
-        "Architecture: "
-        "R2 -> Stream -> Supabase"
+    print()
+    print(
+        "Pipeline:"
+    )
+    print(
+        "R2 original MP4"
+    )
+    print(
+        " -> Hetzner orchestration"
+    )
+    print(
+        " -> Cloudflare Stream"
+    )
+    print(
+        " -> Supabase"
+    )
+    print()
+    print(
+        "R2 HLS writes:      DISABLED"
+    )
+    print(
+        "R2 poster writes:   DISABLED"
+    )
+    print(
+        "R2 source deletion: DISABLED"
     )
 
 
@@ -1956,143 +2082,49 @@ def preflight():
 # MAIN
 # ============================================================
 
+def main() -> int:
 
-def main():
     preflight()
 
-    # --------------------------------------------------------
-    # STEP 1
-    #
-    # Resume an existing Stream processing row first.
-    #
-    # This prevents duplicate uploads and guarantees that an
-    # interrupted video is completed before a new source is
-    # selected.
-    # --------------------------------------------------------
-
-    processing_row = (
-        get_processing_video()
+    selected = (
+        select_pending_video()
     )
 
-    if processing_row:
-        logger.info(
-            "Resuming existing "
-            "processing row | "
-            "id=%s | source=%s",
-            processing_row.get(
-                "id"
-            ),
-            processing_row.get(
-                "source_mp4"
-            ),
-        )
-
-        video = (
-            video_from_processing_row(
-                processing_row
-            )
-        )
-
-        try:
-            process_stream_video(
-                processing_row,
-                video,
-            )
-
-            return 0
-
-        except Exception:
-            logger.exception(
-                "Worker stopped while "
-                "resuming Stream video."
-            )
-
-            return 1
-
-    # --------------------------------------------------------
-    # STEP 2
-    #
-    # Select exactly one NEW source MP4.
-    # --------------------------------------------------------
-
-    video = select_pending_video()
-
-    if not video:
-        logger.info(
-            "No pending source MP4 "
-            "was found."
+    if not selected:
+        print()
+        print(
+            "No source video requires "
+            "Cloudflare Stream processing."
         )
 
         return 0
 
-    # --------------------------------------------------------
-    # STEP 3
-    #
-    # Defensive duplicate check immediately before INSERT.
-    # --------------------------------------------------------
+    video = selected[
+        "video"
+    ]
 
-    existing = (
-        video_exists_in_supabase(
-            video["key"]
-        )
+    row = selected[
+        "row"
+    ]
+
+    existing_row = bool(
+        selected[
+            "existing_row"
+        ]
     )
-
-    if existing:
-        logger.info(
-            "Source already exists "
-            "in Supabase. "
-            "Skipping: %s",
-            video["key"],
-        )
-
-        return 0
-
-    # --------------------------------------------------------
-    # STEP 4
-    #
-    # Create durable processing row BEFORE sending anything to
-    # Cloudflare Stream.
-    # --------------------------------------------------------
-
-    row = insert_processing_row(
-        video
-    )
-
-    logger.info(
-        "Supabase processing row "
-        "created | id=%s | "
-        "source=%s",
-        row["id"],
-        video["key"],
-    )
-
-    # --------------------------------------------------------
-    # STEP 5
-    #
-    # Source MP4 in R2
-    #       ->
-    # presigned URL
-    #       ->
-    # Cloudflare Stream
-    #       ->
-    # Stream HLS + thumbnail
-    #       ->
-    # Supabase
-    #
-    # ZERO FFmpeg.
-    # ZERO HLS output written back to R2.
-    # --------------------------------------------------------
 
     try:
         completed = (
-            process_stream_video(
-                row,
-                video,
+            process_video(
+                video=video,
+                row=row,
+                existing_row=existing_row,
             )
         )
 
     except Exception:
-        logger.exception(
+        print()
+        print(
             "Worker stopped after "
             "processing error."
         )
@@ -2100,16 +2132,18 @@ def main():
         return 1
 
     if completed:
-        logger.info(
+        print()
+        print(
             "One video completed "
             "successfully."
         )
 
     else:
-        logger.info(
+        print()
+        print(
             "One video remains in "
             "Cloudflare Stream "
-            "processing state."
+            "processing."
         )
 
     return 0
@@ -2119,7 +2153,6 @@ def main():
 # ENTRYPOINT
 # ============================================================
 
-
 if __name__ == "__main__":
     try:
         sys.exit(
@@ -2127,7 +2160,8 @@ if __name__ == "__main__":
         )
 
     except KeyboardInterrupt:
-        logger.warning(
+        print()
+        print(
             "Worker interrupted."
         )
 
@@ -2135,10 +2169,13 @@ if __name__ == "__main__":
             130
         )
 
-    except Exception:
-        logger.exception(
-            "Worker terminated with "
-            "unhandled error."
+    except Exception as exc:
+        print()
+        print(
+            "Unhandled worker error:"
+        )
+        print(
+            exc
         )
 
         sys.exit(
