@@ -2,6 +2,39 @@
 
 const TIKBOO_ORIGIN = 'https://tikboo.com';
 
+
+/* =========================================================
+   SHARED VIDEO VIEWPORT NORMALIZATION
+   ========================================================== */
+
+function normalizeSharedVideoViewport() {
+  const isVideoDeepLink =
+    /^\/v\/[^/]+\/?$/.test(window.location.pathname);
+
+  if (!isVideoDeepLink) {
+    return;
+  }
+
+  const physicalViewportWidth = Math.min(
+    window.screen.width,
+    window.screen.height
+  );
+
+  if (
+    physicalViewportWidth > 390 &&
+    document.body.classList.contains('device-small')
+  ) {
+    document.body.classList.remove('device-small');
+  }
+}
+
+normalizeSharedVideoViewport();
+
+
+/* =========================================================
+   SHARE URL
+   ========================================================== */
+
 export function getVideoShareUrl(video) {
   return `${TIKBOO_ORIGIN}/v/${video.id}`;
 }
