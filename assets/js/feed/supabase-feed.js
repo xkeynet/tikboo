@@ -15,7 +15,7 @@ export async function loadSupabaseFeed() {
     .eq('processing_status', 'ready')
     .eq('hls_ready', true)
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('last_processed_at', { ascending: false, nullsFirst: false });
 
   if (videosError) {
     throw videosError;
