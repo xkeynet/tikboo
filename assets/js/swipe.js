@@ -1,4 +1,4 @@
-// /assets/js/swipe.js - ALIEN
+// /assets/js/swipe.js - Reels
 (function () {
   function initTikbooSwipe(options) {
     const { 
