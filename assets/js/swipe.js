@@ -22,13 +22,6 @@
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
 
-    // =========================================================
-    // === EARLY NEXT VIDEO START ===
-    // =========================================================
-    // Start forward target video when swipe reaches 70%.
-    // It remains muted until normal commit logic takes over.
-    const EARLY_START_RATIO = 0.70;
-
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
     let preparedDir = 0, raf = 0, settleTimer = 0;
@@ -50,10 +43,6 @@
     let playbackGuardTimers = [];
     let gestureHeight = 0;
     let touchBlocked = false;
-
-    // Video started before commit at the 70% point.
-    let earlyStartedVideo = null;
-
     const COMMIT_COOLDOWN = 55;
 
     const seekPill = document.getElementById('seekPill');
@@ -136,63 +125,6 @@
       activeCommitVideoToPause = null;
     }
 
-    // =========================================================
-    // === EARLY START HELPERS ===
-    // =========================================================
-
-    function stopEarlyStartedVideo() {
-      if (!earlyStartedVideo) return;
-
-      try {
-        earlyStartedVideo.pause();
-        earlyStartedVideo.currentTime = 0;
-      } catch (e) {}
-
-      earlyStartedVideo = null;
-    }
-
-    function earlyStartForwardVideo() {
-      if (preparedDir !== 1) return;
-      if (earlyStartedVideo) return;
-
-      const height = gestureHeight || vh();
-
-      if (!height) return;
-
-      const travelled = Math.abs(dy);
-      const triggerDistance = height * EARLY_START_RATIO;
-
-      if (travelled < triggerDistance) return;
-
-      const targetIndex = normalizeIndex(state.index + 1);
-      const targetItem = playlist[targetIndex];
-      const targetVideo = refs.videoNext;
-
-      if (
-        !targetItem ||
-        targetItem.type !== 'video' ||
-        !targetVideo
-      ) {
-        return;
-      }
-
-      // Always silent while still underneath current card.
-      targetVideo.muted = true;
-      targetVideo.playsInline = true;
-      targetVideo.setAttribute('playsinline', '');
-      targetVideo.setAttribute('webkit-playsinline', '');
-
-      try {
-        if (targetVideo.readyState === 0) {
-          targetVideo.load();
-        }
-      } catch (e) {}
-
-      earlyStartedVideo = targetVideo;
-
-      tryPlay(targetVideo);
-    }
-
     function guardCurrentPlayback(reason) {
       clearPlaybackGuard();
 
@@ -262,7 +194,6 @@
 
       clearPendingCommit();
       clearPlaybackGuard();
-      stopEarlyStartedVideo();
 
       dragging = false;
       dy = 0;
@@ -366,18 +297,6 @@
     function finishCommit(dir, targetIndex, videoToPause) {
       if (videoToPause) {
         videoToPause.pause();
-      }
-
-      // If the forward target was already playing from the
-      // 70% early-start point, it now becomes current.
-      // Drop only our tracking reference — do not pause it.
-      if (
-        dir > 0 &&
-        earlyStartedVideo === refs.videoNext
-      ) {
-        earlyStartedVideo = null;
-      } else if (earlyStartedVideo) {
-        stopEarlyStartedVideo();
       }
 
       state.index = targetIndex;
@@ -525,7 +444,6 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        // At commit the normal sound state takes over.
         targetVideo.muted = state.isMuted;
 
         try {
@@ -577,10 +495,6 @@
 
       clearPendingCommit();
       resetQueue();
-
-      // Swipe was not committed. Any video that was started
-      // at the 70% point must become a dormant preview again.
-      stopEarlyStartedVideo();
 
       state.isAnimating = true;
 
@@ -638,8 +552,6 @@
         if (preparedDir !== 0) {
           snapBack();
         } else {
-          stopEarlyStartedVideo();
-
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
 
           if (isTap && refs.videoCurrent) {
@@ -700,9 +612,6 @@
           return;
         }
       }
-
-      // Safety reset before a fresh manual gesture.
-      stopEarlyStartedVideo();
 
       dragging = true;
       preparedDir = 0;
@@ -814,22 +723,7 @@
       const isDirectionFlip = preparedDir !== 0 && preparedDir !== rawDir;
       const dir = isDirectionFlip && Math.abs(dy) < DIRECTION_FLIP_DAMPING_PX ? preparedDir : rawDir;
 
-      if (preparedDir !== dir) {
-        // If forward target was already running and the user
-        // reverses direction, cancel that speculative playback.
-        if (earlyStartedVideo) {
-          stopEarlyStartedVideo();
-        }
-
-        prepareNextForDirection(dir);
-      }
-
-      // =======================================================
-      // === 70% EARLY START ===
-      // =======================================================
-      // During an upward swipe, start the next video when the
-      // gesture has travelled 70% of the screen height.
-      earlyStartForwardVideo();
+      if (preparedDir !== dir) prepareNextForDirection(dir);
 
       if (!raf) {
         raf = requestAnimationFrame(() => {
@@ -869,7 +763,6 @@
       if (document.visibilityState === 'visible') {
         recoverVisibleState();
       } else {
-        stopEarlyStartedVideo();
         clearPlaybackGuard();
         clearPendingCommit();
         resetQueue();
@@ -894,3 +787,4 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
+
