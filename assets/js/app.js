@@ -227,17 +227,60 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (avatarEl) {
       if (avatar) {
-        avatarEl.src = avatar;
-        avatarEl.alt = creator ? `${creator} avatar` : 'Creator avatar';
+        avatarEl.dataset.pendingAvatar = avatar;
 
         if (avatarStack) {
+          avatarStack.style.visibility = 'hidden';
           avatarStack.style.display = '';
         }
+
+        const loader = new Image();
+        loader.decoding = 'async';
+
+        const applyAvatar = () => {
+          if (avatarEl.dataset.pendingAvatar !== avatar) return;
+
+          avatarEl.src = avatar;
+          avatarEl.alt = creator ? `${creator} avatar` : 'Creator avatar';
+
+          if (avatarStack) {
+            avatarStack.style.visibility = 'visible';
+          }
+        };
+
+        loader.onload = () => {
+          if (typeof loader.decode === 'function') {
+            loader.decode()
+              .then(applyAvatar)
+              .catch(applyAvatar);
+          } else {
+            applyAvatar();
+          }
+        };
+
+        loader.onerror = () => {
+          if (avatarEl.dataset.pendingAvatar !== avatar) return;
+
+          avatarEl.removeAttribute('src');
+          avatarEl.alt = '';
+
+          if (avatarStack) {
+            avatarStack.style.visibility = 'hidden';
+          }
+        };
+
+        loader.src = avatar;
+
+        if (loader.complete && loader.naturalWidth > 0) {
+          applyAvatar();
+        }
       } else {
+        delete avatarEl.dataset.pendingAvatar;
         avatarEl.removeAttribute('src');
         avatarEl.alt = '';
 
         if (avatarStack) {
+          avatarStack.style.visibility = 'hidden';
           avatarStack.style.display = 'none';
         }
       }
