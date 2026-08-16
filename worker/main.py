@@ -84,7 +84,7 @@ from dotenv import load_dotenv
 # VERSION
 # ============================================================
 
-WORKER_VERSION = "stream-3.1.0"
+WORKER_VERSION = "stream-3.2.0"
 
 
 # ============================================================
@@ -665,33 +665,6 @@ def creator_exists(
 
 
 # ============================================================
-# VIDEO LOOKUP
-# ============================================================
-
-def get_video_by_source(
-    source_mp4: str,
-) -> Optional[
-    Dict[str, Any]
-]:
-
-    rows = supabase_get(
-        "videos",
-        {
-            "select": "*",
-            "source_mp4": (
-                f"eq.{source_mp4}"
-            ),
-            "limit": "1",
-        },
-    )
-
-    if not rows:
-        return None
-
-    return rows[0]
-
-
-# ============================================================
 # STREAM UID EXTRACTION
 # ============================================================
 
@@ -784,6 +757,58 @@ def row_uses_cloudflare_stream(
         )
         is True
     )
+
+
+# ============================================================
+# VIDEO LOOKUP
+# ============================================================
+
+def get_video_by_source(
+    source_mp4: str,
+) -> Optional[
+    Dict[str, Any]
+]:
+
+    rows = supabase_get(
+        "videos",
+        {
+            "select": "*",
+            "source_mp4": (
+                f"eq.{source_mp4}"
+            ),
+            "order": "id.desc",
+        },
+    )
+
+    if not rows:
+        return None
+
+    stream_rows = [
+        row
+        for row in rows
+        if row_uses_cloudflare_stream(
+            row
+        )
+    ]
+
+    if stream_rows:
+        if len(rows) > 1:
+            print(
+                "Duplicate Supabase rows detected "
+                f"for {source_mp4}: {len(rows)} rows. "
+                "Existing ready Stream row wins."
+            )
+
+        return stream_rows[0]
+
+    if len(rows) > 1:
+        print(
+            "Duplicate Supabase rows detected "
+            f"for {source_mp4}: {len(rows)} rows. "
+            f"Using newest row ID {rows[0].get('id')}."
+        )
+
+    return rows[0]
 
 
 # ============================================================
