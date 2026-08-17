@@ -661,8 +661,8 @@ body{
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:27px;
-  height:27px;
+  width:25px;
+  height:25px;
   transform: translateY(-2px);
 }
 
