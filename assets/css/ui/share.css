@@ -5,11 +5,11 @@
    ========================================================== */
 
 :root {
-  --shareSheetBackground: #5C19E9;
+  --shareSheetBackground: rgba(92, 25, 233, .80);
   --shareSheetBlack: #000000;
   --shareSheetWhite: #FFFFFF;
   --shareSheetBackdrop: rgba(0, 0, 0, 0.55);
-  --shareSheetHeight: 32svh;
+  --shareSheetHeight: 40svh;
 }
 
 
@@ -420,7 +420,7 @@
    ========================================================== */
 
 body.device-non-master.device-small .share-sheet__panel {
-  height: 34svh;
+  height: 40svh;
 
   padding-left: 14px;
   padding-right: 14px;
