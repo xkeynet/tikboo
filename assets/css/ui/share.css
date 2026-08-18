@@ -4,6 +4,19 @@
    TIKBOO SHARE SHEET
    ========================================================== */
 
+:root {
+  --shareSheetBackground: #5C19E9;
+  --shareSheetBlack: #000000;
+  --shareSheetWhite: #FFFFFF;
+  --shareSheetBackdrop: rgba(0, 0, 0, 0.55);
+  --shareSheetHeight: 32svh;
+}
+
+
+/* =========================================================
+   ROOT
+   ========================================================== */
+
 .share-sheet {
   position: fixed;
   inset: 0;
@@ -24,7 +37,7 @@
 
 
 /* =========================================================
-   BACKDROP
+   BACKDROP — TIKBOO SMOKE
    ========================================================== */
 
 .share-sheet__backdrop {
@@ -36,9 +49,11 @@
 
   margin: 0;
   padding: 0;
-  border: 0;
 
-  background: rgba(0, 0, 0, 0.58);
+  border: 0;
+  border-radius: 0;
+
+  background: var(--shareSheetBackdrop);
 
   opacity: 0;
 
@@ -46,6 +61,9 @@
   -webkit-appearance: none;
 
   cursor: default;
+
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 
   transition:
     opacity 220ms ease;
@@ -59,7 +77,7 @@
 
 
 /* =========================================================
-   PANEL
+   PANEL — TIKBOO VIOLET
    ========================================================== */
 
 .share-sheet__panel {
@@ -67,40 +85,57 @@
   z-index: 1;
 
   width: 100%;
-  max-width: 560px;
+  max-width: none;
+  height: var(--shareSheetHeight);
 
   margin: 0;
+
   padding:
-    10px
     18px
-    calc(18px + env(safe-area-inset-bottom));
+    18px
+    calc(14px + env(safe-area-inset-bottom, 0px));
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 0;
+  box-sizing: border-box;
 
-  border-radius: 24px 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(24, 24, 27, 0.985) 0%,
-      rgba(10, 10, 12, 0.995) 100%
-    );
+  background: var(--shareSheetBackground);
+  color: var(--shareSheetWhite);
 
-  color: #ffffff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 
-  box-shadow:
-    0 -12px 40px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
 
-  transform: translate3d(0, 105%, 0);
+  transform: translate3d(0, 100%, 0);
 
   transition:
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform 420ms cubic-bezier(.22, 1, .36, 1);
 
   will-change: transform;
+  backface-visibility: hidden;
 
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
+}
+
+/* Violet continuation under iPhone safe area */
+.share-sheet__panel::after {
+  content: "";
+
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+
+  height: 300px;
+
+  background: var(--shareSheetBackground);
+
+  pointer-events: none;
 }
 
 .share-sheet[aria-hidden="false"] .share-sheet__panel {
@@ -109,101 +144,71 @@
 
 
 /* =========================================================
-   HANDLE
+   BRAND
    ========================================================== */
 
-.share-sheet__handle {
-  width: 42px;
-  height: 5px;
+.share-sheet__brand {
+  flex: 0 0 auto;
 
-  margin: 0 auto 8px;
-
-  border-radius: 999px;
-
-  background: rgba(255, 255, 255, 0.28);
-}
-
-
-/* =========================================================
-   HEADER
-   ========================================================== */
-
-.share-sheet__header {
-  position: relative;
+  width: 100%;
 
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  min-height: 48px;
-
-  margin-bottom: 8px;
-}
-
-.share-sheet__title {
-  margin: 0;
-  padding: 0 48px;
-
-  color: #ffffff;
-
-  font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.2;
-
-  text-align: center;
-}
-
-.share-sheet__close {
-  position: absolute;
-  top: 50%;
-  right: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 42px;
-  height: 42px;
 
   margin: 0;
   padding: 0;
 
-  border: 0;
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-
-  transform: translateY(-50%);
-
-  appearance: none;
-  -webkit-appearance: none;
-
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-
-  transition:
-    background-color 140ms ease,
-    transform 140ms ease;
+  pointer-events: none;
 }
 
-.share-sheet__close:active {
-  background: rgba(255, 255, 255, 0.14);
-
-  transform:
-    translateY(-50%)
-    scale(0.94);
-}
-
-.share-sheet__close svg {
+.share-sheet__share-icon {
   display: block;
 
-  width: 21px;
-  height: 21px;
+  width: 36px;
+  height: 36px;
+
+  margin: 0;
+  padding: 0;
+
+  object-fit: contain;
+
+  filter: brightness(0) invert(1);
+
+  opacity: 1;
 
   pointer-events: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.share-sheet__wordmark {
+  display: block;
+
+  width: 92px;
+  height: auto;
+
+  margin: 8px 0 0;
+  padding: 0;
+
+  object-fit: contain;
+
+  opacity: 0.82;
+
+  pointer-events: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 
@@ -212,38 +217,43 @@
    ========================================================== */
 
 .share-sheet__actions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  flex: 1 1 auto;
 
   width: 100%;
 
-  padding-top: 4px;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
 }
 
 .share-sheet__action {
   position: relative;
 
+  flex: 0 0 auto;
+
+  width: 58px;
+  height: 58px;
+  min-height: 0;
+
+  margin: 0;
+  padding: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 100%;
-  min-height: 54px;
+  background: var(--shareSheetBlack);
+  color: var(--shareSheetWhite);
 
-  margin: 0;
-  padding: 0 18px;
-
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
-
-  background: rgba(255, 255, 255, 0.075);
-  color: #ffffff;
-
-  font-family: "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
 
   appearance: none;
   -webkit-appearance: none;
@@ -253,82 +263,144 @@
   overflow: hidden;
 
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+
+  user-select: none;
+
+  transform: translate3d(0, 0, 0);
 
   transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
+    transform 120ms ease,
+    opacity 120ms ease;
 
-.share-sheet__action::before {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      110deg,
-      rgba(0, 229, 255, 0.07),
-      rgba(159, 71, 255, 0.07)
-    );
-
-  opacity: 0;
-
-  pointer-events: none;
-
-  transition:
-    opacity 160ms ease;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .share-sheet__action:active {
-  border-color: rgba(255, 255, 255, 0.14);
-
-  background: rgba(255, 255, 255, 0.11);
-
-  transform: scale(0.985);
-}
-
-.share-sheet__action:active::before {
-  opacity: 1;
-}
-
-.share-sheet__action-label {
-  position: relative;
-  z-index: 1;
-
-  display: block;
-
-  white-space: nowrap;
-
-  pointer-events: none;
+  transform: translate3d(0, 0, 0) scale(0.94);
+  opacity: 0.82;
 }
 
 
 /* =========================================================
-   COPY ACTION ACCENT
+   COPY LINK ICON
    ========================================================== */
 
-#shareCopyBtn {
-  border-color: rgba(0, 229, 255, 0.16);
+.share-sheet__action-icon {
+  position: relative;
 
-  background:
-    linear-gradient(
-      110deg,
-      rgba(0, 229, 255, 0.1),
-      rgba(159, 71, 255, 0.08)
-    );
+  display: block;
+
+  width: 25px;
+  height: 25px;
+
+  pointer-events: none;
 }
 
-#shareCopyBtn:active {
-  border-color: rgba(0, 229, 255, 0.28);
+.share-sheet__action-icon--copy::before,
+.share-sheet__action-icon--copy::after {
+  content: "";
 
-  background:
-    linear-gradient(
-      110deg,
-      rgba(0, 229, 255, 0.16),
-      rgba(159, 71, 255, 0.13)
-    );
+  position: absolute;
+
+  width: 14px;
+  height: 14px;
+
+  border: 2px solid var(--shareSheetWhite);
+  border-radius: 3px;
+
+  box-sizing: border-box;
+}
+
+.share-sheet__action-icon--copy::before {
+  left: 2px;
+  top: 7px;
+}
+
+.share-sheet__action-icon--copy::after {
+  left: 8px;
+  top: 2px;
+
+  background: var(--shareSheetBlack);
+}
+
+
+/* =========================================================
+   NATIVE / MORE SHARE ICON
+   ========================================================== */
+
+.share-sheet__action-svg {
+  display: block;
+
+  width: 27px;
+  height: 27px;
+
+  object-fit: contain;
+
+  filter: brightness(0) invert(1);
+
+  pointer-events: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+
+/* =========================================================
+   CLOSE
+   ========================================================== */
+
+.share-sheet__close {
+  position: absolute;
+
+  top: 14px;
+  right: 14px;
+
+  width: 38px;
+  height: 38px;
+
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  color: var(--shareSheetWhite);
+
+  border: 0;
+  border-radius: 50%;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  cursor: pointer;
+
+  opacity: 0.72;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+
+.share-sheet__close:active {
+  transform: scale(0.92);
+  opacity: 1;
+}
+
+.share-sheet__close svg {
+  display: block;
+
+  width: 22px;
+  height: 22px;
+
+  pointer-events: none;
 }
 
 
@@ -338,8 +410,39 @@
 
 .share-sheet__close:focus-visible,
 .share-sheet__action:focus-visible {
-  outline: 2px solid rgba(0, 229, 255, 0.9);
-  outline-offset: 2px;
+  outline: 2px solid var(--shareSheetWhite);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   SMALL DEVICES
+   ========================================================== */
+
+body.device-non-master.device-small .share-sheet__panel {
+  height: 34svh;
+
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+body.device-non-master.device-small .share-sheet__share-icon {
+  width: 33px;
+  height: 33px;
+}
+
+body.device-non-master.device-small .share-sheet__wordmark {
+  width: 84px;
+  margin-top: 7px;
+}
+
+body.device-non-master.device-small .share-sheet__actions {
+  gap: 16px;
+}
+
+body.device-non-master.device-small .share-sheet__action {
+  width: 54px;
+  height: 54px;
 }
 
 
@@ -351,9 +454,8 @@
   .share-sheet__backdrop,
   .share-sheet__panel,
   .share-sheet__close,
-  .share-sheet__action,
-  .share-sheet__action::before {
-    transition: none;
+  .share-sheet__action {
+    transition-duration: 1ms !important;
   }
 }
 
@@ -364,20 +466,37 @@
 
 @media (min-width: 600px) {
   .share-sheet {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 0;
   }
 
   .share-sheet__panel {
-    margin-bottom: 16px;
+    width: 100%;
+    max-width: none;
+
+    height: 300px;
+
+    margin: 0;
 
     padding:
-      10px
       20px
-      calc(20px + env(safe-area-inset-bottom));
+      24px
+      calc(18px + env(safe-area-inset-bottom, 0px));
 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border: 0;
+    border-radius: 0;
+  }
 
-    border-radius: 24px;
+  .share-sheet__share-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .share-sheet__wordmark {
+    width: 100px;
+  }
+
+  .share-sheet__action {
+    width: 60px;
+    height: 60px;
   }
 }
