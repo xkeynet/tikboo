@@ -976,3 +976,14 @@ body.device-non-master.device-small .seek-time{
 .side .likeBtn.is-liked::before{
   background:#FE2C55;
 }
+
+.side .icon-heart,
+.side .icon-talk,
+.side .icon-bookmark,
+.side .icon-share,
+.side .icon-dots{
+  filter:
+    brightness(0)
+    invert(1)
+    drop-shadow(0 1px 5px rgba(0,0,0,.30)) !important;
+}
