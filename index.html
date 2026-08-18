@@ -405,208 +405,69 @@
 
     <section
       class="share-sheet__panel"
-      id="shareSheetPanel"
       role="dialog"
       aria-modal="true"
-      aria-label="Share video"
+      aria-labelledby="shareSheetTitle"
     >
-      <!-- =====================================================
-           SWIPE DOWN HANDLE
-           ===================================================== -->
-      <div
-        class="share-sheet__handle-zone"
-        id="shareSheetHandle"
-        aria-label="Swipe down to close"
-      >
-        <span
-          class="share-sheet__handle"
-          aria-hidden="true"
-        ></span>
-      </div>
+      <div class="share-sheet__handle" aria-hidden="true"></div>
 
-      <!-- =====================================================
-           TIKBOO BRAND
-           ===================================================== -->
-      <div class="share-sheet__brand">
-        <img
-          class="share-sheet__wordmark"
-          src="/assets/swipe-logo-L.png"
-          alt="Tikboo"
-          draggable="false"
+      <div class="share-sheet__header">
+        <h2
+          class="share-sheet__title"
+          id="shareSheetTitle"
         >
-      </div>
-
-      <!-- =====================================================
-           TIKBOO PRIMARY ACTIONS
-           ===================================================== -->
-      <div class="share-sheet__primary-actions">
-        <button
-          class="share-sheet__primary-action"
-          id="shareCopyBtn"
-          type="button"
-          aria-label="Copy link"
-        >
-          <span
-            class="share-sheet__primary-icon share-sheet__primary-icon--copy"
-            aria-hidden="true"
-          ></span>
-        </button>
+          Share
+        </h2>
 
         <button
-          class="share-sheet__primary-action"
-          id="shareNativeBtn"
+          class="share-sheet__close"
+          id="shareCloseBtn"
           type="button"
-          aria-label="Share"
+          aria-label="Close share"
         >
           <svg
-            class="share-sheet__primary-icon share-sheet__primary-icon--share"
-            viewBox="0 0 32 32"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M16 21V4"
-              fill="none"
+              d="M6 6L18 18"
               stroke="currentColor"
-              stroke-width="2.2"
+              stroke-width="2"
               stroke-linecap="round"
-              stroke-linejoin="round"
             />
             <path
-              d="M10.5 9.5L16 4L21.5 9.5"
-              fill="none"
+              d="M18 6L6 18"
               stroke="currentColor"
-              stroke-width="2.2"
+              stroke-width="2"
               stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M8 15V26H24V15"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             />
           </svg>
         </button>
       </div>
 
-      <!-- =====================================================
-           INDUSTRIAL SHARE CARD
-           ===================================================== -->
-      <div class="share-sheet__industrial">
-        <div
-          class="share-sheet__destinations"
-          id="shareDestinations"
-          role="list"
-          aria-label="Share destinations"
+      <div class="share-sheet__actions">
+        <button
+          class="share-sheet__action"
+          id="shareCopyBtn"
+          type="button"
         >
-          <a
-            class="share-sheet__destination"
-            id="shareWhatsApp"
-            href="#"
-            role="listitem"
-            aria-label="Share on WhatsApp"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--whatsapp">
-              <span aria-hidden="true">W</span>
-            </span>
-            <span class="share-sheet__destination-label">WhatsApp</span>
-          </a>
+          <span class="share-sheet__action-label">
+            Copy link
+          </span>
+        </button>
 
-          <a
-            class="share-sheet__destination"
-            id="shareX"
-            href="#"
-            role="listitem"
-            aria-label="Share on X"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--x">
-              <span aria-hidden="true">X</span>
-            </span>
-            <span class="share-sheet__destination-label">X</span>
-          </a>
-
-          <a
-            class="share-sheet__destination"
-            id="shareTelegram"
-            href="#"
-            role="listitem"
-            aria-label="Share on Telegram"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--telegram">
-              <span aria-hidden="true">T</span>
-            </span>
-            <span class="share-sheet__destination-label">Telegram</span>
-          </a>
-
-          <a
-            class="share-sheet__destination"
-            id="shareFacebook"
-            href="#"
-            role="listitem"
-            aria-label="Share on Facebook"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--facebook">
-              <span aria-hidden="true">f</span>
-            </span>
-            <span class="share-sheet__destination-label">Facebook</span>
-          </a>
-
-          <a
-            class="share-sheet__destination"
-            id="shareEmail"
-            href="#"
-            role="listitem"
-            aria-label="Share by email"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--email">
-              <svg
-                viewBox="0 0 32 32"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="5"
-                  y="8"
-                  width="22"
-                  height="16"
-                  rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-                <path
-                  d="M6.5 10L16 17L25.5 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span class="share-sheet__destination-label">Email</span>
-          </a>
-
-          <button
-            class="share-sheet__destination"
-            id="shareMoreBtn"
-            type="button"
-            role="listitem"
-            aria-label="More sharing options"
-          >
-            <span class="share-sheet__destination-icon share-sheet__destination-icon--more">
-              <span class="share-sheet__destination-dots" aria-hidden="true">
-                <i></i>
-                <i></i>
-                <i></i>
-              </span>
-            </span>
-            <span class="share-sheet__destination-label">More</span>
-          </button>
-        </div>
+        <button
+          class="share-sheet__action"
+          id="shareNativeBtn"
+          type="button"
+        >
+          <span class="share-sheet__action-label">
+            Share...
+          </span>
+        </button>
       </div>
     </section>
   </div>
