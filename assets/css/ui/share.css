@@ -6,9 +6,7 @@
 
 :root {
   --shareSheetBackground: #101010;
-  --shareSheetSurface: #1C1C1E;
   --shareSheetWhite: #FFFFFF;
-  --shareSheetMuted: rgba(255, 255, 255, .62);
   --shareSheetHandle: rgba(255, 255, 255, .42);
   --shareSheetBackdrop: rgba(0, 0, 0, .55);
 
@@ -374,276 +372,14 @@
 
 
 /* =========================================================
-   INDUSTRIAL SHARE CARD
+   OLD INDUSTRIAL PLACEHOLDERS — DISABLED
+   Native sharing is rendered by iOS / Web Share API.
    ========================================================== */
 
-.share-sheet__industrial {
-  position: relative;
-
-  flex: 0 0 auto;
-
-  width: 100%;
-
-  margin: 30px 0 0;
-  padding: 18px 0 16px;
-
-  background: var(--shareSheetSurface);
-
-  border: 0;
-  border-radius: 2px;
-
-  overflow: hidden;
-}
-
-
-/* =========================================================
-   INDUSTRIAL DESTINATIONS
-   ========================================================== */
-
-.share-sheet__destinations {
-  width: 100%;
-
-  margin: 0;
-  padding:
-    0
-    18px
-    2px;
-
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-
-  gap: 20px;
-
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  overscroll-behavior-x: contain;
-
-  scroll-snap-type: x proximity;
-  scroll-padding-left: 18px;
-
-  scrollbar-width: none;
-
-  touch-action: pan-x;
-
-  -webkit-overflow-scrolling: touch;
-}
-
-.share-sheet__destinations::-webkit-scrollbar {
-  display: none;
-}
-
-
-/* =========================================================
-   INDUSTRIAL DESTINATION
-   ========================================================== */
-
+.share-sheet__industrial,
+.share-sheet__destinations,
 .share-sheet__destination {
-  flex: 0 0 62px;
-
-  width: 62px;
-
-  margin: 0;
-  padding: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-
-  gap: 8px;
-
-  background: transparent;
-  color: var(--shareSheetWhite);
-
-  border: 0;
-  border-radius: 0;
-
-  text-decoration: none;
-
-  appearance: none;
-  -webkit-appearance: none;
-
-  cursor: pointer;
-
-  scroll-snap-align: start;
-
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-
-  user-select: none;
-}
-
-.share-sheet__destination:active {
-  opacity: .72;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON BASE
-   ========================================================== */
-
-.share-sheet__destination-icon {
-  position: relative;
-
-  width: 54px;
-  height: 54px;
-
-  flex: 0 0 54px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 2px;
-
-  overflow: hidden;
-
-  color: #FFFFFF;
-
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  font-size: 25px;
-  font-weight: 700;
-  line-height: 1;
-
-  pointer-events: none;
-}
-
-.share-sheet__destination-icon svg {
-  display: block;
-
-  width: 29px;
-  height: 29px;
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — WHATSAPP PLACEHOLDER
-   ========================================================== */
-
-.share-sheet__destination-icon--whatsapp {
-  background: #25D366;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — X PLACEHOLDER
-   ========================================================== */
-
-.share-sheet__destination-icon--x {
-  background: #000000;
-
-  border: 1px solid rgba(255, 255, 255, .12);
-
-  font-size: 24px;
-  font-weight: 500;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — TELEGRAM PLACEHOLDER
-   ========================================================== */
-
-.share-sheet__destination-icon--telegram {
-  background: #229ED9;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — FACEBOOK PLACEHOLDER
-   ========================================================== */
-
-.share-sheet__destination-icon--facebook {
-  background: #1877F2;
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-
-  font-size: 34px;
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — EMAIL
-   ========================================================== */
-
-.share-sheet__destination-icon--email {
-  background: #5C19E9;
-}
-
-
-/* =========================================================
-   INDUSTRIAL ICON — MORE
-   ========================================================== */
-
-.share-sheet__destination-icon--more {
-  background: #2C2C2E;
-}
-
-.share-sheet__destination-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 4px;
-
-  pointer-events: none;
-}
-
-.share-sheet__destination-dots i {
-  display: block;
-
-  width: 5px;
-  height: 5px;
-
-  border-radius: 50%;
-
-  background: var(--shareSheetWhite);
-}
-
-
-/* =========================================================
-   INDUSTRIAL LABEL
-   ========================================================== */
-
-.share-sheet__destination-label {
-  display: block;
-
-  width: 72px;
-
-  overflow: hidden;
-
-  color: var(--shareSheetMuted);
-
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.2;
-
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  pointer-events: none;
+  display: none !important;
 }
 
 
@@ -651,8 +387,7 @@
    ACCESSIBILITY / KEYBOARD
    ========================================================== */
 
-.share-sheet__primary-action:focus-visible,
-.share-sheet__destination:focus-visible {
+.share-sheet__primary-action:focus-visible {
   outline: 2px solid var(--shareSheetWhite);
   outline-offset: 3px;
 }
@@ -676,17 +411,6 @@ body.device-non-master.device-small .share-sheet__wordmark {
 body.device-non-master.device-small .share-sheet__primary-actions {
   margin-top: 18px;
   gap: 34px;
-}
-
-body.device-non-master.device-small .share-sheet__industrial {
-  margin-top: 24px;
-}
-
-body.device-non-master.device-small .share-sheet__destinations {
-  gap: 16px;
-
-  padding-left: 14px;
-  padding-right: 14px;
 }
 
 
@@ -731,9 +455,5 @@ body.device-non-master.device-small .share-sheet__destinations {
 
   .share-sheet__wordmark {
     width: 112px;
-  }
-
-  .share-sheet__industrial {
-    max-width: 720px;
   }
 }
