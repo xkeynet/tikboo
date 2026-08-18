@@ -407,45 +407,23 @@
       class="share-sheet__panel"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="shareSheetTitle"
+      aria-label="Share video"
     >
-      <div class="share-sheet__handle" aria-hidden="true"></div>
-
-      <div class="share-sheet__header">
-        <h2
-          class="share-sheet__title"
-          id="shareSheetTitle"
+      <div class="share-sheet__brand">
+        <img
+          class="share-sheet__share-icon"
+          src="/assets/icons/share.svg"
+          alt=""
+          aria-hidden="true"
+          draggable="false"
         >
-          Share
-        </h2>
 
-        <button
-          class="share-sheet__close"
-          id="shareCloseBtn"
-          type="button"
-          aria-label="Close share"
+        <img
+          class="share-sheet__wordmark"
+          src="/assets/swipe-logo-L.png"
+          alt="Tikboo"
+          draggable="false"
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M6 6L18 18"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-            <path
-              d="M18 6L6 18"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </button>
       </div>
 
       <div class="share-sheet__actions">
@@ -453,22 +431,57 @@
           class="share-sheet__action"
           id="shareCopyBtn"
           type="button"
+          aria-label="Copy link"
         >
-          <span class="share-sheet__action-label">
-            Copy link
-          </span>
+          <span
+            class="share-sheet__action-icon share-sheet__action-icon--copy"
+            aria-hidden="true"
+          ></span>
         </button>
 
         <button
           class="share-sheet__action"
           id="shareNativeBtn"
           type="button"
+          aria-label="More sharing options"
         >
-          <span class="share-sheet__action-label">
-            Share...
-          </span>
+          <img
+            class="share-sheet__action-svg"
+            src="/assets/icons/share.svg"
+            alt=""
+            aria-hidden="true"
+            draggable="false"
+          >
         </button>
       </div>
+
+      <button
+        class="share-sheet__close"
+        id="shareCloseBtn"
+        type="button"
+        aria-label="Close share"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6 6L18 18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <path
+            d="M18 6L6 18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
     </section>
   </div>
 
