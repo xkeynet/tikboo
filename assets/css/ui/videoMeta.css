@@ -285,3 +285,9 @@ body.device-non-master.device-small .video-meta-logo{
   max-width:34px;
   max-height:34px;
 }
+
+.video-meta-creator,
+.video-meta-follow,
+.video-meta-caption{
+  text-shadow:0 1px 5px rgba(0,0,0,.30);
+}
