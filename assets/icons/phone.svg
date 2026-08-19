@@ -1,3 +1,22 @@
-<svg fill="none" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 6H12.012M6 5L6 19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19L18 5C18 3.89543 17.1046 3 16 3L8 3C6.89543 3 6 3.89543 6 5Z" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <g
+    stroke="#FFFFFF"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    transform="translate(2.5 5)"
+  >
+    <path
+      d="M0,0.95 C0,0.42532925 0.42532925,0 0.95,0 L14.25,0 C14.774685,0 15.2,0.42532925 15.2,0.95 L15.2,5.225 L19,2.375 L19,13.3 L15.2,10.45 L15.2,14.25 C15.2,14.774685 14.774685,15.2 14.25,15.2 L0.95,15.2 C0.42532925,15.2 0,14.774685 0,14.25 L0,0.95 Z"
+    />
+    <line x1="2.85" x2="2.85" y1="3.8" y2="5.7" />
+    <line x1="5.225" x2="5.225" y1="2.85" y2="6.65" />
+    <line x1="7.6" x2="7.6" y1="3.8" y2="5.7" />
+  </g>
 </svg>
