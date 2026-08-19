@@ -97,7 +97,12 @@
 
   border-radius:50%;
 
-  background:linear-gradient(135deg, #86DEFF 0%, #86DEFF 25%, #5C19E9 100%);
+  background:linear-gradient(
+    135deg,
+    #86DEFF 0%,
+    #86DEFF 25%,
+    #5C19E9 100%
+  );
 
   padding:2.667px;
   box-sizing:border-box;
@@ -113,6 +118,39 @@
   mask-composite:exclude;
 
   pointer-events:none;
+}
+
+/* =========================================================
+   Tikboo - LIVE Avatar Ring
+   Synchronised with LIVE 3000ms cycle
+   ========================================================= */
+
+.twincher-layer.is-live .avatar-ring::before{
+  animation:liveAvatarRingFlash 3000ms linear infinite;
+}
+
+@keyframes liveAvatarRingFlash{
+  0%, 78%{
+    background:linear-gradient(
+      135deg,
+      #86DEFF 0%,
+      #86DEFF 25%,
+      #5C19E9 100%
+    );
+  }
+
+  79%, 98%{
+    background:#FE2C55;
+  }
+
+  100%{
+    background:linear-gradient(
+      135deg,
+      #86DEFF 0%,
+      #86DEFF 25%,
+      #5C19E9 100%
+    );
+  }
 }
 
 .avatar{
@@ -252,7 +290,9 @@
   pointer-events:none;
 }
 
-/* small devices */
+/* =========================================================
+   Small Devices
+   ========================================================= */
 
 body.device-non-master.device-small .video-meta-avatarBtn{
   width:44px;
