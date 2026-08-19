@@ -45,6 +45,9 @@
   -webkit-mask:url("/assets/icons/phone.svg") center / contain no-repeat;
   mask:url("/assets/icons/phone.svg") center / contain no-repeat;
 
+  filter:
+    drop-shadow(0 1px 5px rgba(0,0,0,.30));
+
   animation:none;
 }
 
@@ -88,8 +91,7 @@
   backface-visibility:hidden;
 
   filter:
-    drop-shadow(0 0 2px rgba(0,0,0,.60))
-    drop-shadow(0 2px 8px rgba(0,0,0,.45));
+    drop-shadow(0 1px 5px rgba(0,0,0,.30));
 
   -webkit-user-drag:none;
   -webkit-touch-callout:none;
