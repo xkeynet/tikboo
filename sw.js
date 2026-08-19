@@ -1,6 +1,6 @@
 // /sw.js
 
-const CACHE_VERSION = 'tikboo-static-v1';
+const CACHE_VERSION = 'tikboo-static-v2';
 
 const STATIC_ASSETS = [
   '/',
