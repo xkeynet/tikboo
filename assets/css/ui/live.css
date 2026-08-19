@@ -35,8 +35,8 @@
 .top::before{
   content:"";
 
-  width:32px;
-  height:32px;
+  width:28px;
+  height:28px;
 
   display:block;
 
@@ -76,8 +76,8 @@
 }
 
 .live-arrow-fly img{
-  width:12px;
-  height:12px;
+  width:28px;
+  height:28px;
 
   display:block;
 
