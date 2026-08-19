@@ -1,1 +1,180 @@
+/* =========================================================
+   TIKBOO — LIVE SYSTEM
+   ========================================================= */
 
+
+/* =========================================================
+   LIVE — BASE / INACTIVE
+   ========================================================= */
+
+.top{
+  position:absolute;
+  top:2px;
+  left:0px;
+  right:auto;
+
+  width:56px;
+  height:56px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:3;
+
+  padding:0;
+
+  background:none;
+  border:0;
+}
+
+.top img{
+  display:none;
+}
+
+.top::before{
+  content:"";
+
+  width:32px;
+  height:32px;
+
+  display:block;
+
+  background:#fff;
+
+  -webkit-mask:url("/assets/icons/phone.svg") center / contain no-repeat;
+  mask:url("/assets/icons/phone.svg") center / contain no-repeat;
+
+  animation:none;
+}
+
+
+/* =========================================================
+   LIVE — ARROW / INACTIVE
+   ========================================================= */
+
+.live-arrow-fly{
+  position:absolute;
+
+  top:16px;
+  right:12px;
+
+  width:28px;
+  height:28px;
+
+  z-index:4;
+
+  pointer-events:none;
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+
+  opacity:0;
+
+  animation:none;
+}
+
+.live-arrow-fly::before{
+  content:"";
+
+  width:12px;
+  height:12px;
+
+  border-top:2px solid #fff;
+  border-left:2px solid #fff;
+
+  transform-origin:50% 50%;
+  transform:rotate(135deg) translateZ(0);
+
+  will-change:transform;
+  backface-visibility:hidden;
+
+  filter:
+    drop-shadow(0 0 2px rgba(0,0,0,.60))
+    drop-shadow(0 2px 8px rgba(0,0,0,.45));
+
+  animation:none;
+}
+
+
+/* =========================================================
+   LIVE — ACTIVE
+   ========================================================= */
+
+.twincher-layer.is-live .top::before{
+  animation:phoneLiveFlash 3000ms linear infinite;
+}
+
+.twincher-layer.is-live .live-arrow-fly{
+  display:flex;
+
+  animation:liveArrowTravel 3000ms linear infinite;
+}
+
+.twincher-layer.is-live .live-arrow-fly::before{
+  animation:liveArrowSpin 3000ms cubic-bezier(.14,.92,.18,1) infinite;
+}
+
+
+/* =========================================================
+   LIVE — KEYFRAMES
+   ========================================================= */
+
+@keyframes liveArrowTravel{
+  0%{
+    opacity:0;
+    transform:translateX(0);
+  }
+
+  8%{
+    opacity:1;
+  }
+
+  42%{
+    opacity:1;
+    transform:translateX(calc(-100vw + 82px));
+  }
+
+  90%{
+    opacity:1;
+    transform:translateX(calc(-100vw + 82px));
+  }
+
+  100%{
+    opacity:0;
+    transform:translateX(calc(-100vw + 82px));
+  }
+}
+
+@keyframes liveArrowSpin{
+  0%{
+    transform:rotate(135deg) translateZ(0);
+  }
+
+  42%{
+    transform:rotate(135deg) translateZ(0);
+  }
+
+  90%{
+    transform:rotate(1035deg) translateZ(0);
+  }
+
+  100%{
+    transform:rotate(1035deg) translateZ(0);
+  }
+}
+
+@keyframes phoneLiveFlash{
+  0%, 78%{
+    background:#fff;
+  }
+
+  79%, 98%{
+    background:#FE2C55;
+  }
+
+  100%{
+    background:#fff;
+  }
+}
