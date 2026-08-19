@@ -877,6 +877,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!v || !im) return;
 
+    layer.classList.toggle(
+      'is-live',
+      item.isLive === true
+    );
+
     setLayerVideoMeta(layer, item);
 
     hideAll(layer);
