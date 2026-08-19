@@ -26,7 +26,8 @@ export async function loadSupabaseFeed() {
     .select(`
       handle,
       avatar_url,
-      follow_url
+      follow_url,
+      is_live
     `);
 
   if (creatorsError) {
@@ -52,6 +53,7 @@ export async function loadSupabaseFeed() {
       caption: `@${video.creator_handle}`,
       followUrl: creator?.follow_url || '',
       avatar: creator?.avatar_url || '',
+      isLive: creator?.is_live === true,
       manifest: video.hls_url,
       poster: video.poster_url
     };
