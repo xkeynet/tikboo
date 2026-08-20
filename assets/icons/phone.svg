@@ -1,12 +1,20 @@
 <svg
   width="24"
   height="24"
-  viewBox="0 0 32 32"
+  viewBox="0 0 24 24"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <path
-    fill="#FFFFFF"
-    d="M5 5L5 11L24 11L24 5L5 5ZM7 7L22 7L22 9L7 9L7 7ZM9 13L9 19L28 19L28 13L9 13ZM11 15L26 15L26 17L11 17L11 15ZM5 21L5 27L24 27L24 21L5 21ZM7 23L22 23L22 25L7 25L7 23Z"
-  />
+  <g
+    transform="translate(2.5 5)"
+    stroke="#FFFFFF"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M0 .95C0 .42532925.42532925 0 .95 0h13.3c.524685 0 .95.42532925.95.95v4.275L19 2.375V13.3l-3.8-2.85v3.8c0 .524685-.425315.95-.95.95H.95A.95.95 0 0 1 0 14.25V.95Z"/>
+    <line x1="2.85" x2="2.85" y1="3.8" y2="5.7"/>
+    <line x1="5.225" x2="5.225" y1="2.85" y2="6.65"/>
+    <line x1="7.6" x2="7.6" y1="3.8" y2="5.7"/>
+  </g>
 </svg>
