@@ -507,8 +507,8 @@ body{
 }
 
 [aria-label="Home"] .nav-icon{
-  width:26px;
-  height:26px;
+  width:24px;
+  height:24px;
   transform: translateY(-2px);
 }
 
@@ -525,8 +525,8 @@ body{
 }
 
 [aria-label="Profile"] .nav-icon{
-  width:26px;
-  height:26px;
+  width:27px;
+  height:27px;
   transform: translateY(-2px);
 }
 
