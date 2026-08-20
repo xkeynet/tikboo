@@ -5,16 +5,11 @@
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <g
-    transform="translate(2.5 5)"
+  <path
+    d="M15.5 3H8.5L7 6H2V20H22V6H17L15.5 3Z"
     stroke="#FFFFFF"
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-  >
-    <path d="M0 .95C0 .42532925.42532925 0 .95 0h13.3c.524685 0 .95.42532925.95.95v4.275L19 2.375V13.3l-3.8-2.85v3.8c0 .524685-.425315.95-.95.95H.95A.95.95 0 0 1 0 14.25V.95Z"/>
-    <line x1="2.85" x2="2.85" y1="3.8" y2="5.7"/>
-    <line x1="5.225" x2="5.225" y1="2.85" y2="6.65"/>
-    <line x1="7.6" x2="7.6" y1="3.8" y2="5.7"/>
-  </g>
+  />
 </svg>
