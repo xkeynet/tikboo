@@ -9,7 +9,7 @@
 
 .top{
   position:absolute;
-  top:2px;
+  top:-2px;
   left:0px;
   right:auto;
 
@@ -35,8 +35,8 @@
 .top::before{
   content:"";
 
-  width:30px;
-  height:30px;
+  width:26px;
+  height:26px;
 
   display:block;
 
