@@ -515,7 +515,7 @@ body{
 [aria-label="Search"] .nav-icon{
   width:27px;
   height:27px;
-  transform: translateY(-1px);
+  transform: translateY(0px);
 }
 
 [aria-label="Messages"] .nav-icon{
