@@ -471,8 +471,8 @@ body{
 }
 
 .icon-bookmark{
-  width:33px;
-  height:33px;
+  width:32px;
+  height:32px;
   display:block;
   filter:brightness(0) invert(1);
 }
