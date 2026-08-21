@@ -1,3 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 256 256" fill="currentColor">
-  <path d="M192 32H64a16 16 0 0 0-16 16v176a8 8 0 0 0 13 6.4l67-55.9 67 55.9a8 8 0 0 0 13-6.4V48a16 16 0 0 0-16-16Z"/>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="34"
+  height="34"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path
+    d="M4 2H20A1 1 0 0 1 21 3V22.276A.5.5 0 0 1 20.296 22.733L12 19.03L3.704 22.733A.5.5 0 0 1 3 22.276V3A1 1 0 0 1 4 2Z"
+  />
 </svg>
