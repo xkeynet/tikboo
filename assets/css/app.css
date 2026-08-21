@@ -515,13 +515,13 @@ body{
 [aria-label="Search"] .nav-icon{
   width:27px;
   height:27px;
-  transform: translateY(0px);
+  transform: translateY(-2px);
 }
 
 [aria-label="Messages"] .nav-icon{
   width:27px;
   height:27px;
-  transform: translateY(0px);
+  transform: translateY(-2px);
 }
 
 [aria-label="Profile"] .nav-icon{
