@@ -457,22 +457,22 @@ body{
 }
 
 .icon-heart{
-  width:30px;
-  height:30px;
+  width:32px;
+  height:32px;
   display:block;
   filter:brightness(0) invert(1);
 }
 
 .icon-talk{
-  width:30px;
-  height:30px;
+  width:32px;
+  height:32px;
   display:block;
   filter:brightness(0) invert(1);
 }
 
 .icon-bookmark{
-  width:30px;
-  height:30px;
+  width:33px;
+  height:33px;
   display:block;
   filter:brightness(0) invert(1);
 }
