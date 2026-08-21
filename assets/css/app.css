@@ -478,8 +478,8 @@ body{
 }
 
 .icon-share{
-  width:35px;
-  height:35px;
+  width:37px;
+  height:37px;
   display:block;
   filter:brightness(0) invert(1);
   transform: translateY(3px);
