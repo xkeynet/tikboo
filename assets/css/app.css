@@ -486,8 +486,8 @@ body{
 }
 
 .icon-dots{
-  width:28px;
-  height:28px;
+  width:30px;
+  height:30px;
   display:block;
   filter:brightness(0) invert(1);
   transform:translateY(-2px);
