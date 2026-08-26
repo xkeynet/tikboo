@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
 import boto3
 import requests
 from botocore.config import Config as BotoConfig
@@ -84,7 +85,7 @@ from dotenv import load_dotenv
 # VERSION
 # ============================================================
 
-WORKER_VERSION = "stream-3.2.0"
+WORKER_VERSION = "stream-3.3.0"
 
 
 # ============================================================
@@ -119,7 +120,9 @@ SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 # CLOUDFLARE STREAM ENVIRONMENT
 # ============================================================
 
-CLOUDFLARE_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CLOUDFLARE_ACCOUNT_ID = os.environ[
+    "CLOUDFLARE_ACCOUNT_ID"
+]
 
 CLOUDFLARE_STREAM_API_TOKEN = os.environ[
     "CLOUDFLARE_STREAM_API_TOKEN"
@@ -158,6 +161,13 @@ HTTP_TIMEOUT_SECONDS = int(
     )
 )
 
+STREAM_MEDIA_FRESH_RETRIES = int(
+    os.getenv(
+        "STREAM_MEDIA_FRESH_RETRIES",
+        "1",
+    )
+)
+
 
 # ============================================================
 # CONSTANTS
@@ -181,6 +191,16 @@ STREAM_UID_FROM_URL_PATTERN = re.compile(
     r"/([A-Za-z0-9_-]{10,64})/",
     re.IGNORECASE,
 )
+
+MEDIA_TERMINAL_ERROR_PREFIX = (
+    "[stream-media-terminal]"
+)
+
+PROCESS_OUTCOME_COMPLETED = "completed"
+
+PROCESS_OUTCOME_PROCESSING = "processing"
+
+PROCESS_OUTCOME_MEDIA_FAILED = "media_failed"
 
 
 # ============================================================
@@ -226,13 +246,31 @@ class TikbooWorkerError(RuntimeError):
     pass
 
 
-class CloudflareStreamError(TikbooWorkerError):
+class CloudflareStreamError(
+    TikbooWorkerError
+):
     pass
 
 
 class CloudflareStreamProcessingError(
     CloudflareStreamError
 ):
+    """
+    Media-level failure.
+
+    This exception is deliberately reserved for
+    Cloudflare Stream objects whose processing
+    status explicitly reports:
+
+        status.state == "error"
+
+    HTTP errors, authentication failures,
+    malformed API responses, R2 failures,
+    Supabase failures and other infrastructure
+    failures must NOT be converted into this
+    exception.
+    """
+
     pass
 
 
@@ -278,6 +316,134 @@ def duration_to_int(
 
     return int(
         round(duration)
+    )
+
+
+def get_stream_state(
+    stream_video: Dict[str, Any],
+) -> Optional[str]:
+
+    status = (
+        stream_video.get(
+            "status"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        status,
+        dict,
+    ):
+        return None
+
+    state = status.get(
+        "state"
+    )
+
+    if state is None:
+        return None
+
+    return str(
+        state
+    ).lower()
+
+
+def stream_video_is_error(
+    stream_video: Dict[str, Any],
+) -> bool:
+
+    return (
+        get_stream_state(
+            stream_video
+        )
+        == "error"
+    )
+
+
+def build_stream_processing_error(
+    stream_video: Dict[str, Any],
+) -> CloudflareStreamProcessingError:
+
+    uid = stream_video.get(
+        "uid"
+    )
+
+    status = (
+        stream_video.get(
+            "status"
+        )
+        or {}
+    )
+
+    if not isinstance(
+        status,
+        dict,
+    ):
+        status = {}
+
+    reason_code = (
+        status.get(
+            "errorReasonCode"
+        )
+        or "ERR_UNKNOWN"
+    )
+
+    reason_text = (
+        status.get(
+            "errorReasonText"
+        )
+        or (
+            "Cloudflare Stream "
+            "processing failed."
+        )
+    )
+
+    prefix = ""
+
+    if uid:
+        prefix = (
+            f"UID {uid}: "
+        )
+
+    return (
+        CloudflareStreamProcessingError(
+            f"{prefix}"
+            f"{reason_code}: "
+            f"{reason_text}"
+        )
+    )
+
+
+def build_terminal_media_error(
+    source_key: str,
+    error: Exception,
+    fresh_retries_used: int,
+) -> str:
+
+    return (
+        f"{MEDIA_TERMINAL_ERROR_PREFIX} "
+        f"source={source_key}; "
+        f"fresh_retries={fresh_retries_used}; "
+        f"{error}"
+    )
+
+
+def row_has_terminal_media_error(
+    row: Dict[str, Any],
+) -> bool:
+
+    error_message = row.get(
+        "error_message"
+    )
+
+    if not isinstance(
+        error_message,
+        str,
+    ):
+        return False
+
+    return error_message.startswith(
+        MEDIA_TERMINAL_ERROR_PREFIX
     )
 
 
@@ -363,7 +529,10 @@ def supabase_insert(
     rows = response.json()
 
     if (
-        not isinstance(rows, list)
+        not isinstance(
+            rows,
+            list,
+        )
         or not rows
     ):
         raise TikbooWorkerError(
@@ -508,8 +677,12 @@ def order_candidates_for_selection(
       when alternatives exist
     - numeric video order inside creator
     - candidates interleaved across creators
-    - one worker execution processes
-      maximum one selected video
+    - one worker execution completes
+      maximum one selected video successfully
+
+    A terminal media failure may be skipped and
+    the same worker execution may continue to
+    the next candidate.
     """
 
     if not videos:
@@ -722,7 +895,9 @@ def extract_stream_uid_from_row(
     ):
         uid = (
             extract_stream_uid_from_value(
-                row.get(column)
+                row.get(
+                    column
+                )
             )
         )
 
@@ -757,6 +932,63 @@ def row_uses_cloudflare_stream(
         )
         is True
     )
+
+
+# ============================================================
+# CHECK WHETHER ROW HAS LEGACY PLAYBACK
+# ============================================================
+
+def row_has_existing_playback(
+    row: Dict[str, Any],
+) -> bool:
+    """
+    Detect an existing non-Stream playback row.
+
+    Such a row is migrated IN PLACE and its
+    working playback must remain untouched until
+    Cloudflare Stream is fully ready.
+    """
+
+    if row_uses_cloudflare_stream(
+        row
+    ):
+        return False
+
+    if (
+        row.get(
+            "processing_status"
+        )
+        != "ready"
+    ):
+        return False
+
+    if (
+        row.get(
+            "hls_ready"
+        )
+        is not True
+    ):
+        return False
+
+    for column in (
+        "video_url",
+        "manifest_url",
+        "hls_url",
+    ):
+        value = row.get(
+            column
+        )
+
+        if (
+            isinstance(
+                value,
+                str,
+            )
+            and value.strip()
+        ):
+            return True
+
+    return False
 
 
 # ============================================================
@@ -801,11 +1033,31 @@ def get_video_by_source(
 
         return stream_rows[0]
 
+    legacy_playback_rows = [
+        row
+        for row in rows
+        if row_has_existing_playback(
+            row
+        )
+    ]
+
+    if legacy_playback_rows:
+        if len(rows) > 1:
+            print(
+                "Duplicate Supabase rows detected "
+                f"for {source_mp4}: {len(rows)} rows. "
+                "Existing ready legacy playback "
+                "row wins."
+            )
+
+        return legacy_playback_rows[0]
+
     if len(rows) > 1:
         print(
             "Duplicate Supabase rows detected "
             f"for {source_mp4}: {len(rows)} rows. "
-            f"Using newest row ID {rows[0].get('id')}."
+            f"Using newest row ID "
+            f"{rows[0].get('id')}."
         )
 
     return rows[0]
@@ -877,11 +1129,11 @@ def save_stream_uid(
         temporarily stores cfstream://UID
         in video_url.
 
-    For EXISTING R2 rows:
+    For EXISTING playback rows:
         does NOT overwrite working playback
         while Stream is still encoding.
 
-    Existing rows can recover the UID via
+    Existing playback rows recover the UID via
     Stream meta.name search if worker restarts.
     """
 
@@ -1122,10 +1374,10 @@ def mark_existing_migration_error(
     error_message: Any,
 ) -> None:
     """
-    Existing R2 playback is deliberately preserved.
+    Existing playback is deliberately preserved.
 
-    If Stream migration fails, this function
-    does NOT alter:
+    If Stream migration reaches a terminal
+    media failure, this function does NOT alter:
 
         video_url
         manifest_url
@@ -1136,6 +1388,10 @@ def mark_existing_migration_error(
         is_active
 
     It only records diagnostics.
+
+    The terminal media prefix prevents this
+    migration candidate from repeatedly blocking
+    later sources on future worker executions.
     """
 
     supabase_patch(
@@ -1242,13 +1498,13 @@ def cloudflare_request(
     try:
         payload = response.json()
 
-    except ValueError:
+    except ValueError as exc:
         raise CloudflareStreamError(
             "Cloudflare returned "
             "non-JSON response. "
             f"HTTP {response.status_code}: "
             f"{response.text}"
-        )
+        ) from exc
 
     if not response.ok:
         raise CloudflareStreamError(
@@ -1288,6 +1544,17 @@ def find_stream_video_by_source(
     an upload after a Hetzner restart.
 
     Exact meta.name is checked after search.
+
+    IMPORTANT:
+
+    Stream objects with:
+
+        status.state == "error"
+
+    are NEVER recovered.
+
+    If multiple valid objects match the same
+    source, the NEWEST valid match wins.
     """
 
     response = cloudflare_request(
@@ -1315,6 +1582,8 @@ def find_stream_video_by_source(
     matches: List[
         Dict[str, Any]
     ] = []
+
+    rejected_error_objects = 0
 
     for item in result:
         if not isinstance(
@@ -1349,8 +1618,33 @@ def find_stream_video_by_source(
         if not uid:
             continue
 
+        if stream_video_is_error(
+            item
+        ):
+            rejected_error_objects += 1
+
+            print()
+            print(
+                "Ignoring failed Cloudflare "
+                "Stream object:"
+            )
+            print(
+                f"Source: {source_mp4}"
+            )
+            print(
+                f"UID:    {uid}"
+            )
+
+            continue
+
         matches.append(
             item
+        )
+
+    if rejected_error_objects:
+        print(
+            "Failed Stream objects ignored:",
+            rejected_error_objects,
         )
 
     if not matches:
@@ -1370,7 +1664,8 @@ def find_stream_video_by_source(
                 )
                 or ""
             ),
-        )
+        ),
+        reverse=True,
     )
 
     selected = matches[0]
@@ -1385,6 +1680,10 @@ def find_stream_video_by_source(
     )
     print(
         f"UID:    {selected['uid']}"
+    )
+    print(
+        "Recovery policy: newest "
+        "non-error match"
     )
 
     return selected
@@ -1525,6 +1824,39 @@ def get_stream_video(
 
 
 # ============================================================
+# VALIDATE RESUMED STREAM UID
+# ============================================================
+
+def validate_resumed_stream_uid(
+    uid: str,
+) -> None:
+    """
+    A UID persisted in Supabase may point to a
+    Stream object that subsequently reached
+    status.state == "error".
+
+    Such an object must never be resumed.
+
+    Only the explicit state=error condition is
+    converted to media-level failure.
+
+    API/auth/network failures remain fatal
+    system/infrastructure failures.
+    """
+
+    stream_video = get_stream_video(
+        uid
+    )
+
+    if stream_video_is_error(
+        stream_video
+    ):
+        raise build_stream_processing_error(
+            stream_video
+        )
+
+
+# ============================================================
 # ACQUIRE STREAM UID
 # ============================================================
 
@@ -1537,11 +1869,18 @@ def acquire_stream_uid(
     Idempotency order:
 
     1. UID already present in Supabase
+       - validate it
+       - never resume it if state=error
+
     2. Existing Stream video by exact source name
+       - state=error objects are excluded
+       - newest valid match wins
+
     3. New Stream /copy request
 
     This prevents duplicate Stream videos after
-    normal worker restarts.
+    normal worker restarts while refusing to
+    recover known failed Stream objects.
     """
 
     source_key = video[
@@ -1562,6 +1901,10 @@ def acquire_stream_uid(
         )
         print(
             f"UID: {existing_uid}"
+        )
+
+        validate_resumed_stream_uid(
+            existing_uid
         )
 
         return existing_uid
@@ -1612,6 +1955,50 @@ def acquire_stream_uid(
 
 
 # ============================================================
+# CREATE FRESH RETRY STREAM UID
+# ============================================================
+
+def create_fresh_retry_stream_uid(
+    row_id: Any,
+    video: Dict[str, Any],
+    preserve_existing_playback: bool,
+) -> str:
+    """
+    A media retry must be genuinely fresh.
+
+    Recovery lookup is intentionally bypassed.
+
+    The failed Stream object is not reused.
+    A new /stream/copy request is issued using
+    a newly generated temporary R2 GET URL.
+    """
+
+    created = (
+        create_stream_video(
+            video
+        )
+    )
+
+    uid = created.get(
+        "uid"
+    )
+
+    if not uid:
+        raise CloudflareStreamError(
+            "Fresh retry Stream video "
+            "contains no UID."
+        )
+
+    save_stream_uid(
+        row_id,
+        uid,
+        preserve_existing_playback,
+    )
+
+    return uid
+
+
+# ============================================================
 # WAIT FOR STREAM
 # ============================================================
 
@@ -1625,11 +2012,19 @@ def wait_for_stream_ready(
 
         readyToStream == true
 
+    If:
+
+        status.state == "error"
+
+    raise CloudflareStreamProcessingError.
+    This is the ONLY normal media-level failure
+    handled without terminating the worker.
+
     If the configured wait window expires while
     Cloudflare is still processing, return None.
 
-    The next worker run resumes the same Stream
-    object instead of creating another one.
+    The next worker run resumes the same valid
+    Stream object instead of creating another one.
     """
 
     deadline = (
@@ -1650,6 +2045,12 @@ def wait_for_stream_ready(
             )
             or {}
         )
+
+        if not isinstance(
+            status,
+            dict,
+        ):
+            status = {}
 
         state = status.get(
             "state"
@@ -1676,29 +2077,11 @@ def wait_for_stream_ready(
             f"ready={ready_to_stream}",
         )
 
-        if state == "error":
-            reason_code = (
-                status.get(
-                    "errorReasonCode"
-                )
-                or "UNKNOWN"
-            )
-
-            reason_text = (
-                status.get(
-                    "errorReasonText"
-                )
-                or (
-                    "Cloudflare Stream "
-                    "processing failed."
-                )
-            )
-
-            raise (
-                CloudflareStreamProcessingError(
-                    f"{reason_code}: "
-                    f"{reason_text}"
-                )
+        if stream_video_is_error(
+            stream_video
+        ):
+            raise build_stream_processing_error(
+                stream_video
             )
 
         if ready_to_stream:
@@ -1726,10 +2109,10 @@ def wait_for_stream_ready(
 
 
 # ============================================================
-# SELECT SOURCE THAT STILL NEEDS STREAM
+# BUILD PENDING VIDEO LIST
 # ============================================================
 
-def select_pending_video() -> Optional[
+def select_pending_videos() -> List[
     Dict[str, Any]
 ]:
     """
@@ -1738,9 +2121,9 @@ def select_pending_video() -> Optional[
     Cases:
 
     1. No Supabase row:
-       -> create new processing row.
+       -> candidate for new processing row.
 
-    2. Existing Supabase row with old R2 playback:
+    2. Existing Supabase row with old playback:
        -> reuse that row.
        -> preserve old playback while Stream processes.
        -> replace playback only after Stream is ready.
@@ -1748,8 +2131,21 @@ def select_pending_video() -> Optional[
     3. Existing ready Cloudflare Stream row:
        -> skip.
 
+    4. Existing NEW row with processing_status=error:
+       -> terminal media failure.
+       -> skip so it cannot block later sources.
+
+    5. Existing legacy playback row carrying the
+       stream-media-terminal marker:
+       -> preserve original playback.
+       -> skip automatic migration retries so it
+          cannot block later sources.
+
     No duplicate Supabase row is created for an
     existing source_mp4.
+
+    Candidate order remains exactly the order
+    produced by Selection Engine v1.
     """
 
     all_sources = (
@@ -1766,6 +2162,10 @@ def select_pending_video() -> Optional[
         "Original MP4 files found:",
         len(ordered),
     )
+
+    pending: List[
+        Dict[str, Any]
+    ] = []
 
     for video in ordered:
         source_key = video[
@@ -1801,19 +2201,82 @@ def select_pending_video() -> Optional[
             ):
                 continue
 
-            return {
+            existing_playback = (
+                row_has_existing_playback(
+                    existing_row
+                )
+            )
+
+            if (
+                existing_row.get(
+                    "processing_status"
+                )
+                == "error"
+                and not existing_playback
+            ):
+                print()
+                print(
+                    "Skipping terminal failed "
+                    "Supabase row:"
+                )
+                print(
+                    f"Source: {source_key}"
+                )
+                print(
+                    f"Row ID: "
+                    f"{existing_row.get('id')}"
+                )
+
+                continue
+
+            if (
+                existing_playback
+                and row_has_terminal_media_error(
+                    existing_row
+                )
+            ):
+                print()
+                print(
+                    "Skipping terminal failed "
+                    "Stream migration; original "
+                    "playback remains active:"
+                )
+                print(
+                    f"Source: {source_key}"
+                )
+                print(
+                    f"Row ID: "
+                    f"{existing_row.get('id')}"
+                )
+
+                continue
+
+            pending.append(
+                {
+                    "video": video,
+                    "row": existing_row,
+                    "existing_row": (
+                        existing_playback
+                    ),
+                }
+            )
+
+            continue
+
+        pending.append(
+            {
                 "video": video,
-                "row": existing_row,
-                "existing_row": True,
+                "row": None,
+                "existing_row": False,
             }
+        )
 
-        return {
-            "video": video,
-            "row": None,
-            "existing_row": False,
-        }
+    print(
+        "Pending Stream candidates:",
+        len(pending),
+    )
 
-    return None
+    return pending
 
 
 # ============================================================
@@ -1826,7 +2289,7 @@ def process_video(
         Dict[str, Any]
     ],
     existing_row: bool,
-) -> bool:
+) -> str:
 
     source_key = video[
         "key"
@@ -1863,12 +2326,17 @@ def process_video(
     if existing_row:
         print(
             "Mode:    migrate existing "
-            "Supabase row"
+            "Supabase playback row"
         )
     else:
         print(
             "Mode:    new source video"
         )
+
+    print(
+        "Fresh media retries:",
+        STREAM_MEDIA_FRESH_RETRIES,
+    )
 
     print(
         "=" * 72
@@ -1901,85 +2369,182 @@ def process_video(
         "id"
     ]
 
-    try:
-        uid = acquire_stream_uid(
-            row,
-            video,
-            preserve_existing_playback=(
-                existing_row
-            ),
-        )
+    fresh_retries_used = 0
 
-        stream_video = (
-            wait_for_stream_ready(
-                uid
-            )
-        )
+    use_fresh_retry = False
 
-        if stream_video is None:
-            print()
-            print(
-                "Cloudflare Stream is "
-                "still processing."
-            )
-
-            if not existing_row:
-                mark_new_row_processing(
-                    row_id
+    while True:
+        try:
+            if use_fresh_retry:
+                print()
+                print(
+                    "Starting controlled fresh "
+                    "Cloudflare Stream retry."
+                )
+                print(
+                    "Retry:",
+                    (
+                        f"{fresh_retries_used}/"
+                        f"{STREAM_MEDIA_FRESH_RETRIES}"
+                    ),
                 )
 
-            print(
-                "Worker will resume the "
-                "same Stream object later."
+                uid = (
+                    create_fresh_retry_stream_uid(
+                        row_id,
+                        video,
+                        preserve_existing_playback=(
+                            existing_row
+                        ),
+                    )
+                )
+
+            else:
+                uid = acquire_stream_uid(
+                    row,
+                    video,
+                    preserve_existing_playback=(
+                        existing_row
+                    ),
+                )
+
+            stream_video = (
+                wait_for_stream_ready(
+                    uid
+                )
             )
 
-            return False
+            if stream_video is None:
+                print()
+                print(
+                    "Cloudflare Stream is "
+                    "still processing."
+                )
 
-        mark_video_ready(
-            row_id,
-            stream_video,
-        )
+                if not existing_row:
+                    mark_new_row_processing(
+                        row_id
+                    )
 
-        print()
-        print(
-            "Video completed successfully."
-        )
+                print(
+                    "Worker will resume the "
+                    "same Stream object later."
+                )
 
-        return True
+                return (
+                    PROCESS_OUTCOME_PROCESSING
+                )
 
-    except Exception as exc:
-        print()
-        print(
-            "PROCESSING ERROR:"
-        )
-        print(
-            exc
-        )
+            mark_video_ready(
+                row_id,
+                stream_video,
+            )
 
-        try:
+            print()
+            print(
+                "Video completed successfully."
+            )
+
+            return (
+                PROCESS_OUTCOME_COMPLETED
+            )
+
+        except (
+            CloudflareStreamProcessingError
+        ) as exc:
+            print()
+            print(
+                "MEDIA PROCESSING FAILURE:"
+            )
+            print(
+                exc
+            )
+
+            if (
+                fresh_retries_used
+                < STREAM_MEDIA_FRESH_RETRIES
+            ):
+                fresh_retries_used += 1
+
+                use_fresh_retry = True
+
+                print()
+                print(
+                    "Failed Stream object will "
+                    "NOT be recovered."
+                )
+                print(
+                    "Scheduling fresh retry "
+                    "inside the same worker run:"
+                )
+                print(
+                    (
+                        f"{fresh_retries_used}/"
+                        f"{STREAM_MEDIA_FRESH_RETRIES}"
+                    )
+                )
+
+                continue
+
+            terminal_error = (
+                build_terminal_media_error(
+                    source_key,
+                    exc,
+                    fresh_retries_used,
+                )
+            )
+
+            print()
+            print(
+                "TERMINAL MEDIA FAILURE:"
+            )
+            print(
+                terminal_error
+            )
+
             if existing_row:
                 mark_existing_migration_error(
                     row_id,
-                    exc,
+                    terminal_error,
+                )
+
+                print()
+                print(
+                    "Original playback preserved."
                 )
 
             else:
                 mark_new_video_failed(
                     row_id,
-                    exc,
+                    terminal_error,
                 )
 
-        except Exception as db_exc:
+                print()
+                print(
+                    "Supabase row marked:"
+                )
+                print(
+                    "processing_status=error"
+                )
+                print(
+                    "hls_ready=false"
+                )
+                print(
+                    "is_active=false"
+                )
+
             print()
             print(
-                "Could not save error "
-                "state to Supabase:"
+                "Media failure isolated."
             )
             print(
-                db_exc
+                "Worker may continue with "
+                "the next candidate."
             )
 
-        raise
+            return (
+                PROCESS_OUTCOME_MEDIA_FAILED
+            )
 
 
 # ============================================================
@@ -2066,6 +2631,15 @@ def preflight() -> None:
             "must be greater than 0."
         )
 
+    if (
+        STREAM_MEDIA_FRESH_RETRIES
+        < 0
+    ):
+        raise TikbooWorkerError(
+            "STREAM_MEDIA_FRESH_RETRIES "
+            "must be 0 or greater."
+        )
+
     print(
         "Tikboo Worker"
     )
@@ -2074,6 +2648,10 @@ def preflight() -> None:
     )
     print(
         f"R2 bucket: {R2_BUCKET}"
+    )
+    print(
+        "Fresh media retries:",
+        STREAM_MEDIA_FRESH_RETRIES,
     )
     print()
     print(
@@ -2111,11 +2689,11 @@ def main() -> int:
 
     preflight()
 
-    selected = (
-        select_pending_video()
+    candidates = (
+        select_pending_videos()
     )
 
-    if not selected:
+    if not candidates:
         print()
         print(
             "No source video requires "
@@ -2124,51 +2702,108 @@ def main() -> int:
 
         return 0
 
-    video = selected[
-        "video"
-    ]
+    terminal_media_failures = 0
 
-    row = selected[
-        "row"
-    ]
-
-    existing_row = bool(
-        selected[
-            "existing_row"
+    for selected in candidates:
+        video = selected[
+            "video"
         ]
-    )
 
-    try:
-        completed = (
-            process_video(
-                video=video,
-                row=row,
-                existing_row=existing_row,
+        row = selected[
+            "row"
+        ]
+
+        existing_row = bool(
+            selected[
+                "existing_row"
+            ]
+        )
+
+        outcome = process_video(
+            video=video,
+            row=row,
+            existing_row=existing_row,
+        )
+
+        if (
+            outcome
+            == PROCESS_OUTCOME_COMPLETED
+        ):
+            print()
+            print(
+                "One video completed "
+                "successfully."
             )
+
+            if terminal_media_failures:
+                print(
+                    "Terminal media failures "
+                    "skipped earlier this run:",
+                    terminal_media_failures,
+                )
+
+            return 0
+
+        if (
+            outcome
+            == PROCESS_OUTCOME_PROCESSING
+        ):
+            print()
+            print(
+                "One video remains in "
+                "Cloudflare Stream "
+                "processing."
+            )
+
+            if terminal_media_failures:
+                print(
+                    "Terminal media failures "
+                    "skipped earlier this run:",
+                    terminal_media_failures,
+                )
+
+            return 0
+
+        if (
+            outcome
+            == PROCESS_OUTCOME_MEDIA_FAILED
+        ):
+            terminal_media_failures += 1
+
+            print()
+            print(
+                "Continuing to next "
+                "Selection Engine candidate."
+            )
+
+            continue
+
+        raise TikbooWorkerError(
+            "Unknown process_video outcome: "
+            f"{outcome}"
         )
 
-    except Exception:
-        print()
+    print()
+
+    if terminal_media_failures:
         print(
-            "Worker stopped after "
-            "processing error."
+            "No video completed successfully."
         )
-
-        return 1
-
-    if completed:
-        print()
         print(
-            "One video completed "
-            "successfully."
+            "All actionable candidates "
+            "reached terminal media failure "
+            "or no further candidate remained."
+        )
+        print(
+            "Terminal media failures "
+            "this run:",
+            terminal_media_failures,
         )
 
     else:
-        print()
         print(
-            "One video remains in "
-            "Cloudflare Stream "
-            "processing."
+            "No actionable candidate "
+            "was completed."
         )
 
     return 0
