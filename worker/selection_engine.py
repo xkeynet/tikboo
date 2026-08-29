@@ -18,18 +18,33 @@ from data_access import (
 
 
 # ============================================================
-# TIKBOO SELECTION SYSTEM V2 — CONTROL
+# TIKBOO SELECTION SYSTEM V2.1 — CONTROL
 # ============================================================
 #
-# Core rule:
+# Core rules:
 #
 #   CREATOR FIRST -> VIDEO SECOND
 #
-# A creator with a large pending library must never monopolize
-# consecutive worker runs merely because its videos start at 001.
+#   Creator selection:
+#   - least recently used creator wins
+#   - creator absent from recent history gets priority
+#   - after one successful selection, that creator immediately
+#     becomes recent and moves behind untouched creators
+#   - NO historical-count "catch-up", therefore a new creator
+#     cannot be drained repeatedly
+#
+#   Video selection:
+#   - stable spread is built from the creator's ENTIRE R2 library
+#   - only afterwards are READY / ERROR / completed sources removed
+#   - sequence therefore remains distributed across the library
+#     instead of restarting from the smallest pending number
 #
 # ============================================================
 
+
+# ============================================================
+# RECENT CREATOR HISTORY
+# ============================================================
 
 def get_recent_ready_creators() -> List[str]:
     try:
@@ -53,38 +68,58 @@ def get_recent_ready_creators() -> List[str]:
     ]
 
 
+# ============================================================
+# STABLE VIDEO SPREAD
+# ============================================================
+
 def build_spread_order(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Spread selection across a creator's pending library instead
-    of consuming videos linearly as 001, 002, 003, 004...
+    Build a deterministic spread over the ENTIRE creator library.
 
     Example:
 
-        001 002 003 004 005 006 007
+        001 002 003 004 005 006 007 008 009
 
     becomes approximately:
 
-        001 007 004 002 006 003 005
+        001 009 005 002 004 003 006 008 007
+
+    Important:
+    this function must receive ALL source videos for the creator,
+    not only currently pending videos. That makes the order stable
+    between worker runs.
     """
 
-    if len(videos) <= 2:
-        return list(videos)
+    if not videos:
+        return []
 
     ordered = sorted(videos, key=lambda item: item["video_number"])
+
+    if len(ordered) <= 2:
+        return ordered
+
     result: List[Dict[str, Any]] = []
+    seen = set()
+
+    def add(video: Dict[str, Any]) -> None:
+        key = video["key"]
+
+        if key in seen:
+            return
+
+        seen.add(key)
+        result.append(video)
 
     def spread(items: List[Dict[str, Any]]) -> None:
         if not items:
             return
 
         if len(items) == 1:
-            result.append(items[0])
+            add(items[0])
             return
 
-        result.append(items[0])
-
-        if len(items) > 1:
-            result.append(items[-1])
+        add(items[0])
+        add(items[-1])
 
         middle = items[1:-1]
 
@@ -92,37 +127,35 @@ def build_spread_order(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             return
 
         midpoint = len(middle) // 2
-        result.append(middle[midpoint])
+        add(middle[midpoint])
 
-        remaining = middle[:midpoint] + middle[midpoint + 1:]
+        left = middle[:midpoint]
+        right = middle[midpoint + 1:]
 
-        if remaining:
-            spread(remaining)
+        if left:
+            spread(left)
+
+        if right:
+            spread(right)
 
     spread(ordered)
 
-    seen = set()
-    unique: List[Dict[str, Any]] = []
+    return result
 
-    for video in result:
-        key = video["key"]
 
-        if key in seen:
-            continue
-
-        seen.add(key)
-        unique.append(video)
-
-    return unique
-
+# ============================================================
+# SOURCE ELIGIBILITY
+# ============================================================
 
 def candidate_from_source(video: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Determine whether one R2 source still requires processing.
+
+    Creator existence is deliberately NOT checked here.
+    It is checked once per creator, not once per source video.
+    """
+
     source_key = video["key"]
-    creator_handle = video["creator_handle"]
-
-    if not creator_exists(creator_handle):
-        return None
-
     existing_row = get_video_by_source(source_key)
 
     if existing_row is None:
@@ -156,60 +189,115 @@ def candidate_from_source(video: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     }
 
 
-def build_pending_by_creator(
-    sources: List[Dict[str, Any]],
-) -> Dict[str, List[Dict[str, Any]]]:
-    source_groups: Dict[str, List[Dict[str, Any]]] = {}
-
-    for video in sources:
-        source_groups.setdefault(
-            video["creator_handle"],
-            [],
-        ).append(video)
-
-    pending: Dict[str, List[Dict[str, Any]]] = {}
-
-    for creator_handle, creator_sources in source_groups.items():
-        creator_candidates: List[Dict[str, Any]] = []
-
-        for video in creator_sources:
-            candidate = candidate_from_source(video)
-
-            if candidate is not None:
-                creator_candidates.append(candidate)
-
-        if creator_candidates:
-            pending[creator_handle] = build_spread_order(
-                [candidate["video"] for candidate in creator_candidates]
-            )
-
-    return pending
-
+# ============================================================
+# CREATOR PRIORITY — TRUE LRU FAIRNESS
+# ============================================================
 
 def creator_priority(
     creator: str,
     recent_creators: List[str],
+    randomizer: random.SystemRandom,
 ) -> tuple:
     """
-    Creators used least recently receive priority.
+    True least-recently-used creator scheduling.
 
-    A creator absent from the recent history receives the
-    strongest priority.
+    IMPORTANT:
+    We DO NOT compare how many times a creator appears in the
+    history window. That old behaviour caused a newly added
+    creator to be selected repeatedly until it "caught up"
+    with older creators.
+
+    Instead:
+
+    1. Creator absent from recent history:
+       highest priority.
+
+    2. Creator already present:
+       the creator whose latest occurrence is oldest wins.
+
+    Once a new creator succeeds once, it becomes the most recent
+    creator and immediately moves behind creators that have not
+    yet received a turn.
     """
 
     try:
-        recent_position = recent_creators.index(creator)
+        position = recent_creators.index(creator)
     except ValueError:
-        recent_position = SELECTION_HISTORY_LIMIT + 1
-
-    recent_count = recent_creators.count(creator)
+        return (
+            0,
+            randomizer.random(),
+        )
 
     return (
-        recent_count,
-        -recent_position,
-        random.SystemRandom().random(),
+        1,
+        -position,
+        randomizer.random(),
     )
 
+
+# ============================================================
+# BUILD CREATOR SOURCE POOL
+# ============================================================
+
+def group_sources_by_creator(
+    sources: List[Dict[str, Any]],
+) -> Dict[str, List[Dict[str, Any]]]:
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+
+    for video in sources:
+        grouped.setdefault(
+            video["creator_handle"],
+            [],
+        ).append(video)
+
+    for creator_sources in grouped.values():
+        creator_sources.sort(
+            key=lambda item: item["video_number"]
+        )
+
+    return grouped
+
+
+# ============================================================
+# FIND ACTIONABLE SOURCES FOR ONE CREATOR
+# ============================================================
+
+def build_creator_candidates(
+    creator_handle: str,
+    creator_sources: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Spread the FULL source library first.
+
+    Only after the stable spread exists do we remove sources that
+    are already READY, terminal ERROR, or otherwise completed.
+
+    This preserves a real cross-library progression between runs.
+    """
+
+    if not creator_exists(creator_handle):
+        print(
+            "Selection Engine: skipping creator missing in Supabase:",
+            creator_handle,
+        )
+        return []
+
+    spread_sources = build_spread_order(creator_sources)
+    candidates: List[Dict[str, Any]] = []
+
+    for video in spread_sources:
+        candidate = candidate_from_source(video)
+
+        if candidate is not None:
+            candidates.append(candidate)
+
+    return candidates
+
+
+# ============================================================
+# SELECTION ENGINE
+# ============================================================
 
 def select_pending_videos() -> List[Dict[str, Any]]:
     sources = list_source_videos()
@@ -218,65 +306,47 @@ def select_pending_videos() -> List[Dict[str, Any]]:
         print("Selection Engine: no source MP4 files found.")
         return []
 
-    source_groups: Dict[str, List[Dict[str, Any]]] = {}
-
-    for video in sources:
-        source_groups.setdefault(
-            video["creator_handle"],
-            [],
-        ).append(video)
-
-    pending_by_creator: Dict[str, List[Dict[str, Any]]] = {}
-
-    for creator_handle, creator_sources in source_groups.items():
-        candidates: List[Dict[str, Any]] = []
-
-        if not creator_exists(creator_handle):
-            continue
-
-        for video in creator_sources:
-            candidate = candidate_from_source(video)
-
-            if candidate is not None:
-                candidates.append(candidate)
-
-        if not candidates:
-            continue
-
-        video_map = {
-            candidate["video"]["key"]: candidate
-            for candidate in candidates
-        }
-
-        spread_videos = build_spread_order(
-            [candidate["video"] for candidate in candidates]
-        )
-
-        pending_by_creator[creator_handle] = [
-            video_map[video["key"]]
-            for video in spread_videos
-        ]
-
-    if not pending_by_creator:
-        print("Selection Engine: no actionable candidates.")
-        return []
-
+    source_groups = group_sources_by_creator(sources)
     recent_creators = get_recent_ready_creators()
-    creators = list(pending_by_creator.keys())
+    randomizer = random.SystemRandom()
+
+    creators = list(source_groups.keys())
 
     creators.sort(
         key=lambda creator: creator_priority(
             creator,
             recent_creators,
+            randomizer,
         )
     )
+
+    pending_by_creator: Dict[str, List[Dict[str, Any]]] = {}
+
+    for creator_handle in creators:
+        candidates = build_creator_candidates(
+            creator_handle,
+            source_groups[creator_handle],
+        )
+
+        if candidates:
+            pending_by_creator[creator_handle] = candidates
+
+    actionable_creators = [
+        creator
+        for creator in creators
+        if creator in pending_by_creator
+    ]
+
+    if not actionable_creators:
+        print("Selection Engine: no actionable candidates.")
+        return []
 
     ordered: List[Dict[str, Any]] = []
 
     while True:
         added = False
 
-        for creator in creators:
+        for creator in actionable_creators:
             candidates = pending_by_creator[creator]
 
             if not candidates:
@@ -291,10 +361,11 @@ def select_pending_videos() -> List[Dict[str, Any]]:
     print()
     print(
         f"Selection System {SELECTION_ENGINE_VERSION} "
-        f"— {SELECTION_ENGINE_CODENAME}"
+        f"— {SELECTION_ENGINE_CODENAME} / V2.1"
     )
     print("Source MP4 files:", len(sources))
-    print("Creators with pending video:", len(creators))
+    print("R2 creators discovered:", len(source_groups))
+    print("Creators with actionable video:", len(actionable_creators))
     print("Actionable candidates:", len(ordered))
 
     if recent_creators:
@@ -302,6 +373,7 @@ def select_pending_videos() -> List[Dict[str, Any]]:
 
     if ordered:
         first = ordered[0]["video"]
+
         print(
             "Next selection:",
             f"{first['creator_handle']}/{first['video_number']:03d}",
