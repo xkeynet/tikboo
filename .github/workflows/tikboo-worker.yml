@@ -1,6 +1,6 @@
 name: Tikboo Media Worker
 
-on:
+"on":
   workflow_dispatch:
 
 jobs:
