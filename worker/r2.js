@@ -1,6 +1,6 @@
 // /worker/r2.js
 
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { WORKER_CONFIG } from './config.js';
 
 function requireEnv(name) {
@@ -21,48 +21,46 @@ function createR2Client() {
   });
 }
 
-function parseVideoKey(key) {
-  const root = WORKER_CONFIG.R2.VIDEO_ROOT;
-  const extension = WORKER_CONFIG.R2.VIDEO_EXTENSION;
+export function buildSourceKey(creatorHandle, videoNumber) {
+  if (!creatorHandle) throw new Error('[Tikboo Worker] Missing creator handle.');
+  if (!Number.isInteger(videoNumber) || videoNumber < 1 || videoNumber > 99) {
+    throw new Error(`[Tikboo Worker] Invalid video number: ${videoNumber}`);
+  }
 
-  if (!key?.startsWith(`${root}/`) || !key.endsWith(extension)) return null;
+  const number = String(videoNumber).padStart(3, '0');
 
-  const relative = key.slice(root.length + 1);
-  const parts = relative.split('/');
-
-  if (parts.length !== 2) return null;
-
-  const [creatorHandle, filename] = parts;
-  if (!creatorHandle || !filename) return null;
-
-  return {
-    creator_handle: creatorHandle,
-    filename,
-    r2_key: key
-  };
+  return `${WORKER_CONFIG.R2.VIDEO_ROOT}/${creatorHandle}/${number}${WORKER_CONFIG.R2.VIDEO_EXTENSION}`;
 }
 
-export async function listR2VideoCandidates() {
+export async function getSourceObjectInfo(sourceKey) {
+  if (!sourceKey) throw new Error('[Tikboo Worker] Missing R2 source key.');
+
   const client = createR2Client();
   const bucket = requireEnv('R2_BUCKET_NAME');
-  const candidates = [];
 
-  let continuationToken;
-
-  do {
-    const response = await client.send(new ListObjectsV2Command({
+  try {
+    const response = await client.send(new HeadObjectCommand({
       Bucket: bucket,
-      Prefix: `${WORKER_CONFIG.R2.VIDEO_ROOT}/`,
-      ContinuationToken: continuationToken
+      Key: sourceKey
     }));
 
-    for (const object of response.Contents || []) {
-      const candidate = parseVideoKey(object.Key);
-      if (candidate) candidates.push(candidate);
+    return {
+      exists: true,
+      source_key: sourceKey,
+      content_length: Number(response.ContentLength || 0),
+      content_type: response.ContentType || 'video/mp4',
+      etag: response.ETag || null
+    };
+  } catch (error) {
+    const status = error?.$metadata?.httpStatusCode;
+
+    if (status === 404 || error?.name === 'NotFound' || error?.name === 'NoSuchKey') {
+      return {
+        exists: false,
+        source_key: sourceKey
+      };
     }
 
-    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
-  } while (continuationToken);
-
-  return candidates;
+    throw error;
+  }
 }
