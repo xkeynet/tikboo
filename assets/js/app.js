@@ -19,12 +19,20 @@ document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive:
 document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const PLAYLIST = await loadSupabaseFeed();
+  let PLAYLIST;
 
-  if (!PLAYLIST.length) {
-    throw new Error('[Tikboo] Supabase feed is empty.');
+  try {
+    PLAYLIST = await loadSupabaseFeed();
+  } catch (error) {
+    console.error('[Tikboo] Supabase feed load failed:', error);
+    return;
   }
-  
+
+  if (!Array.isArray(PLAYLIST) || !PLAYLIST.length) {
+    console.info('[Tikboo] Supabase feed is empty. Waiting for ready videos.');
+    return;
+  }
+
   // =========================================================
   // === State ===
   // =========================================================
