@@ -43,30 +43,64 @@ export async function loadCreatorHandles() {
   const table = WORKER_CONFIG.SUPABASE.CREATORS_TABLE;
 
   const data = await request(
-    `${table}?select=handle&handle=not.is.null`,
+    `${table}?select=handle&handle=not.is.null&order=handle.asc`,
     { method: 'GET' }
   );
 
+  return (Array.isArray(data) ? data : [])
+    .map((row) => row.handle)
+    .filter(Boolean);
+}
+
+export async function loadExistingVideos() {
+  const table = WORKER_CONFIG.SUPABASE.VIDEOS_TABLE;
+
+  const data = await request(
+    `${table}?select=id,created_at,creator_handle,source_key,video_number,status,stream_uid&order=created_at.desc`,
+    { method: 'GET' }
+  );
+
+  return Array.isArray(data) ? data : [];
+}
+
+export async function loadExistingSourceKeys() {
+  const rows = await loadExistingVideos();
+
   return new Set(
-    (Array.isArray(data) ? data : [])
-      .map((row) => row.handle)
+    rows
+      .map((row) => row.source_key)
       .filter(Boolean)
   );
 }
 
-export async function loadExistingSourceKeys() {
+export async function loadCreatorHistory() {
   const table = WORKER_CONFIG.SUPABASE.VIDEOS_TABLE;
 
   const data = await request(
-    `${table}?select=source_key&source_key=not.is.null`,
+    `${table}?select=creator_handle,created_at&creator_handle=not.is.null&order=created_at.desc&limit=1000`,
     { method: 'GET' }
   );
 
-  return new Set(
-    (Array.isArray(data) ? data : [])
-      .map((row) => row.source_key)
-      .filter(Boolean)
+  return Array.isArray(data) ? data : [];
+}
+
+export async function countVideosCreatedToday() {
+  const table = WORKER_CONFIG.SUPABASE.VIDEOS_TABLE;
+
+  const now = new Date();
+  const start = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    0, 0, 0, 0
+  ));
+
+  const data = await request(
+    `${table}?select=id&created_at=gte.${encodeURIComponent(start.toISOString())}`,
+    { method: 'GET' }
   );
+
+  return Array.isArray(data) ? data.length : 0;
 }
 
 export async function createQueuedVideo({
@@ -76,7 +110,7 @@ export async function createQueuedVideo({
 }) {
   const table = WORKER_CONFIG.SUPABASE.VIDEOS_TABLE;
 
-  const [row] = await request(table, {
+  const data = await request(table, {
     method: 'POST',
     headers: {
       Prefer: 'return=representation'
@@ -89,7 +123,11 @@ export async function createQueuedVideo({
     })
   });
 
-  return row;
+  if (!Array.isArray(data) || !data[0]) {
+    throw new Error('[Tikboo Worker] Supabase did not return created video row.');
+  }
+
+  return data[0];
 }
 
 export async function updateVideo(id, changes) {
