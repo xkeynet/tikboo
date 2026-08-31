@@ -22,6 +22,7 @@ async function streamRequest(path, options = {}) {
       ...options,
       headers: {
         Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
         ...options.headers
       }
     }
@@ -38,23 +39,25 @@ async function streamRequest(path, options = {}) {
   return payload?.result ?? null;
 }
 
-export async function uploadVideoToStream({
-  body,
-  contentLength,
-  filename
+export async function copyVideoToStream({
+  sourceUrl,
+  creatorHandle,
+  sourceKey
 }) {
-  if (!body) throw new Error('[Tikboo Worker] Missing video body.');
-  if (!contentLength) throw new Error('[Tikboo Worker] Missing video content length.');
-  if (!filename) throw new Error('[Tikboo Worker] Missing video filename.');
+  if (!sourceUrl) throw new Error('[Tikboo Worker] Missing source URL.');
+  if (!creatorHandle) throw new Error('[Tikboo Worker] Missing creator handle.');
+  if (!sourceKey) throw new Error('[Tikboo Worker] Missing source key.');
 
-  const form = new FormData();
-  const blob = new Blob([body], { type: 'video/mp4' });
-
-  form.append('file', blob, filename);
-
-  return streamRequest('', {
+  return streamRequest('/copy', {
     method: 'POST',
-    body: form
+    body: JSON.stringify({
+      input: sourceUrl,
+      creator: creatorHandle,
+      meta: {
+        creator_handle: creatorHandle,
+        source_key: sourceKey
+      }
+    })
   });
 }
 
@@ -66,18 +69,25 @@ export async function getStreamVideo(streamUid) {
   });
 }
 
-export function buildStreamUrls(streamUid, customerCode) {
-  if (!streamUid) throw new Error('[Tikboo Worker] Missing Stream UID.');
-  if (!customerCode) throw new Error('[Tikboo Worker] Missing Cloudflare Stream customer code.');
-
-  const base = `https://customer-${customerCode}.cloudflarestream.com/${streamUid}`;
-
-  return {
-    hls_url: `${base}/manifest/video.m3u8`,
-    poster_url: `${base}/thumbnails/thumbnail.jpg?time=0s&fit=crop&height=1080`
-  };
-}
-
 export function isStreamReady(video) {
   return video?.readyToStream === true && video?.status?.state === 'ready';
+}
+
+export function getStreamPlayback(video) {
+  if (!video?.uid) {
+    throw new Error('[Tikboo Worker] Stream video UID is missing.');
+  }
+
+  const hlsUrl = video?.playback?.hls || null;
+  const posterUrl = video?.thumbnail || null;
+
+  if (!hlsUrl) {
+    throw new Error(`[Tikboo Worker] HLS URL missing for Stream UID ${video.uid}.`);
+  }
+
+  return {
+    stream_uid: video.uid,
+    hls_url: hlsUrl,
+    poster_url: posterUrl
+  };
 }
