@@ -1,6 +1,12 @@
 // /worker/r2.js
 
-import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  HeadObjectCommand,
+  GetObjectCommand
+} from '@aws-sdk/client-s3';
+
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { WORKER_CONFIG } from './config.js';
 
 function requireEnv(name) {
@@ -17,32 +23,52 @@ function createR2Client() {
   return new S3Client({
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey }
+    credentials: {
+      accessKeyId,
+      secretAccessKey
+    }
   });
 }
 
 export function buildSourceKey(creatorHandle, videoNumber) {
-  if (!creatorHandle) throw new Error('[Tikboo Worker] Missing creator handle.');
-  if (!Number.isInteger(videoNumber) || videoNumber < 1 || videoNumber > 99) {
-    throw new Error(`[Tikboo Worker] Invalid video number: ${videoNumber}`);
+  if (!creatorHandle) {
+    throw new Error('[Tikboo Worker] Missing creator handle.');
+  }
+
+  if (
+    !Number.isInteger(videoNumber) ||
+    videoNumber < 1 ||
+    videoNumber > 99
+  ) {
+    throw new Error(
+      `[Tikboo Worker] Invalid video number: ${videoNumber}`
+    );
   }
 
   const number = String(videoNumber).padStart(3, '0');
 
-  return `${WORKER_CONFIG.R2.VIDEO_ROOT}/${creatorHandle}/${number}${WORKER_CONFIG.R2.VIDEO_EXTENSION}`;
+  return (
+    `${WORKER_CONFIG.R2.VIDEO_ROOT}/` +
+    `${creatorHandle}/` +
+    `${number}${WORKER_CONFIG.R2.VIDEO_EXTENSION}`
+  );
 }
 
 export async function getSourceObjectInfo(sourceKey) {
-  if (!sourceKey) throw new Error('[Tikboo Worker] Missing R2 source key.');
+  if (!sourceKey) {
+    throw new Error('[Tikboo Worker] Missing R2 source key.');
+  }
 
   const client = createR2Client();
   const bucket = requireEnv('R2_BUCKET_NAME');
 
   try {
-    const response = await client.send(new HeadObjectCommand({
-      Bucket: bucket,
-      Key: sourceKey
-    }));
+    const response = await client.send(
+      new HeadObjectCommand({
+        Bucket: bucket,
+        Key: sourceKey
+      })
+    );
 
     return {
       exists: true,
@@ -54,7 +80,11 @@ export async function getSourceObjectInfo(sourceKey) {
   } catch (error) {
     const status = error?.$metadata?.httpStatusCode;
 
-    if (status === 404 || error?.name === 'NotFound' || error?.name === 'NoSuchKey') {
+    if (
+      status === 404 ||
+      error?.name === 'NotFound' ||
+      error?.name === 'NoSuchKey'
+    ) {
       return {
         exists: false,
         source_key: sourceKey
@@ -63,4 +93,29 @@ export async function getSourceObjectInfo(sourceKey) {
 
     throw error;
   }
+}
+
+export async function createPresignedSourceUrl(
+  sourceKey,
+  expiresInSeconds = 3600
+) {
+  if (!sourceKey) {
+    throw new Error('[Tikboo Worker] Missing R2 source key.');
+  }
+
+  const client = createR2Client();
+  const bucket = requireEnv('R2_BUCKET_NAME');
+
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: sourceKey
+  });
+
+  return getSignedUrl(
+    client,
+    command,
+    {
+      expiresIn: expiresInSeconds
+    }
+  );
 }
