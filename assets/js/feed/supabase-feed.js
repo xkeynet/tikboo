@@ -28,9 +28,7 @@ async function loadAllReadyVideos() {
         hls_url,
         poster_url
       `)
-      .eq('processing_status', 'ready')
-      .eq('hls_ready', true)
-      .eq('is_active', true)
+      .eq('status', 'ready')
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) throw error;
