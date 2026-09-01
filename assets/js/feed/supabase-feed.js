@@ -4,17 +4,6 @@ import { supabase } from '../utils/supabaseClient.js';
 
 const PAGE_SIZE = 1000;
 
-function shuffle(items) {
-  const result = [...items];
-
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-
-  return result;
-}
-
 async function loadAllReadyVideos() {
   const videos = [];
 
@@ -29,6 +18,8 @@ async function loadAllReadyVideos() {
         poster_url
       `)
       .eq('status', 'ready')
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) throw error;
@@ -42,46 +33,8 @@ async function loadAllReadyVideos() {
   return videos;
 }
 
-function buildCreatorBalancedFeed(videos) {
-  const byCreator = new Map();
-
-  for (const video of videos) {
-    if (!video.creator_handle) continue;
-
-    if (!byCreator.has(video.creator_handle)) {
-      byCreator.set(video.creator_handle, []);
-    }
-
-    byCreator.get(video.creator_handle).push(video);
-  }
-
-  const creators = shuffle([...byCreator.keys()]);
-
-  for (const creator of creators) {
-    byCreator.set(creator, shuffle(byCreator.get(creator)));
-  }
-
-  const ordered = [];
-  let added = true;
-
-  while (added) {
-    added = false;
-
-    for (const creator of creators) {
-      const creatorVideos = byCreator.get(creator);
-
-      if (!creatorVideos.length) continue;
-
-      ordered.push(creatorVideos.shift());
-      added = true;
-    }
-  }
-
-  return ordered;
-}
-
 export async function loadSupabaseFeed() {
-  const videos = buildCreatorBalancedFeed(await loadAllReadyVideos());
+  const videos = await loadAllReadyVideos();
 
   const { data: creators, error: creatorsError } = await supabase
     .from('creators')
