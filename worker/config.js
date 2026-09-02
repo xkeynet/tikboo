@@ -1,8 +1,8 @@
-// /assets/js/worker/config.js
+// /worker/config.js
 
 export const WORKER_CONFIG = Object.freeze({
   // Processing
-  DAILY_VIDEO_LIMIT: 4,
+  DAILY_VIDEO_LIMIT: 6,
   CREATOR_FIRST: true,
 
   // Source storage
