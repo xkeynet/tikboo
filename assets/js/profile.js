@@ -1,30 +1,20 @@
 'use strict';
 
 /* =========================================================
-   TIKBOO — PROFILE INTRO LOOP
+   TIKBOO — PROFILE INTRO OVERLAY
    ========================================================= */
 
 (() => {
-  /* =========================================================
-     TIMING
-     ========================================================= */
-
   const START_DELAY_MS = 2200;
-
   const FIRST_LINE_ENTER_STAGGER_MS = 95;
   const CHAR_ENTER_STAGGER_MS = 45;
   const CHAR_ENTER_ANIMATION_MS = 1100;
   const LINE_GAP_MS = 120;
-
   const SEQUENCE_HOLD_MS = 5000;
-
   const CHAR_EXIT_STAGGER_MS = 34;
   const CHAR_EXIT_ANIMATION_MS = 820;
-
   const BRAND_TRANSITION_MS = 550;
-
   const WORDMARK_ANIMATION_MS = 1500;
-
   const SYMBOL_ANIMATION_MS = 2400;
   const SYMBOL_HOLD_MS = 5000;
   const SPLIT_EXIT_MS = 1100;
@@ -32,42 +22,97 @@
   const CHAR_ENTER_EASING = 'cubic-bezier(0.14, 0.92, 0.18, 1)';
   const CHAR_EXIT_EASING = 'cubic-bezier(0.4, 0, 0.6, 1)';
 
-  /* =========================================================
-     ELEMENTS
-     ========================================================= */
+  let intro = null;
+  let sequence = null;
+  let wordmarkStage = null;
+  let wordmark = null;
+  let symbolStage = null;
+  let symbol = null;
+  let lines = [];
+  let characters = [];
 
-  const intro = document.getElementById('profileIntro');
-  const sequence = document.getElementById('profileSequence');
-  const wordmarkStage = document.getElementById('profileWordmarkStage');
-  const wordmark = document.getElementById('profileWordmark');
-  const symbolStage = document.getElementById('profileSymbolStage');
-  const symbol = document.getElementById('profileSymbol');
-
-  const lines = [
-    document.getElementById('profileLine1'),
-    document.getElementById('profileLine2'),
-    document.getElementById('profileLine3'),
-    document.getElementById('profileLine4')
-  ];
-
-  if (!intro || !sequence || !wordmarkStage || !wordmark || !symbolStage || !symbol || lines.some((line) => !line)) return;
-
-  /* =========================================================
-     STATE
-     ========================================================= */
-
-  let destroyed = false;
+  let active = false;
+  let runId = 0;
 
   const timers = new Set();
   const animations = new Set();
 
   /* =========================================================
+     DOM
+     ========================================================= */
+
+  const createProfileOverlay = () => {
+    const layer = document.getElementById('layerCurrent');
+    if (!layer) return false;
+
+    intro = document.getElementById('profileIntro');
+
+    if (!intro) {
+      intro = document.createElement('div');
+      intro.id = 'profileIntro';
+      intro.className = 'profile-intro';
+      intro.setAttribute('aria-hidden', 'true');
+
+      intro.innerHTML = `
+        <div class="profile-intro__content">
+          <div class="profile-intro__sequence" id="profileSequence">
+            <p class="profile-intro__line" id="profileLine1">Profile UI</p>
+            <p class="profile-intro__line" id="profileLine2">is currently under</p>
+            <p class="profile-intro__line" id="profileLine3">construction</p>
+            <p class="profile-intro__line" id="profileLine4">...coming soon</p>
+          </div>
+
+          <div class="profile-intro__wordmark-stage" id="profileWordmarkStage" aria-hidden="true">
+            <img class="profile-intro__wordmark" id="profileWordmark" src="/assets/Tikboo.png" alt="">
+          </div>
+
+          <div class="profile-intro__symbol-stage" id="profileSymbolStage" aria-hidden="true">
+            <img class="profile-intro__symbol" id="profileSymbol" src="/assets/tikboo-logo.png" alt="">
+          </div>
+        </div>
+      `;
+
+      layer.appendChild(intro);
+    }
+
+    sequence = intro.querySelector('#profileSequence');
+    wordmarkStage = intro.querySelector('#profileWordmarkStage');
+    wordmark = intro.querySelector('#profileWordmark');
+    symbolStage = intro.querySelector('#profileSymbolStage');
+    symbol = intro.querySelector('#profileSymbol');
+
+    lines = [
+      intro.querySelector('#profileLine1'),
+      intro.querySelector('#profileLine2'),
+      intro.querySelector('#profileLine3'),
+      intro.querySelector('#profileLine4')
+    ];
+
+    if (
+      !sequence ||
+      !wordmarkStage ||
+      !wordmark ||
+      !symbolStage ||
+      !symbol ||
+      lines.some((line) => !line)
+    ) {
+      return false;
+    }
+
+    characters = lines.map(prepareLine);
+
+    return true;
+  };
+
+  /* =========================================================
      HELPERS
      ========================================================= */
 
-  const wait = (delay) =>
+  const isCurrentRun = (id) => active && id === runId;
+
+  const wait = (delay, id) =>
     new Promise((resolve) => {
-      if (destroyed) {
+      if (!isCurrentRun(id)) {
         resolve();
         return;
       }
@@ -89,9 +134,7 @@
     animations.forEach((animation) => {
       try {
         animation.cancel();
-      } catch (error) {
-        /* no-op */
-      }
+      } catch (error) {}
     });
 
     animations.clear();
@@ -99,9 +142,7 @@
 
   const nextFrame = () =>
     new Promise((resolve) => {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(resolve);
-      });
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
 
   const waitForAnimation = (animation) =>
@@ -111,44 +152,27 @@
         return;
       }
 
-      const finish = () => {
-        animation.removeEventListener('finish', finish);
-        animation.removeEventListener('cancel', finish);
-        resolve();
-      };
+      const finish = () => resolve();
 
       animation.addEventListener('finish', finish, { once: true });
       animation.addEventListener('cancel', finish, { once: true });
     });
 
-  /* =========================================================
-     BRAND BACKGROUND
-     ========================================================= */
-
-  const showBrandBackground = async () => {
-    intro.classList.add('is-brand');
-    await wait(BRAND_TRANSITION_MS);
-  };
-
-  const hideBrandBackground = async () => {
-    intro.classList.remove('is-brand');
-    await wait(BRAND_TRANSITION_MS);
-  };
-
-  /* =========================================================
-     CHARACTER ENGINE
-     ========================================================= */
-
   const getEnterOffset = () => window.innerWidth + 180;
   const getExitOffset = () => -(window.innerWidth + 180);
 
-  const prepareLine = (line) => {
-    const text = line.textContent.trim();
+  /* =========================================================
+     CHARACTERS
+     ========================================================= */
 
+  function prepareLine(line) {
+    const text = line.dataset.profileText || line.textContent.trim();
+
+    line.dataset.profileText = text;
     line.setAttribute('aria-label', text);
     line.textContent = '';
     line.style.opacity = '1';
-    line.style.transform = 'translate3d(0, 0, 0)';
+    line.style.transform = 'translate3d(0,0,0)';
     line.style.transition = 'none';
 
     const fragment = document.createDocumentFragment();
@@ -164,7 +188,7 @@
       span.style.display = 'inline-block';
       span.style.width = isSpace ? '0.22em' : 'auto';
       span.style.opacity = '0';
-      span.style.transform = `translate3d(${getEnterOffset()}px, 0, 0)`;
+      span.style.transform = `translate3d(${getEnterOffset()}px,0,0)`;
       span.style.transformOrigin = '50% 50%';
       span.style.willChange = 'transform, opacity';
       span.style.backfaceVisibility = 'hidden';
@@ -176,13 +200,7 @@
     line.appendChild(fragment);
 
     return Array.from(line.querySelectorAll('.profile-intro__char'));
-  };
-
-  const characters = lines.map(prepareLine);
-
-  /* =========================================================
-     RESET
-     ========================================================= */
+  }
 
   const resetCharacters = () => {
     cancelAnimations();
@@ -190,13 +208,15 @@
     characters.forEach((lineCharacters) => {
       lineCharacters.forEach((character) => {
         character.style.opacity = '0';
-        character.style.transform = `translate3d(${getEnterOffset()}px, 0, 0)`;
+        character.style.transform = `translate3d(${getEnterOffset()}px,0,0)`;
         character.style.willChange = 'transform, opacity';
       });
     });
   };
 
   const resetSequence = () => {
+    if (!sequence) return;
+
     sequence.classList.remove('is-hidden');
 
     lines.forEach((line) => {
@@ -207,12 +227,29 @@
   };
 
   const resetWordmark = () => {
+    if (!wordmarkStage) return;
+
     wordmarkStage.hidden = false;
-    wordmarkStage.classList.remove('is-visible', 'is-entering', 'is-settled', 'is-exiting', 'is-hidden');
+    wordmarkStage.classList.remove(
+      'is-visible',
+      'is-entering',
+      'is-settled',
+      'is-exiting',
+      'is-hidden'
+    );
   };
 
   const resetSymbol = () => {
-    symbolStage.classList.remove('is-visible', 'is-entering', 'is-settled', 'is-exiting', 'is-hidden');
+    if (!symbolStage) return;
+
+    symbolStage.classList.remove(
+      'is-visible',
+      'is-entering',
+      'is-settled',
+      'is-exiting',
+      'is-hidden'
+    );
+
     symbolStage.style.opacity = '';
     symbolStage.style.visibility = '';
   };
@@ -234,7 +271,7 @@
       [
         {
           opacity: 0,
-          transform: `translate3d(${getEnterOffset()}px, 0, 0)`
+          transform: `translate3d(${getEnterOffset()}px,0,0)`
         },
         {
           opacity: 1,
@@ -242,7 +279,7 @@
         },
         {
           opacity: 1,
-          transform: 'translate3d(0, 0, 0)'
+          transform: 'translate3d(0,0,0)'
         }
       ],
       {
@@ -259,7 +296,7 @@
       () => {
         animations.delete(animation);
         character.style.opacity = '1';
-        character.style.transform = 'translate3d(0, 0, 0)';
+        character.style.transform = 'translate3d(0,0,0)';
         character.style.willChange = 'auto';
       },
       { once: true }
@@ -268,15 +305,18 @@
     return animation;
   };
 
-  const animateLineEnter = async (lineCharacters, staggerMs) => {
+  const animateLineEnter = async (lineCharacters, staggerMs, id) => {
     for (const character of lineCharacters) {
-      if (destroyed) return;
+      if (!isCurrentRun(id)) return;
 
       animateCharacterEnter(character);
-      await wait(staggerMs);
+      await wait(staggerMs, id);
     }
 
-    await wait(Math.max(0, CHAR_ENTER_ANIMATION_MS - staggerMs));
+    await wait(
+      Math.max(0, CHAR_ENTER_ANIMATION_MS - staggerMs),
+      id
+    );
   };
 
   /* =========================================================
@@ -290,7 +330,7 @@
       [
         {
           opacity: 1,
-          transform: 'translate3d(0, 0, 0)'
+          transform: 'translate3d(0,0,0)'
         },
         {
           opacity: 1,
@@ -298,7 +338,7 @@
         },
         {
           opacity: 0,
-          transform: `translate3d(${getExitOffset()}px, 0, 0)`
+          transform: `translate3d(${getExitOffset()}px,0,0)`
         }
       ],
       {
@@ -315,7 +355,7 @@
       () => {
         animations.delete(animation);
         character.style.opacity = '0';
-        character.style.transform = `translate3d(${getExitOffset()}px, 0, 0)`;
+        character.style.transform = `translate3d(${getExitOffset()}px,0,0)`;
         character.style.willChange = 'auto';
       },
       { once: true }
@@ -324,16 +364,16 @@
     return animation;
   };
 
-  const animateLineExit = async (lineCharacters) => {
+  const animateLineExit = async (lineCharacters, id) => {
     let lastAnimation = null;
 
     for (let index = 0; index < lineCharacters.length; index += 1) {
-      if (destroyed) return;
+      if (!isCurrentRun(id)) return;
 
       lastAnimation = animateCharacterExit(lineCharacters[index]);
 
       if (index < lineCharacters.length - 1) {
-        await wait(CHAR_EXIT_STAGGER_MS);
+        await wait(CHAR_EXIT_STAGGER_MS, id);
       }
     }
 
@@ -344,13 +384,12 @@
      TEXT SEQUENCE
      ========================================================= */
 
-  const showSequence = async () => {
+  const showSequence = async (id) => {
     resetSequence();
-
     await nextFrame();
 
     for (let index = 0; index < characters.length; index += 1) {
-      if (destroyed) return;
+      if (!isCurrentRun(id)) return;
 
       lines[index].classList.add('is-visible');
 
@@ -358,48 +397,60 @@
         characters[index],
         index === 0
           ? FIRST_LINE_ENTER_STAGGER_MS
-          : CHAR_ENTER_STAGGER_MS
+          : CHAR_ENTER_STAGGER_MS,
+        id
       );
 
-      if (destroyed) return;
+      if (!isCurrentRun(id)) return;
 
       lines[index].classList.add('is-settled');
 
       if (index < characters.length - 1) {
-        await wait(LINE_GAP_MS);
+        await wait(LINE_GAP_MS, id);
       }
     }
 
-    await wait(SEQUENCE_HOLD_MS);
+    await wait(SEQUENCE_HOLD_MS, id);
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
     for (let index = 0; index < characters.length; index += 1) {
-      if (destroyed) return;
+      if (!isCurrentRun(id)) return;
 
       lines[index].classList.remove('is-settled');
       lines[index].classList.add('is-exiting');
 
-      await animateLineExit(characters[index]);
+      await animateLineExit(characters[index], id);
     }
 
-    sequence.classList.add('is-hidden');
+    if (!isCurrentRun(id)) return;
 
+    sequence.classList.add('is-hidden');
     await nextFrame();
   };
 
   /* =========================================================
-     WORDMARK
+     BRAND
      ========================================================= */
 
-  const showWordmark = async () => {
+  const showBrandBackground = async (id) => {
+    intro.classList.add('is-brand');
+    await wait(BRAND_TRANSITION_MS, id);
+  };
+
+  const hideBrandBackground = async (id) => {
+    intro.classList.remove('is-brand');
+    await wait(BRAND_TRANSITION_MS, id);
+  };
+
+  const showWordmark = async (id) => {
     resetWordmark();
 
     wordmarkStage.classList.add('is-visible', 'is-entering');
 
-    await wait(WORDMARK_ANIMATION_MS);
+    await wait(WORDMARK_ANIMATION_MS, id);
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
     wordmarkStage.classList.remove('is-entering');
     wordmarkStage.classList.add('is-settled');
@@ -407,11 +458,7 @@
     await nextFrame();
   };
 
-  /* =========================================================
-     SYMBOL
-     ========================================================= */
-
-  const showSymbol = async () => {
+  const showSymbol = async (id) => {
     resetSymbol();
 
     symbolStage.style.opacity = '0';
@@ -424,27 +471,27 @@
     symbolStage.style.opacity = '';
     symbolStage.style.visibility = '';
 
-    await wait(SYMBOL_ANIMATION_MS);
+    await wait(SYMBOL_ANIMATION_MS, id);
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
     symbolStage.classList.remove('is-entering');
     symbolStage.classList.add('is-settled');
 
     await nextFrame();
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
-    await wait(SYMBOL_HOLD_MS);
+    await wait(SYMBOL_HOLD_MS, id);
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
     symbolStage.classList.add('is-exiting');
     wordmarkStage.classList.add('is-exiting');
 
-    await wait(SPLIT_EXIT_MS);
+    await wait(SPLIT_EXIT_MS, id);
 
-    if (destroyed) return;
+    if (!isCurrentRun(id)) return;
 
     symbolStage.style.transition = 'none';
     symbolStage.style.opacity = '0';
@@ -477,45 +524,109 @@
      LOOP
      ========================================================= */
 
-  const runLoop = async () => {
+  const runLoop = async (id) => {
     intro.classList.remove('is-brand');
 
-    await wait(START_DELAY_MS);
+    await wait(START_DELAY_MS, id);
 
-    while (!destroyed) {
-      await showSequence();
+    while (isCurrentRun(id)) {
+      await showSequence(id);
+      if (!isCurrentRun(id)) break;
 
-      if (destroyed) break;
+      await showBrandBackground(id);
+      if (!isCurrentRun(id)) break;
 
-      await showBrandBackground();
+      await showWordmark(id);
+      if (!isCurrentRun(id)) break;
 
-      if (destroyed) break;
+      await showSymbol(id);
+      if (!isCurrentRun(id)) break;
 
-      await showWordmark();
-
-      if (destroyed) break;
-
-      await showSymbol();
-
-      if (destroyed) break;
-
-      await hideBrandBackground();
-
-      if (destroyed) break;
+      await hideBrandBackground(id);
+      if (!isCurrentRun(id)) break;
 
       resetAll();
-
       await nextFrame();
     }
   };
 
   /* =========================================================
-     START
+     OPEN / CLOSE
      ========================================================= */
 
-  intro.classList.remove('is-brand');
-  resetAll();
-  runLoop();
+  const openProfile = () => {
+    if (active) return;
+
+    if (!intro && !createProfileOverlay()) return;
+
+    active = true;
+    runId += 1;
+
+    clearTimers();
+    cancelAnimations();
+    resetAll();
+
+    intro.classList.remove('is-brand');
+    intro.classList.add('is-open');
+    intro.setAttribute('aria-hidden', 'false');
+
+    runLoop(runId);
+  };
+
+  const closeProfile = () => {
+    if (!active || !intro) return;
+
+    active = false;
+    runId += 1;
+
+    clearTimers();
+    cancelAnimations();
+    resetAll();
+
+    intro.classList.remove('is-open', 'is-brand');
+    intro.setAttribute('aria-hidden', 'true');
+  };
+
+  /* =========================================================
+     EXISTING BOTTOM NAV
+     ========================================================= */
+
+  document.addEventListener(
+    'click',
+    (event) => {
+      const profileButton = event.target.closest('#profileBtn');
+
+      if (profileButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        openProfile();
+        return;
+      }
+
+      const homeButton = event.target.closest(
+        '.nav button[aria-label="Home"]'
+      );
+
+      if (homeButton && active) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        closeProfile();
+      }
+    },
+    true
+  );
+
+  /* =========================================================
+     PUBLIC API
+     ========================================================= */
+
+  window.TikbooProfile = {
+    open: openProfile,
+    close: closeProfile,
+    isOpen: () => active
+  };
 
   /* =========================================================
      CLEANUP
@@ -524,7 +635,9 @@
   window.addEventListener(
     'pagehide',
     () => {
-      destroyed = true;
+      active = false;
+      runId += 1;
+
       clearTimers();
       cancelAnimations();
     },
