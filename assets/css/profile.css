@@ -22,7 +22,7 @@
 
   --sequence-fade-duration: 500ms;
 
-  --wordmark-width-mobile: min(62vw, 320px);
+  --wordmark-width-mobile: min(50vw, 260px);
   --wordmark-width-tablet: min(46vw, 420px);
   --wordmark-width-desktop: min(34vw, 520px);
 
