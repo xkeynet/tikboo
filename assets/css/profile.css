@@ -6,40 +6,22 @@
   --profile-bg: #000000;
   --profile-fg: #ffffff;
   --profile-brand: #9146FF;
+
+  --sequence-width: 92%;
+  --sequence-gap: 10px;
+  --line-size: 34px;
+
+  --wordmark-width: 215px;
+  --wordmark-stop: 0px;
+
+  --symbol-width: 118px;
+  --symbol-stop: -75px;
+
   --brand-transition-duration: 550ms;
-
-  --sequence-width-mobile: min(92vw, 600px);
-  --sequence-width-tablet: min(82vw, 760px);
-  --sequence-width-desktop: min(68vw, 960px);
-
-  --sequence-gap-mobile: 10px;
-  --sequence-gap-tablet: 12px;
-  --sequence-gap-desktop: 14px;
-
-  --line-size-mobile: clamp(29px, 8vw, 42px);
-  --line-size-tablet: clamp(38px, 5.2vw, 54px);
-  --line-size-desktop: clamp(44px, 3.4vw, 62px);
-
   --sequence-fade-duration: 500ms;
-
-  --wordmark-width-mobile: min(50vw, 260px);
-  --wordmark-width-tablet: min(46vw, 420px);
-  --wordmark-width-desktop: min(34vw, 520px);
-
-  --wordmark-stop-mobile: calc(8vh - 74px);
-  --wordmark-stop-tablet: calc(8vh - 64px);
-  --wordmark-stop-desktop: calc(8vh - 64px);
 
   --wordmark-duration: 1500ms;
   --wordmark-easing: cubic-bezier(0.4, 0, 0.2, 1);
-
-  --symbol-width-mobile: min(21.375vw, 106.875px);
-  --symbol-width-tablet: min(14.0625vw, 129.375px);
-  --symbol-width-desktop: min(9vw, 146.25px);
-
-  --symbol-stop-mobile: -8vh;
-  --symbol-stop-tablet: -9vh;
-  --symbol-stop-desktop: -10vh;
 
   --symbol-duration: 2400ms;
   --symbol-easing: cubic-bezier(0.14, 0.92, 0.18, 1);
@@ -47,10 +29,8 @@
   --split-exit-duration: 1100ms;
   --split-exit-easing: cubic-bezier(0.55, 0, 1, 0.45);
 
-  /* Bottom navigation */
   --navPadX: 12px;
   --navIconBox: 48px;
-  --navH: 78px;
 }
 
 /* =========================================================
@@ -114,7 +94,6 @@ img {
   background: #000000;
 }
 
-/* Brand background layer */
 .profile-intro::before {
   content: "";
   position: absolute;
@@ -126,7 +105,6 @@ img {
   background: var(--profile-bg);
   transition: background-color var(--brand-transition-duration) cubic-bezier(.22,1,.36,1);
   pointer-events: none;
-  will-change: background-color;
 }
 
 .profile-intro.is-brand::before {
@@ -150,21 +128,18 @@ img {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--sequence-width-mobile);
+  width: var(--sequence-width);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sequence-gap-mobile);
+  gap: var(--sequence-gap);
   opacity: 1;
   visibility: visible;
   transform: translate3d(-50%, -50%, 0);
-  transform-origin: 50% 50%;
   transition:
     opacity var(--sequence-fade-duration) ease,
     visibility 0s linear var(--sequence-fade-duration);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .profile-intro__sequence.is-hidden {
@@ -179,7 +154,7 @@ img {
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
   font-family: "Sora", Arial, sans-serif;
-  font-size: var(--line-size-mobile);
+  font-size: var(--line-size);
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.015em;
@@ -187,7 +162,6 @@ img {
   white-space: nowrap;
   opacity: 0;
   transform: translate3d(calc(100vw + 120%), 0, 0);
-  transform-origin: 50% 50%;
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -203,7 +177,6 @@ img {
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
   opacity: 1;
-  transform-origin: 50% 50%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -216,11 +189,10 @@ img {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--wordmark-width-mobile);
+  width: var(--wordmark-width);
   opacity: 0;
   visibility: hidden;
   transform: translate3d(-50%, calc(50svh + 120%), 0);
-  transform-origin: 50% 50%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: transform, opacity;
@@ -238,15 +210,13 @@ img {
 .profile-intro__wordmark-stage.is-settled {
   opacity: 1;
   visibility: visible;
-  transform: translate3d(-50%, calc(-50% + var(--wordmark-stop-mobile)), 0);
+  transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
   will-change: auto;
 }
 
 .profile-intro__wordmark {
   width: 100%;
   height: auto;
-  margin: 0;
-  padding: 0;
   object-fit: contain;
   object-position: center;
   filter: brightness(0) invert(1);
@@ -265,7 +235,7 @@ img {
 
   100% {
     opacity: 1;
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop-mobile)), 0);
+    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
   }
 }
 
@@ -277,12 +247,11 @@ img {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--symbol-width-mobile);
+  width: var(--symbol-width);
   aspect-ratio: 1 / 1;
   opacity: 0;
   visibility: hidden;
-  transform: translate3d(-50%, calc(-50% + var(--symbol-stop-mobile)), 0);
-  transform-origin: 50% 50%;
+  transform: translate3d(-50%, calc(-50% + var(--symbol-stop)), 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -351,21 +320,21 @@ img {
 
 @keyframes profileWordmarkExitRight {
   from {
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop-mobile)), 0);
+    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
   }
 
   to {
-    transform: translate3d(calc(100vw + 100%), calc(-50% + var(--wordmark-stop-mobile)), 0);
+    transform: translate3d(calc(100vw + 100%), calc(-50% + var(--wordmark-stop)), 0);
   }
 }
 
 @keyframes profileSymbolExitLeft {
   from {
-    transform: translate3d(-50%, calc(-50% + var(--symbol-stop-mobile)), 0);
+    transform: translate3d(-50%, calc(-50% + var(--symbol-stop)), 0);
   }
 
   to {
-    transform: translate3d(calc(-100vw - 100%), calc(-50% + var(--symbol-stop-mobile)), 0);
+    transform: translate3d(calc(-100vw - 100%), calc(-50% + var(--symbol-stop)), 0);
   }
 }
 
@@ -432,7 +401,6 @@ img {
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  will-change: transform;
 }
 
 .nav-icon {
@@ -490,78 +458,14 @@ img {
    TABLET
    ========================================================= */
 
-@media (min-width: 768px) and (max-width: 1199px) {
-  .profile-intro__sequence {
-    width: var(--sequence-width-tablet);
-    gap: var(--sequence-gap-tablet);
-  }
-
-  .profile-intro__line {
-    font-size: var(--line-size-tablet);
-  }
-
-  .profile-intro__wordmark-stage {
-    width: var(--wordmark-width-tablet);
-  }
-
-  .profile-intro__wordmark-stage.is-settled {
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop-tablet)), 0);
-  }
-
-  .profile-intro__symbol-stage {
-    width: var(--symbol-width-tablet);
-    transform: translate3d(-50%, calc(-50% + var(--symbol-stop-tablet)), 0);
-  }
-}
-
-/* =========================================================
-   DESKTOP
-   ========================================================= */
-
-@media (min-width: 1200px) {
-  .profile-intro__sequence {
-    width: var(--sequence-width-desktop);
-    gap: var(--sequence-gap-desktop);
-  }
-
-  .profile-intro__line {
-    font-size: var(--line-size-desktop);
-  }
-
-  .profile-intro__wordmark-stage {
-    width: var(--wordmark-width-desktop);
-  }
-
-  .profile-intro__wordmark-stage.is-settled {
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop-desktop)), 0);
-  }
-
-  .profile-intro__symbol-stage {
-    width: var(--symbol-width-desktop);
-    transform: translate3d(-50%, calc(-50% + var(--symbol-stop-desktop)), 0);
-  }
-}
-
-/* =========================================================
-   LANDSCAPE MOBILE
-   ========================================================= */
-
-@media (max-height: 520px) and (orientation: landscape) {
-  .profile-intro__sequence {
-    width: min(86vw, 740px);
-    gap: 8px;
-  }
-
-  .profile-intro__line {
-    font-size: clamp(25px, 4.8vw, 38px);
-  }
-
-  .profile-intro__wordmark-stage {
-    width: min(38vw, 280px);
-  }
-
-  .profile-intro__symbol-stage {
-    width: min(12.375vw, 84.375px);
+@media (min-width: 768px) {
+  :root {
+    --sequence-width: 760px;
+    --sequence-gap: 12px;
+    --line-size: 42px;
+    --wordmark-width: 300px;
+    --symbol-width: 130px;
+    --symbol-stop: -80px;
   }
 }
 
