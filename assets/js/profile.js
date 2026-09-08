@@ -197,6 +197,8 @@
 
   const resetSymbol = () => {
     symbolStage.classList.remove('is-visible', 'is-entering', 'is-settled', 'is-exiting', 'is-hidden');
+    symbolStage.style.opacity = '';
+    symbolStage.style.visibility = '';
   };
 
   const resetAll = () => {
@@ -396,13 +398,15 @@
   const showSymbol = async () => {
     resetSymbol();
 
-    symbolStage.classList.add('is-visible');
+    symbolStage.style.opacity = '0';
+    symbolStage.style.visibility = 'hidden';
 
-    await nextFrame();
+    symbolStage.classList.add('is-visible', 'is-entering');
 
-    if (destroyed) return;
+    void symbolStage.offsetWidth;
 
-    symbolStage.classList.add('is-entering');
+    symbolStage.style.opacity = '';
+    symbolStage.style.visibility = '';
 
     await wait(SYMBOL_ANIMATION_MS);
 
