@@ -38,11 +38,50 @@
   const animations = new Set();
 
   /* =========================================================
+     CURRENT SWIPE LAYER
+     ========================================================= */
+
+  const getCurrentSwipeLayer = () => {
+    const layers = Array.from(document.querySelectorAll('#video-stack .twincher-layer'));
+    if (!layers.length) return null;
+
+    const viewportCenter = window.innerHeight / 2;
+    let currentLayer = null;
+    let smallestDistance = Infinity;
+
+    layers.forEach((layer) => {
+      const rect = layer.getBoundingClientRect();
+      const layerCenter = rect.top + rect.height / 2;
+      const distance = Math.abs(layerCenter - viewportCenter);
+
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        currentLayer = layer;
+      }
+    });
+
+    return currentLayer;
+  };
+
+  const attachOverlayToCurrentLayer = () => {
+    if (!intro) return false;
+
+    const currentLayer = getCurrentSwipeLayer();
+    if (!currentLayer) return false;
+
+    if (intro.parentElement !== currentLayer) {
+      currentLayer.appendChild(intro);
+    }
+
+    return true;
+  };
+
+  /* =========================================================
      DOM
      ========================================================= */
 
   const createProfileOverlay = () => {
-    const layer = document.getElementById('layerCurrent');
+    const layer = getCurrentSwipeLayer();
     if (!layer) return false;
 
     intro = document.getElementById('profileIntro');
@@ -73,6 +112,8 @@
       `;
 
       layer.appendChild(intro);
+    } else {
+      attachOverlayToCurrentLayer();
     }
 
     sequence = intro.querySelector('#profileSequence');
@@ -558,6 +599,7 @@
     if (active) return;
 
     if (!intro && !createProfileOverlay()) return;
+    if (!attachOverlayToCurrentLayer()) return;
 
     active = true;
     runId += 1;
@@ -586,6 +628,18 @@
     intro.classList.remove('is-open', 'is-brand');
     intro.setAttribute('aria-hidden', 'true');
   };
+
+  /* =========================================================
+     SWIPE SYNC
+     ========================================================= */
+
+  document.addEventListener('tikboo:swipe:commit', () => {
+    if (!intro) return;
+
+    requestAnimationFrame(() => {
+      attachOverlayToCurrentLayer();
+    });
+  });
 
   /* =========================================================
      EXISTING BOTTOM NAV
