@@ -62,8 +62,8 @@ body {
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background: var(--profile-bg);
-  color: var(--profile-fg);
+  background: #000000;
+  color: #ffffff;
 }
 
 html {
@@ -79,8 +79,8 @@ body {
   overscroll-behavior: none;
   touch-action: manipulation;
   font-family: "Sora", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 img {
@@ -104,7 +104,7 @@ img {
   min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
-  background: var(--profile-bg);
+  background: #000000;
 }
 
 .profile-intro__content {
@@ -149,7 +149,8 @@ img {
   width: 100%;
   margin: 0;
   padding: 0;
-  color: var(--profile-fg);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
   font-family: "Sora", Arial, sans-serif;
   font-size: var(--line-size-mobile);
   font-weight: 600;
@@ -172,6 +173,9 @@ img {
 
 .profile-intro__char {
   display: inline-block;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  opacity: 1;
   transform-origin: 50% 50%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -218,6 +222,8 @@ img {
   padding: 0;
   object-fit: contain;
   object-position: center;
+  filter: brightness(0) invert(1);
+  -webkit-filter: brightness(0) invert(1);
 }
 
 @keyframes profileWordmarkEnter {
@@ -266,6 +272,8 @@ img {
   height: 100%;
   object-fit: contain;
   object-position: center;
+  filter: brightness(0) invert(1);
+  -webkit-filter: brightness(0) invert(1);
   transform-origin: 50% 50%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
