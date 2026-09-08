@@ -1336,41 +1336,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   initVideoShareSheet();
 
   // =========================================================
-  // === Profile Modal ===
+  // === Profile Page ===
   // =========================================================
   const profileBtn = document.getElementById('profileBtn');
-  const profileModal = document.getElementById('profileModal');
-  const closeProfile = document.getElementById('closeProfile');
-
-  function openProfile(source = 'unknown') {
-    if (!ageGateUnlocked) return;
-    if (!profileModal) return;
-
-    profileModal.classList.add('show');
-
-    track('profile_open', {
-      source
-    });
-  }
-
-  function closeProfileFn() {
-    if (!profileModal) return;
-
-    profileModal.classList.remove('show');
-  }
 
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
-      openProfile('bottom_nav');
+      if (!ageGateUnlocked) return;
+
+      track('profile_open', {
+        source: 'bottom_nav'
+      });
+
+      window.location.href = '/profile.html';
     });
   }
-
-  document.addEventListener('click', (e) => {
-    const avatarBtn = e.target.closest('.avatarBtn');
-    if (!avatarBtn) return;
-
-    openProfile('avatar');
-  });
 
   // =========================================================
   // === Share ===
@@ -1396,32 +1376,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     openVideoShareSheet(currentItem);
   }, true);
-
-  if (closeProfile) {
-    closeProfile.addEventListener(
-      'click',
-      closeProfileFn
-    );
-  }
-
-  if (profileModal) {
-    profileModal.addEventListener('click', (e) => {
-      if (e.target === profileModal) {
-        closeProfileFn();
-      }
-    });
-  }
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-
-    if (
-      profileModal &&
-      profileModal.classList.contains('show')
-    ) {
-      closeProfileFn();
-    }
-  });
 });
 
 /* === KILL: disable iOS “Save Image” on current top/gate images === */
