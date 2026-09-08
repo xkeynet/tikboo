@@ -26,7 +26,7 @@
   --wordmark-width-tablet: min(46vw, 420px);
   --wordmark-width-desktop: min(34vw, 520px);
 
-  --wordmark-stop-mobile: calc(8vh - 70px);
+  --wordmark-stop-mobile: calc(8vh - 74px);
   --wordmark-stop-tablet: calc(8vh - 64px);
   --wordmark-stop-desktop: calc(8vh - 64px);
 
