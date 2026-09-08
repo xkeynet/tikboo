@@ -592,6 +592,25 @@
   };
 
   /* =========================================================
+     DESTROY / HARD RESET
+     ========================================================= */
+
+  const destroyProfileOverlay = () => {
+    if (intro) {
+      intro.remove();
+    }
+
+    intro = null;
+    sequence = null;
+    wordmarkStage = null;
+    wordmark = null;
+    symbolStage = null;
+    symbol = null;
+    lines = [];
+    characters = [];
+  };
+
+  /* =========================================================
      OPEN / CLOSE
      ========================================================= */
 
@@ -627,6 +646,8 @@
 
     intro.classList.remove('is-open', 'is-brand');
     intro.setAttribute('aria-hidden', 'true');
+
+    destroyProfileOverlay();
   };
 
   /* =========================================================
@@ -694,6 +715,7 @@
 
       clearTimers();
       cancelAnimations();
+      destroyProfileOverlay();
     },
     { once: true }
   );
