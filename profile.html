@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 
+  <title>Profile | Tikboo</title>
+
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+
+  <!-- =========================================================
+       FAVICONS
+       ========================================================= -->
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/swipe-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/swipe-32x32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/swipe-48x48.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/assets/swipe-64x64.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="/assets/swipe-128x128.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/swipe-192x192.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/assets/swipe-256x256.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/swipe-512x512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/swipe-180x180.png">
+
+  <!-- =========================================================
+       FONT
+       ========================================================= -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600&display=swap" rel="stylesheet">
+
+  <!-- =========================================================
+       PRELOAD
+       ========================================================= -->
+  <link rel="preload" href="/assets/Tikboo.png" as="image" type="image/png" fetchpriority="high">
+  <link rel="preload" href="/assets/swipe-logo.png" as="image" type="image/png" fetchpriority="high">
+
+  <!-- =========================================================
+       PROFILE CSS
+       ========================================================= -->
+  <link rel="stylesheet" href="/assets/css/profile.css">
+</head>
+
+<body>
+  <main class="profile-intro" id="profileIntro">
+    <div class="profile-intro__content">
+
+      <!-- =====================================================
+           PROFILE UI SEQUENCE
+           ===================================================== -->
+      <div class="profile-intro__sequence" id="profileSequence">
+        <p class="profile-intro__line profile-intro__line--1" id="profileLine1">Profile UI</p>
+        <p class="profile-intro__line profile-intro__line--2" id="profileLine2">is currently under</p>
+        <p class="profile-intro__line profile-intro__line--3" id="profileLine3">construction</p>
+        <p class="profile-intro__line profile-intro__line--4" id="profileLine4">...coming soon</p>
+      </div>
+
+      <!-- =====================================================
+           TIKBOO WORDMARK
+           ===================================================== -->
+      <div class="profile-intro__wordmark-stage" id="profileWordmarkStage" aria-hidden="true" hidden>
+        <img class="profile-intro__wordmark" id="profileWordmark" src="/assets/Tikboo.png" alt="" decoding="async" fetchpriority="high" draggable="false">
+      </div>
+
+      <!-- =====================================================
+           TIKBOO SYMBOL
+           ===================================================== -->
+      <div class="profile-intro__symbol-stage" id="profileSymbolStage" aria-hidden="true">
+        <img class="profile-intro__symbol" id="profileSymbol" src="/assets/swipe-logo.png" alt="" decoding="async" fetchpriority="high" draggable="false">
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================
+       PROFILE JS
+       ========================================================= -->
+  <script src="/assets/js/profile.js" defer></script>
+</body>
+</html>
