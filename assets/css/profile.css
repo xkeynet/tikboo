@@ -5,6 +5,8 @@
 :root {
   --profile-bg: #000000;
   --profile-fg: #ffffff;
+  --profile-brand: #9146FF;
+  --brand-transition-duration: 550ms;
 
   --sequence-width-mobile: min(92vw, 600px);
   --sequence-width-tablet: min(82vw, 760px);
@@ -112,12 +114,32 @@ img {
   background: #000000;
 }
 
+/* Brand background layer */
+.profile-intro::before {
+  content: "";
+  position: absolute;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  bottom: calc(43px + env(safe-area-inset-bottom));
+  z-index: 0;
+  background: var(--profile-bg);
+  transition: background-color var(--brand-transition-duration) cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+  will-change: background-color;
+}
+
+.profile-intro.is-brand::before {
+  background: var(--profile-brand);
+}
+
 .profile-intro__content {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  z-index: 1;
 }
 
 /* =========================================================
@@ -550,6 +572,10 @@ img {
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+  .profile-intro::before {
+    transition-duration: 250ms;
+  }
+
   .profile-intro__sequence {
     transition-duration: 250ms;
   }
