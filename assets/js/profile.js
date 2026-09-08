@@ -21,6 +21,8 @@
   const CHAR_EXIT_STAGGER_MS = 34;
   const CHAR_EXIT_ANIMATION_MS = 820;
 
+  const BRAND_TRANSITION_MS = 550;
+
   const WORDMARK_ANIMATION_MS = 1500;
 
   const SYMBOL_ANIMATION_MS = 2400;
@@ -118,6 +120,20 @@
       animation.addEventListener('finish', finish, { once: true });
       animation.addEventListener('cancel', finish, { once: true });
     });
+
+  /* =========================================================
+     BRAND BACKGROUND
+     ========================================================= */
+
+  const showBrandBackground = async () => {
+    intro.classList.add('is-brand');
+    await wait(BRAND_TRANSITION_MS);
+  };
+
+  const hideBrandBackground = async () => {
+    intro.classList.remove('is-brand');
+    await wait(BRAND_TRANSITION_MS);
+  };
 
   /* =========================================================
      CHARACTER ENGINE
@@ -462,10 +478,16 @@
      ========================================================= */
 
   const runLoop = async () => {
+    intro.classList.remove('is-brand');
+
     await wait(START_DELAY_MS);
 
     while (!destroyed) {
       await showSequence();
+
+      if (destroyed) break;
+
+      await showBrandBackground();
 
       if (destroyed) break;
 
@@ -474,6 +496,10 @@
       if (destroyed) break;
 
       await showSymbol();
+
+      if (destroyed) break;
+
+      await hideBrandBackground();
 
       if (destroyed) break;
 
@@ -487,6 +513,7 @@
      START
      ========================================================= */
 
+  intro.classList.remove('is-brand');
   resetAll();
   runLoop();
 
