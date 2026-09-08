@@ -44,6 +44,11 @@
 
   --split-exit-duration: 1100ms;
   --split-exit-easing: cubic-bezier(0.55, 0, 1, 0.45);
+
+  /* Bottom navigation */
+  --navPadX: 12px;
+  --navIconBox: 48px;
+  --navH: 78px;
 }
 
 /* =========================================================
@@ -342,6 +347,123 @@ img {
   to {
     transform: translate3d(calc(-100vw - 100%), calc(-50% + var(--symbol-stop-mobile)), 0);
   }
+}
+
+/* =========================================================
+   BOTTOM NAV
+   ========================================================= */
+
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  z-index: 2;
+  background: transparent;
+  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
+  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.nav::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 43px;
+  background: rgba(0,0,0,.90);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav button,
+.nav .nav-link {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  width: var(--navIconBox);
+  height: var(--navIconBox);
+  padding: 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  box-shadow: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+.nav-icon {
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+[aria-label="Home"] .nav-icon {
+  width: 27px;
+  height: 27px;
+  transform: translateY(-2px);
+}
+
+[aria-label="Search"] .nav-icon {
+  width: 27px;
+  height: 27px;
+  transform: translateY(-2px);
+}
+
+[aria-label="Messages"] .nav-icon {
+  width: 27px;
+  height: 27px;
+  transform: translateY(-1px);
+}
+
+[aria-label="Profile"] .nav-icon {
+  width: 27px;
+  height: 27px;
+  transform: translateY(-2px);
+}
+
+.add-plus-svg {
+  width: 46px;
+  height: 28px;
+  transform: translateY(2px);
+}
+
+[aria-label="Search"] .nav-icon,
+[aria-label="Search"] img,
+[aria-label="Messages"] .nav-icon,
+[aria-label="Messages"] img,
+[aria-label="Profile"] .nav-icon,
+[aria-label="Profile"] img {
+  filter: none !important;
+}
+
+.nav img {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* =========================================================
