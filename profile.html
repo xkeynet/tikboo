@@ -43,6 +43,10 @@
 </head>
 
 <body>
+
+  <!-- =========================================================
+       PROFILE INTRO
+       ========================================================= -->
   <main class="profile-intro" id="profileIntro">
     <div class="profile-intro__content">
 
@@ -74,8 +78,50 @@
   </main>
 
   <!-- =========================================================
+       BOTTOM NAV
+       ========================================================= -->
+  <nav class="nav" aria-label="Primary">
+    <ul>
+      <li>
+        <a class="nav-link" href="/" aria-label="Home">
+          <img src="/assets/icons/home.svg" class="nav-icon" alt="">
+        </a>
+      </li>
+
+      <li>
+        <button type="button" aria-label="Search">
+          <img src="/assets/icons/search.svg" class="nav-icon" alt="">
+        </button>
+      </li>
+
+      <li>
+        <button type="button" aria-label="Add" class="add-btn">
+          <span class="pill pill-left"></span>
+          <span class="pill pill-right"></span>
+          <span class="pill pill-core">
+            <img src="/assets/icons/plus.svg" class="add-plus-svg" alt="">
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <button type="button" aria-label="Messages">
+          <img src="/assets/icons/messages.svg" class="nav-icon" alt="">
+        </button>
+      </li>
+
+      <li>
+        <button type="button" id="profileBtn" aria-label="Profile" aria-current="page">
+          <img src="/assets/icons/user.svg" class="nav-icon" alt="">
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- =========================================================
        PROFILE JS
        ========================================================= -->
   <script src="/assets/js/profile.js" defer></script>
+
 </body>
 </html>
