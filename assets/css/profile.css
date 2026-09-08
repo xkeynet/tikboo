@@ -1,123 +1,79 @@
 /* =========================================================
-   TIKBOO — PROFILE INTRO
+   TIKBOO — PROFILE INTRO / FEED OVERLAY
    ========================================================= */
 
 :root {
-  --profile-bg: #000000;
-  --profile-fg: #ffffff;
-  --profile-brand: #9146FF;
+  --profile-bg:#000000;
+  --profile-fg:#ffffff;
+  --profile-brand:rgba(145,70,255,.90);
 
-  --sequence-width: 92%;
-  --sequence-gap: 10px;
-  --line-size: 34px;
+  --sequence-width:92%;
+  --sequence-gap:10px;
+  --line-size:34px;
 
-  --wordmark-width: 215px;
-  --wordmark-stop: 0px;
+  --wordmark-width:215px;
+  --wordmark-stop:0px;
 
-  --symbol-width: 118px;
-  --symbol-stop: -75px;
+  --symbol-width:118px;
+  --symbol-stop:-75px;
 
-  --brand-transition-duration: 550ms;
-  --sequence-fade-duration: 500ms;
+  --brand-transition-duration:550ms;
+  --sequence-fade-duration:500ms;
 
-  --wordmark-duration: 1500ms;
-  --wordmark-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --wordmark-duration:1500ms;
+  --wordmark-easing:cubic-bezier(0.4,0,0.2,1);
 
-  --symbol-duration: 2400ms;
-  --symbol-easing: cubic-bezier(0.14, 0.92, 0.18, 1);
+  --symbol-duration:2400ms;
+  --symbol-easing:cubic-bezier(0.14,0.92,0.18,1);
 
-  --split-exit-duration: 1100ms;
-  --split-exit-easing: cubic-bezier(0.55, 0, 1, 0.45);
-
-  --navPadX: 12px;
-  --navIconBox: 48px;
+  --split-exit-duration:1100ms;
+  --split-exit-easing:cubic-bezier(0.55,0,1,0.45);
 }
 
 /* =========================================================
-   RESET
-   ========================================================= */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  background: #000000;
-  color: #ffffff;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  min-width: 320px;
-  min-height: 100svh;
-  overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: manipulation;
-  font-family: "Sora", Arial, sans-serif;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
-}
-
-img {
-  display: block;
-  max-width: 100%;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-user-drag: none;
-  pointer-events: none;
-}
-
-/* =========================================================
-   PROFILE INTRO
+   PROFILE OVERLAY
    ========================================================= */
 
 .profile-intro {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 100svh;
-  overflow: hidden;
-  isolation: isolate;
-  background: #000000;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  isolation:isolate;
+  z-index:15;
+  display:none;
+  background:transparent;
+  color:var(--profile-fg);
+  font-family:"Sora",Arial,sans-serif;
+  pointer-events:auto;
+}
+
+.profile-intro.is-open {
+  display:block;
 }
 
 .profile-intro::before {
-  content: "";
-  position: absolute;
-  top: env(safe-area-inset-top);
-  left: 0;
-  right: 0;
-  bottom: calc(43px + env(safe-area-inset-bottom));
-  z-index: 0;
-  background: var(--profile-bg);
-  transition: background-color var(--brand-transition-duration) cubic-bezier(.22,1,.36,1);
-  pointer-events: none;
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:var(--profile-bg);
+  transition:background-color var(--brand-transition-duration) cubic-bezier(.22,1,.36,1);
+  pointer-events:none;
 }
 
 .profile-intro.is-brand::before {
-  background: var(--profile-brand);
+  background:var(--profile-brand);
 }
 
 .profile-intro__content {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  z-index:1;
 }
 
 /* =========================================================
@@ -125,60 +81,60 @@ img {
    ========================================================= */
 
 .profile-intro__sequence {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--sequence-width);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sequence-gap);
-  opacity: 1;
-  visibility: visible;
-  transform: translate3d(-50%, -50%, 0);
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:var(--sequence-width);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:var(--sequence-gap);
+  opacity:1;
+  visibility:visible;
+  transform:translate3d(-50%,-50%,0);
   transition:
     opacity var(--sequence-fade-duration) ease,
     visibility 0s linear var(--sequence-fade-duration);
 }
 
 .profile-intro__sequence.is-hidden {
-  opacity: 0;
-  visibility: hidden;
+  opacity:0;
+  visibility:hidden;
 }
 
 .profile-intro__line {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
-  font-family: "Sora", Arial, sans-serif;
-  font-size: var(--line-size);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.015em;
-  text-align: center;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate3d(calc(100vw + 120%), 0, 0);
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  width:100%;
+  margin:0;
+  padding:0;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+  font-family:"Sora",Arial,sans-serif;
+  font-size:var(--line-size);
+  font-weight:600;
+  line-height:1;
+  letter-spacing:.015em;
+  text-align:center;
+  white-space:nowrap;
+  opacity:0;
+  transform:translate3d(calc(100vw + 120%),0,0);
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 
 .profile-intro__line.is-visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
+  opacity:1;
+  transform:translate3d(0,0,0);
 }
 
 .profile-intro__char {
-  display: inline-block;
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
-  opacity: 1;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  display:inline-block;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+  opacity:1;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 
 /* =========================================================
@@ -186,56 +142,62 @@ img {
    ========================================================= */
 
 .profile-intro__wordmark-stage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--wordmark-width);
-  opacity: 0;
-  visibility: hidden;
-  transform: translate3d(-50%, calc(50svh + 120%), 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  will-change: transform, opacity;
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:var(--wordmark-width);
+  opacity:0;
+  visibility:hidden;
+  transform:translate3d(-50%,calc(50svh + 120%),0);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform,opacity;
 }
 
 .profile-intro__wordmark-stage.is-visible {
-  opacity: 1;
-  visibility: visible;
+  opacity:1;
+  visibility:visible;
 }
 
 .profile-intro__wordmark-stage.is-entering {
-  animation: profileWordmarkEnter var(--wordmark-duration) var(--wordmark-easing) forwards;
+  animation:profileWordmarkEnter var(--wordmark-duration) var(--wordmark-easing) forwards;
 }
 
 .profile-intro__wordmark-stage.is-settled {
-  opacity: 1;
-  visibility: visible;
-  transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
-  will-change: auto;
+  opacity:1;
+  visibility:visible;
+  transform:translate3d(-50%,calc(-50% + var(--wordmark-stop)),0);
+  will-change:auto;
 }
 
 .profile-intro__wordmark {
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  object-position: center;
-  filter: brightness(0) invert(1);
-  -webkit-filter: brightness(0) invert(1);
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:auto;
+  object-fit:contain;
+  object-position:center;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+  filter:brightness(0) invert(1);
+  -webkit-filter:brightness(0) invert(1);
 }
 
 @keyframes profileWordmarkEnter {
   0% {
-    opacity: 0;
-    transform: translate3d(-50%, calc(50svh + 120%), 0);
+    opacity:0;
+    transform:translate3d(-50%,calc(50svh + 120%),0);
   }
 
   8% {
-    opacity: 1;
+    opacity:1;
   }
 
   100% {
-    opacity: 1;
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
+    opacity:1;
+    transform:translate3d(-50%,calc(-50% + var(--wordmark-stop)),0);
   }
 }
 
@@ -244,64 +206,68 @@ img {
    ========================================================= */
 
 .profile-intro__symbol-stage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--symbol-width);
-  aspect-ratio: 1 / 1;
-  opacity: 0;
-  visibility: hidden;
-  transform: translate3d(-50%, calc(-50% + var(--symbol-stop)), 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:var(--symbol-width);
+  aspect-ratio:1 / 1;
+  opacity:0;
+  visibility:hidden;
+  transform:translate3d(-50%,calc(-50% + var(--symbol-stop)),0);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 
 .profile-intro__symbol-stage.is-visible {
-  opacity: 1;
-  visibility: visible;
+  opacity:1;
+  visibility:visible;
 }
 
 .profile-intro__symbol {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  transform-origin: 50% 50%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  will-change: transform, opacity;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+  transform-origin:50% 50%;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform,opacity;
 }
 
 .profile-intro__symbol-stage.is-entering .profile-intro__symbol {
-  animation: profileSymbolEnter var(--symbol-duration) var(--symbol-easing) forwards;
+  animation:profileSymbolEnter var(--symbol-duration) var(--symbol-easing) forwards;
 }
 
 @keyframes profileSymbolEnter {
   0% {
-    opacity: 0;
-    transform: translate3d(0, calc(-50svh - 140%), 0) rotate(0deg);
+    opacity:0;
+    transform:translate3d(0,calc(-50svh - 140%),0) rotate(0deg);
   }
 
   8% {
-    opacity: 1;
+    opacity:1;
   }
 
   42% {
-    opacity: 1;
+    opacity:1;
   }
 
   100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(1080deg);
+    opacity:1;
+    transform:translate3d(0,0,0) rotate(1080deg);
   }
 }
 
 .profile-intro__symbol-stage.is-settled .profile-intro__symbol {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) rotate(1080deg);
-  will-change: auto;
+  opacity:1;
+  transform:translate3d(0,0,0) rotate(1080deg);
+  will-change:auto;
 }
 
 /* =========================================================
@@ -309,163 +275,32 @@ img {
    ========================================================= */
 
 .profile-intro__wordmark-stage.is-settled.is-exiting {
-  animation: profileWordmarkExitRight var(--split-exit-duration) var(--split-exit-easing) forwards;
-  will-change: transform;
+  animation:profileWordmarkExitRight var(--split-exit-duration) var(--split-exit-easing) forwards;
+  will-change:transform;
 }
 
 .profile-intro__symbol-stage.is-settled.is-exiting {
-  animation: profileSymbolExitLeft var(--split-exit-duration) var(--split-exit-easing) forwards;
-  will-change: transform;
+  animation:profileSymbolExitLeft var(--split-exit-duration) var(--split-exit-easing) forwards;
+  will-change:transform;
 }
 
 @keyframes profileWordmarkExitRight {
   from {
-    transform: translate3d(-50%, calc(-50% + var(--wordmark-stop)), 0);
+    transform:translate3d(-50%,calc(-50% + var(--wordmark-stop)),0);
   }
 
   to {
-    transform: translate3d(calc(100vw + 100%), calc(-50% + var(--wordmark-stop)), 0);
+    transform:translate3d(calc(100vw + 100%),calc(-50% + var(--wordmark-stop)),0);
   }
 }
 
 @keyframes profileSymbolExitLeft {
   from {
-    transform: translate3d(-50%, calc(-50% + var(--symbol-stop)), 0);
+    transform:translate3d(-50%,calc(-50% + var(--symbol-stop)),0);
   }
 
   to {
-    transform: translate3d(calc(-100vw - 100%), calc(-50% + var(--symbol-stop)), 0);
-  }
-}
-
-/* =========================================================
-   BOTTOM NAV
-   ========================================================= */
-
-.nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  z-index: 2;
-  background: transparent;
-  padding: 0 var(--navPadX) env(safe-area-inset-bottom);
-  height: calc(var(--navIconBox) + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  isolation: isolate;
-}
-
-.nav::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 43px;
-  background: rgba(0,0,0,.90);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.nav ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.nav button,
-.nav .nav-link {
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  border: 0;
-  width: var(--navIconBox);
-  height: var(--navIconBox);
-  padding: 0;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-  box-shadow: none;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.nav-icon {
-  display: block;
-  filter: brightness(0) invert(1);
-}
-
-[aria-label="Home"] .nav-icon {
-  width: 27px;
-  height: 27px;
-  transform: translateY(-2px);
-}
-
-[aria-label="Search"] .nav-icon {
-  width: 27px;
-  height: 27px;
-  transform: translateY(-2px);
-}
-
-[aria-label="Messages"] .nav-icon {
-  width: 27px;
-  height: 27px;
-  transform: translateY(-1px);
-}
-
-[aria-label="Profile"] .nav-icon {
-  width: 27px;
-  height: 27px;
-  transform: translateY(-2px);
-}
-
-.add-plus-svg {
-  width: 46px;
-  height: 28px;
-  transform: translateY(2px);
-}
-
-[aria-label="Search"] .nav-icon,
-[aria-label="Search"] img,
-[aria-label="Messages"] .nav-icon,
-[aria-label="Messages"] img,
-[aria-label="Profile"] .nav-icon,
-[aria-label="Profile"] img {
-  filter: none !important;
-}
-
-.nav img {
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* =========================================================
-   TABLET
-   ========================================================= */
-
-@media (min-width: 768px) {
-  :root {
-    --sequence-width: 760px;
-    --sequence-gap: 12px;
-    --line-size: 42px;
-    --wordmark-width: 300px;
-    --symbol-width: 130px;
-    --symbol-stop: -80px;
+    transform:translate3d(calc(-100vw - 100%),calc(-50% + var(--symbol-stop)),0);
   }
 }
 
@@ -473,22 +308,22 @@ img {
    REDUCED MOTION
    ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion:reduce) {
   .profile-intro::before {
-    transition-duration: 250ms;
+    transition-duration:250ms;
   }
 
   .profile-intro__sequence {
-    transition-duration: 250ms;
+    transition-duration:250ms;
   }
 
   .profile-intro__wordmark-stage.is-entering,
   .profile-intro__symbol-stage.is-entering .profile-intro__symbol {
-    animation-duration: 800ms;
+    animation-duration:800ms;
   }
 
   .profile-intro__wordmark-stage.is-settled.is-exiting,
   .profile-intro__symbol-stage.is-settled.is-exiting {
-    animation-duration: 600ms;
+    animation-duration:600ms;
   }
 }
