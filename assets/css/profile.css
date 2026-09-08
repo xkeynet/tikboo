@@ -299,8 +299,6 @@ img {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  filter: brightness(0) invert(1);
-  -webkit-filter: brightness(0) invert(1);
   transform-origin: 50% 50%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
