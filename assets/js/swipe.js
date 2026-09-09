@@ -224,7 +224,12 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-        videoEl.currentTime = 0;
+
+        try {
+          if (videoEl.readyState >= 1) {
+            videoEl.currentTime = 0;
+          }
+        } catch (e) {}
       }
     }
 
@@ -444,32 +449,16 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.muted = state.isMuted;
+        targetVideo.pause();
+        targetVideo.muted = true;
 
         try {
           if (targetVideo.readyState < 1) {
             targetVideo.load();
+          } else if (targetVideo.currentTime !== 0) {
+            targetVideo.currentTime = 0;
           }
         } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -787,4 +776,3 @@
 
   window.initTikbooSwipe = initTikbooSwipe;
 })();
-
