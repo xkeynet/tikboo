@@ -224,12 +224,7 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.pause();
-
-        try {
-          if (videoEl.readyState >= 1) {
-            videoEl.currentTime = 0;
-          }
-        } catch (e) {}
+        videoEl.currentTime = 0;
       }
     }
 
@@ -370,7 +365,11 @@
 
       if (playlist[state.index].type === 'video') {
         refs.videoCurrent.muted = state.isMuted;
-        tryPlay(refs.videoCurrent);
+
+        if (refs.videoCurrent.paused) {
+          tryPlay(refs.videoCurrent);
+        }
+
         guardCurrentPlayback('finishCommit');
       }
 
@@ -449,16 +448,23 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.pause();
         targetVideo.muted = true;
 
         try {
           if (targetVideo.readyState < 1) {
             targetVideo.load();
-          } else if (targetVideo.currentTime !== 0) {
-            targetVideo.currentTime = 0;
           }
         } catch (e) {}
+
+        tryPlay(targetVideo);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+
+          if (targetVideo.paused && targetVideo.readyState >= 2) {
+            tryPlay(targetVideo);
+          }
+        }, 80);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
