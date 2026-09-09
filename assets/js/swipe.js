@@ -365,11 +365,7 @@
 
       if (playlist[state.index].type === 'video') {
         refs.videoCurrent.muted = state.isMuted;
-
-        if (refs.videoCurrent.paused) {
-          tryPlay(refs.videoCurrent);
-        }
-
+        tryPlay(refs.videoCurrent);
         guardCurrentPlayback('finishCommit');
       }
 
@@ -448,7 +444,7 @@
       activeCommitVideoToPause = videoToPause;
 
       if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.muted = true;
+        targetVideo.muted = state.isMuted;
 
         try {
           if (targetVideo.readyState < 1) {
@@ -456,15 +452,24 @@
           }
         } catch (e) {}
 
-        tryPlay(targetVideo);
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          tryPlay(targetVideo);
+        }, 8);
 
         setTimeout(() => {
           if (!state.isAnimating) return;
-
-          if (targetVideo.paused && targetVideo.readyState >= 2) {
+          if (targetVideo.paused || targetVideo.readyState < 2) {
             tryPlay(targetVideo);
           }
-        }, 80);
+        }, 60);
+
+        setTimeout(() => {
+          if (!state.isAnimating) return;
+          if (targetVideo.paused || targetVideo.readyState < 2) {
+            tryPlay(targetVideo);
+          }
+        }, 140);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
