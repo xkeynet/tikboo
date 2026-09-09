@@ -3,9 +3,9 @@
    ========================================================= */
 
 :root {
-  --profile-bg:rgba(0,0,0,30);
+  --profile-bg:rgba(0,0,0,.30);
   --profile-fg:#ffffff;
-  --profile-brand:rgba(145,70,255,0);
+  --profile-brand:rgba(145,70,255,1);
 
   --sequence-width:92%;
   --sequence-gap:10px;
