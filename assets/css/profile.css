@@ -3,7 +3,7 @@
    ========================================================= */
 
 :root {
-  --profile-bg:#000000;
+  --profile-bg:rgba(0,0,0,.90);
   --profile-fg:#ffffff;
   --profile-brand:rgba(145,70,255,.90);
 
