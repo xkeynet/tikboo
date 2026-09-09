@@ -655,11 +655,9 @@
      ========================================================= */
 
   document.addEventListener('tikboo:swipe:commit', () => {
-    if (!intro) return;
+    if (!active) return;
 
-    requestAnimationFrame(() => {
-      attachOverlayToCurrentLayer();
-    });
+    closeProfile();
   });
 
   /* =========================================================
