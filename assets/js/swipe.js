@@ -1,777 +1,1280 @@
 // /assets/js/swipe.js - Reels
 (function () {
+  'use strict';
+
   function initTikbooSwipe(options) {
-    const { 
-      refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg, 
-      bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent, 
-      ensureSoundOn, isInteractiveTarget 
+    const {
+      refs,
+      state,
+      playlist,
+      vh,
+      normalizeIndex,
+      tryPlay,
+      clearAuto,
+      stopProg,
+      bindAutoAdvanceForCurrent,
+      syncSoundUI,
+      showPlayOverlay,
+      setLayerContent,
+      ensureSoundOn,
+      isInteractiveTarget
     } = options;
 
-    const THRESHOLD_RATIO = 0.50; 
-    const MOVE_ACTIVATE_PX = 3;    
-    const MIN_COMMIT_DY = 70;      
-    const MIN_COMMIT_VY = 0.42;    
-    const TAP_MAX_MOVE = 8;
-    const TAP_MAX_TIME = 220;
+    /* =========================================================
+       VÁCLAV BUCHTELÍK — SWIPE ENGINE
+       PREVIOUS + CURRENT + NEXT
+       INTERRUPTIBLE CINEMATIC MOTION
+       VIDEO ADAPTER FOR TIKBOO
+       ========================================================= */
 
-    const BACKWARD_THRESHOLD_RATIO = 0.50;
-    const BACKWARD_MIN_COMMIT_DY = 55;
-    const BACKWARD_MIN_COMMIT_VY = 0.34;
+    const DEFAULTS = {
+      axisLockPx: 4,
 
-    const DIRECTION_FLIP_DAMPING_PX = 12;
-    const QUEUE_MOVE_ACTIVATE_PX = 2;
-    const MAX_MOVE_STEP_PX = 260;
+      commitDistanceRatio: 0.10,
+      commitMinDistancePx: 28,
+      flickMinDistancePx: 10,
+      flickVelocityPxMs: 0.20,
+      velocitySmoothing: 0.38,
 
-    let dragging = false;
-    let startY = 0, startX = 0, dy = 0, dx = 0;
-    let preparedDir = 0, raf = 0, settleTimer = 0;
-    let startT = 0, lastMoveY = 0;
-    let nextLoadedIndex = null;
-    let prevLoadedIndex = null;
-    let nextLoadedDir = 0;
-    let swipeSoundUnlocked = false;
-    let lastCommitTime = 0;
-    let pendingCommitTimer = 0;
-    let queuedDir = 0;
-    let queueHasStart = false;
-    let queueStartY = 0;
-    let queueStartX = 0;
-    let activeCommitDir = 0;
-    let activeCommitTargetIndex = null;
-    let activeCommitVideoToPause = null;
-    let playbackGuardTimer = 0;
-    let playbackGuardTimers = [];
-    let gestureHeight = 0;
-    let touchBlocked = false;
-    const COMMIT_COOLDOWN = 55;
+      commitMinDurationMs: 420,
+      commitMaxDurationMs: 680,
+      commitDistanceDurationMs: 560,
+      commitVelocityInfluence: 0.18,
 
-    const seekPill = document.getElementById('seekPill');
-    const seekTime = document.getElementById('seekTime');
+      snapMinDurationMs: 260,
+      snapMaxDurationMs: 420,
 
-    const layerEffectCache = new WeakMap();
+      cinematicPower: 4.2,
+      cinematicTailStrength: 0.16,
 
-    const setTr = (el, y) => {
-      if (!el) return;
-      el.style.transform = `translate3d(0,${y}px,0)`;
+      takeoverMinDistancePx: 6
     };
 
-    function getLayerEffectEls(layer) {
-      if (!layer) return null;
+    const config = { ...DEFAULTS };
 
-      let cached = layerEffectCache.get(layer);
-      if (cached) return cached;
+    const clamp = (value, min, max) =>
+      Math.max(min, Math.min(max, value));
 
-      cached = {
-        sideMenu: layer.querySelector('.side'),
-        videoMeta: layer.querySelector('.video-meta')
+    const isDirection = direction =>
+      direction === 1 || direction === -1;
+
+    const getViewportHeight = () =>
+      Math.max(
+        1,
+        typeof vh === 'function' ? vh() : 0,
+        window.visualViewport?.height || 0,
+        window.innerHeight || 0,
+        document.documentElement.clientHeight || 0
+      );
+
+    /* =========================================================
+       EASING
+       ========================================================= */
+
+    const easeOutCubic = t =>
+      1 - Math.pow(1 - t, 3);
+
+    const createCinematicEase = (power, tailStrength) => {
+      const p = Math.max(2, power);
+      const tail = clamp(tailStrength, 0, 0.4);
+
+      return t => {
+        const base = 1 - Math.pow(1 - t, p);
+        const tailShape =
+          Math.sin(Math.PI * t) * (1 - t);
+
+        return clamp(
+          base - tailShape * tail,
+          0,
+          1
+        );
       };
+    };
 
-      layerEffectCache.set(layer, cached);
-      return cached;
-    }
+    const cinematicEase = createCinematicEase(
+      config.cinematicPower,
+      config.cinematicTailStrength
+    );
 
-    function updateLayerEffects(layer, opacity) {
-      const els = getLayerEffectEls(layer);
-      if (!els) return;
+    /* =========================================================
+       STATE
+       ========================================================= */
 
-      if (els.sideMenu) els.sideMenu.style.opacity = opacity;
-      if (els.videoMeta) els.videoMeta.style.opacity = opacity;
-    }
+    let dragging = false;
+    let animating = false;
+    let takingOver = false;
 
-    function resetSeekUiImmediate() {
-      if (seekPill) seekPill.classList.remove('is-active');
-      if (seekTime) seekTime.classList.remove('is-active');
+    let axis = null;
 
-      document.querySelectorAll('.side').forEach(s => {
-        s.classList.remove('scrubbing');
-        s.style.opacity = '1';
-        s.style.display = '';
+    let startX = 0;
+    let startY = 0;
+    let lastY = 0;
+    let lastTime = 0;
+
+    let dragY = 0;
+    let velocityY = 0;
+    let viewportHeight = 1;
+
+    let raf = 0;
+    let motionToken = 0;
+
+    let motionDirection = 0;
+    let takeoverOrigin = 0;
+
+    let nextLoadedIndex = null;
+    let prevLoadedIndex = null;
+
+    let touchBlocked = false;
+    let swipeSoundUnlocked = false;
+
+    /* =========================================================
+       LAYERS
+       ========================================================= */
+
+    const layers = () => [
+      refs.layerPrev,
+      refs.layerCurrent,
+      refs.layerNext
+    ].filter(Boolean);
+
+    const hasLayers = () =>
+      Boolean(
+        refs.layerPrev &&
+        refs.layerCurrent &&
+        refs.layerNext
+      );
+
+    const setTransform = (layer, y) => {
+      if (!layer) return;
+
+      layer.style.transform =
+        `translate3d(0,${y.toFixed(3)}px,0)`;
+    };
+
+    const prepareLayers = active => {
+      layers().forEach(layer => {
+        layer.style.transition = 'none';
+        layer.style.willChange =
+          active ? 'transform' : 'auto';
       });
+    };
 
-      document.querySelectorAll('.video-meta').forEach(m => {
-        m.classList.remove('scrubbing');
-        m.style.opacity = '1';
-        m.style.display = '';
-      });
-    }
+    const renderTrack = offset => {
+      setTransform(
+        refs.layerPrev,
+        -viewportHeight + offset
+      );
 
-    function clearPendingCommit() {
-      if (pendingCommitTimer) {
-        clearTimeout(pendingCommitTimer);
-        pendingCommitTimer = 0;
-      }
-    }
+      setTransform(
+        refs.layerCurrent,
+        offset
+      );
 
-    function clearPlaybackGuard() {
-      if (playbackGuardTimer) {
-        clearTimeout(playbackGuardTimer);
-        playbackGuardTimer = 0;
-      }
+      setTransform(
+        refs.layerNext,
+        viewportHeight + offset
+      );
+    };
 
-      playbackGuardTimers.forEach(t => clearTimeout(t));
-      playbackGuardTimers = [];
-    }
-
-    function resetQueue() {
-      queuedDir = 0;
-      queueHasStart = false;
-      queueStartY = 0;
-      queueStartX = 0;
-    }
-
-    function resetActiveCommit() {
-      activeCommitDir = 0;
-      activeCommitTargetIndex = null;
-      activeCommitVideoToPause = null;
-    }
-
-    function guardCurrentPlayback(reason) {
-      clearPlaybackGuard();
-
-      const delays = [180, 420];
-
-      const attempt = () => {
-        if (state.isAnimating || dragging) return;
-
-        const item = playlist[state.index];
-        const video = refs.videoCurrent;
-
-        if (!item || item.type !== 'video' || !video) return;
-
-        video.muted = state.isMuted;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-
-        if (video.readyState === 0) {
-          try {
-            video.load();
-          } catch (e) {}
-          return;
-        }
-
-        if (video.paused && video.readyState >= 2) {
-          tryPlay(video);
-        }
-      };
-
-      delays.forEach((delay) => {
-        const timer = setTimeout(() => {
-          playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
-          attempt();
-        }, delay);
-
-        playbackGuardTimers.push(timer);
-      });
-    }
-
-    function resetTransformsNoAnim() {
-      const height = vh();
-
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-
-      clearTimeout(settleTimer);
-      clearPendingCommit();
-
-      [refs.layerPrev, refs.layerCurrent, refs.layerNext].filter(Boolean).forEach(l => {
-        l.style.transition = 'none';
-        l.style.willChange = 'auto';
-        updateLayerEffects(l, 1);
-      });
-
-      setTr(refs.layerPrev, -height);
-      setTr(refs.layerCurrent, 0);
-      setTr(refs.layerNext, height);
-    }
-
-    function recoverVisibleState() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-
-      clearTimeout(settleTimer);
-      settleTimer = 0;
-
-      clearPendingCommit();
-      clearPlaybackGuard();
-
-      dragging = false;
-      dy = 0;
-      dx = 0;
-      preparedDir = 0;
-      swipeSoundUnlocked = false;
-      gestureHeight = 0;
-      touchBlocked = false;
-
-      resetQueue();
-      resetActiveCommit();
-
-      state.isAnimating = false;
-
-      resetSeekUiImmediate();
-      resetTransformsNoAnim();
-      bindAutoAdvanceForCurrent();
-      guardCurrentPlayback('recoverVisibleState');
-
-      requestAnimationFrame(() => {
-        warmForwardNext();
-        warmBackwardNext();
-      });
-    }
+    /* =========================================================
+       VIDEO PREPARATION
+       ========================================================= */
 
     function prewarmVideo(videoEl, item) {
-      if (!videoEl || !item || item.type !== 'video') return;
+      if (
+        !videoEl ||
+        !item ||
+        item.type !== 'video'
+      ) {
+        return;
+      }
+
+      videoEl.playsInline = true;
+      videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute(
+        'webkit-playsinline',
+        ''
+      );
 
       if (videoEl !== refs.videoCurrent) {
-        videoEl.pause();
-        videoEl.currentTime = 0;
+        videoEl.muted = true;
+
+        try {
+          if (videoEl.readyState === 0) {
+            videoEl.load();
+          }
+        } catch (e) {}
       }
     }
 
-    function prepareForwardLayer(heightOverride) {
-      const height = heightOverride || vh();
-      const targetIndex = normalizeIndex(state.index + 1);
-      
+    function prepareForwardLayer() {
+      const targetIndex =
+        normalizeIndex(state.index + 1);
+
       if (nextLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerNext, playlist[targetIndex], true);
-        nextLoadedIndex = targetIndex;
-        prewarmVideo(refs.videoNext, playlist[targetIndex]);
-      }
+        setLayerContent(
+          refs.layerNext,
+          playlist[targetIndex],
+          true
+        );
 
-      refs.layerNext.style.transition = 'none';
-      setTr(refs.layerNext, height);
-      nextLoadedDir = 1;
+        nextLoadedIndex = targetIndex;
+
+        prewarmVideo(
+          refs.videoNext,
+          playlist[targetIndex]
+        );
+      }
     }
 
-    function prepareBackwardLayer(heightOverride) {
-      if (!refs.layerPrev || !refs.videoPrev) return;
+    function prepareBackwardLayer() {
+      const targetIndex =
+        normalizeIndex(state.index - 1);
 
-      const height = heightOverride || vh();
-      const targetIndex = normalizeIndex(state.index - 1);
-      
       if (prevLoadedIndex !== targetIndex) {
-        setLayerContent(refs.layerPrev, playlist[targetIndex], true);
-        prevLoadedIndex = targetIndex;
-        prewarmVideo(refs.videoPrev, playlist[targetIndex]);
-      }
+        setLayerContent(
+          refs.layerPrev,
+          playlist[targetIndex],
+          true
+        );
 
-      refs.layerPrev.style.transition = 'none';
-      setTr(refs.layerPrev, -height);
-      nextLoadedDir = -1;
+        prevLoadedIndex = targetIndex;
+
+        prewarmVideo(
+          refs.videoPrev,
+          playlist[targetIndex]
+        );
+      }
     }
 
     function warmForwardNext() {
-      if (state.isAnimating) return;
+      if (animating) return;
       prepareForwardLayer();
     }
 
     function warmBackwardNext() {
-      if (state.isAnimating) return;
+      if (animating) return;
       prepareBackwardLayer();
     }
 
-    function prepareNextForDirection(dir) {
-      const height = gestureHeight || vh();
+    /* =========================================================
+       MOTION
+       ========================================================= */
 
-      if (dir > 0) {
-        prepareForwardLayer(height);
-      } else {
-        prepareBackwardLayer(height);
+    const cancelMotion = () => {
+      motionToken++;
+
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
       }
+    };
 
-      preparedDir = dir;
+    const resetGesture = () => {
+      dragging = false;
+      takingOver = false;
+      axis = null;
+
+      startX = 0;
+      startY = 0;
+      lastY = 0;
+      lastTime = 0;
+
+      velocityY = 0;
+      takeoverOrigin = 0;
+
+      touchBlocked = false;
+      swipeSoundUnlocked = false;
+    };
+
+    function resetTransformsNoAnim() {
+      if (!hasLayers()) return;
+
+      cancelMotion();
+
+      viewportHeight = getViewportHeight();
+
+      dragY = 0;
+      velocityY = 0;
+      motionDirection = 0;
+
+      prepareLayers(false);
+      renderTrack(0);
     }
 
-    function retryCommitOnce(dir) {
-      clearPendingCommit();
+    const prepareMotion = () => {
+      viewportHeight = getViewportHeight();
+      prepareLayers(true);
+    };
 
-      pendingCommitTimer = setTimeout(() => {
-        pendingCommitTimer = 0;
+    /* =========================================================
+       CINEMATIC RAF
+       ========================================================= */
 
-        if (state.isAnimating) return;
+    const animate = ({
+      from,
+      to,
+      duration,
+      easing,
+      complete
+    }) => {
+      cancelMotion();
 
-        commit(dir);
-      }, 90);
-    }
+      const token = motionToken;
+      const startedAt = performance.now();
+      const distance = to - from;
 
-    function finishCommit(dir, targetIndex, videoToPause) {
-      if (videoToPause) {
-        videoToPause.pause();
+      prepareLayers(true);
+
+      const frame = now => {
+        if (
+          !animating ||
+          token !== motionToken
+        ) {
+          raf = 0;
+          return;
+        }
+
+        const progress = clamp(
+          (now - startedAt) /
+            Math.max(1, duration),
+          0,
+          1
+        );
+
+        dragY =
+          from +
+          distance * easing(progress);
+
+        renderTrack(dragY);
+
+        if (progress < 1) {
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+
+        raf = 0;
+        dragY = to;
+
+        renderTrack(to);
+
+        if (typeof complete === 'function') {
+          complete();
+        }
+      };
+
+      raf = requestAnimationFrame(frame);
+    };
+
+    /* =========================================================
+       DURATION
+       ========================================================= */
+
+    const getCommitDuration =
+      remainingDistance => {
+        const distanceRatio = clamp(
+          remainingDistance /
+            Math.max(1, viewportHeight),
+          0,
+          1
+        );
+
+        const velocityReduction = clamp(
+          Math.abs(velocityY) *
+            config.commitVelocityInfluence *
+            100,
+          0,
+          110
+        );
+
+        const duration =
+          config.commitMinDurationMs +
+          distanceRatio *
+            (
+              config.commitDistanceDurationMs -
+              config.commitMinDurationMs
+            ) -
+          velocityReduction;
+
+        return clamp(
+          duration,
+          config.commitMinDurationMs,
+          config.commitMaxDurationMs
+        );
+      };
+
+    /* =========================================================
+       VIDEO RECYCLE
+       ========================================================= */
+
+    function recycle(direction) {
+      if (!isDirection(direction)) {
+        return false;
       }
 
-      state.index = targetIndex;
+      const oldCurrentVideo =
+        refs.videoCurrent;
 
-      if (dir > 0) {
-        const oldPrevLayer = refs.layerPrev;
-        const oldPrevVideo = refs.videoPrev;
-        const oldPrevImg = refs.imgPrev;
+      if (oldCurrentVideo) {
+        oldCurrentVideo.pause();
+      }
 
-        const oldCurrentLayer = refs.layerCurrent;
-        const oldCurrentVideo = refs.videoCurrent;
-        const oldCurrentImg = refs.imgCurrent;
+      state.index = normalizeIndex(
+        state.index + direction
+      );
 
-        refs.layerCurrent = refs.layerNext;
-        refs.videoCurrent = refs.videoNext;
-        refs.imgCurrent = refs.imgNext;
+      if (direction > 0) {
+        const oldPrevLayer =
+          refs.layerPrev;
+        const oldPrevVideo =
+          refs.videoPrev;
+        const oldPrevImg =
+          refs.imgPrev;
 
-        refs.layerPrev = oldCurrentLayer;
-        refs.videoPrev = oldCurrentVideo;
-        refs.imgPrev = oldCurrentImg;
+        const oldCurrentLayer =
+          refs.layerCurrent;
+        const oldCurrentVideoRef =
+          refs.videoCurrent;
+        const oldCurrentImg =
+          refs.imgCurrent;
 
-        refs.layerNext = oldPrevLayer;
-        refs.videoNext = oldPrevVideo;
-        refs.imgNext = oldPrevImg;
+        refs.layerCurrent =
+          refs.layerNext;
+        refs.videoCurrent =
+          refs.videoNext;
+        refs.imgCurrent =
+          refs.imgNext;
 
-        prevLoadedIndex = normalizeIndex(state.index - 1);
+        refs.layerPrev =
+          oldCurrentLayer;
+        refs.videoPrev =
+          oldCurrentVideoRef;
+        refs.imgPrev =
+          oldCurrentImg;
+
+        refs.layerNext =
+          oldPrevLayer;
+        refs.videoNext =
+          oldPrevVideo;
+        refs.imgNext =
+          oldPrevImg;
+
+        prevLoadedIndex =
+          normalizeIndex(
+            state.index - 1
+          );
+
         nextLoadedIndex = null;
       } else {
-        const oldNextLayer = refs.layerNext;
-        const oldNextVideo = refs.videoNext;
-        const oldNextImg = refs.imgNext;
+        const oldNextLayer =
+          refs.layerNext;
+        const oldNextVideo =
+          refs.videoNext;
+        const oldNextImg =
+          refs.imgNext;
 
-        const oldCurrentLayer = refs.layerCurrent;
-        const oldCurrentVideo = refs.videoCurrent;
-        const oldCurrentImg = refs.imgCurrent;
+        const oldCurrentLayer =
+          refs.layerCurrent;
+        const oldCurrentVideoRef =
+          refs.videoCurrent;
+        const oldCurrentImg =
+          refs.imgCurrent;
 
-        refs.layerCurrent = refs.layerPrev;
-        refs.videoCurrent = refs.videoPrev;
-        refs.imgCurrent = refs.imgPrev;
+        refs.layerCurrent =
+          refs.layerPrev;
+        refs.videoCurrent =
+          refs.videoPrev;
+        refs.imgCurrent =
+          refs.imgPrev;
 
-        refs.layerNext = oldCurrentLayer;
-        refs.videoNext = oldCurrentVideo;
-        refs.imgNext = oldCurrentImg;
+        refs.layerNext =
+          oldCurrentLayer;
+        refs.videoNext =
+          oldCurrentVideoRef;
+        refs.imgNext =
+          oldCurrentImg;
 
-        refs.layerPrev = oldNextLayer;
-        refs.videoPrev = oldNextVideo;
-        refs.imgPrev = oldNextImg;
+        refs.layerPrev =
+          oldNextLayer;
+        refs.videoPrev =
+          oldNextVideo;
+        refs.imgPrev =
+          oldNextImg;
 
-        nextLoadedIndex = normalizeIndex(state.index + 1);
+        nextLoadedIndex =
+          normalizeIndex(
+            state.index + 1
+          );
+
         prevLoadedIndex = null;
       }
 
-      if (refs.playOverlay) refs.layerCurrent.appendChild(refs.playOverlay);
+      if (
+        refs.playOverlay &&
+        refs.layerCurrent
+      ) {
+        refs.layerCurrent.appendChild(
+          refs.playOverlay
+        );
+      }
 
-      resetTransformsNoAnim();
-      resetSeekUiImmediate();
+      viewportHeight =
+        getViewportHeight();
+
+      dragY = 0;
+      velocityY = 0;
+
+      renderTrack(0);
+
       syncSoundUI();
       showPlayOverlay(false);
 
-      state.isAnimating = false;
-      resetActiveCommit();
-
-      document.dispatchEvent(new CustomEvent('tikboo:swipe:commit'));
+      document.dispatchEvent(
+        new CustomEvent(
+          'tikboo:swipe:commit'
+        )
+      );
 
       bindAutoAdvanceForCurrent();
 
-      if (playlist[state.index].type === 'video') {
-        refs.videoCurrent.muted = state.isMuted;
+      const currentItem =
+        playlist[state.index];
+
+      if (
+        currentItem?.type === 'video' &&
+        refs.videoCurrent
+      ) {
+        refs.videoCurrent.muted =
+          state.isMuted;
+
         tryPlay(refs.videoCurrent);
-        guardCurrentPlayback('finishCommit');
       }
 
-      const queued = queuedDir;
-      resetQueue();
-
       requestAnimationFrame(() => {
-        warmForwardNext();
-        warmBackwardNext();
-
-        if (queued !== 0 && !state.isAnimating) {
-          preparedDir = queued;
-          commit(queued);
-        }
+        prepareForwardLayer();
+        prepareBackwardLayer();
       });
-    }
 
-    function interruptActiveCommit() {
-      if (!state.isAnimating || activeCommitDir === 0 || activeCommitTargetIndex === null) return false;
-
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-
-      clearTimeout(settleTimer);
-      settleTimer = 0;
-      clearPendingCommit();
-
-      finishCommit(activeCommitDir, activeCommitTargetIndex, activeCommitVideoToPause);
       return true;
     }
 
-    function commit(dir) {
-      const now = performance.now();
+    /* =========================================================
+       COMMIT
+       ========================================================= */
 
-      if (now - lastCommitTime < COMMIT_COOLDOWN) {
-        return;
+    const finishCommit = direction => {
+      animating = false;
+      state.isAnimating = false;
+      motionDirection = 0;
+
+      recycle(direction);
+
+      if (!hasLayers()) return;
+
+      resetGesture();
+      prepareLayers(false);
+    };
+
+    function commit(direction) {
+      if (
+        !hasLayers() ||
+        !isDirection(direction)
+      ) {
+        return false;
       }
 
-      const targetIndex = normalizeIndex(state.index + dir);
-      const targetItem = playlist[targetIndex];
-      const targetLayer = dir > 0 ? refs.layerNext : refs.layerPrev;
-      const targetVideo = dir > 0 ? refs.videoNext : refs.videoPrev;
-
-      if (!targetLayer) {
-        snapBack();
-        return;
+      if (animating) {
+        return false;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
-        return;
+      if (direction > 0) {
+        prepareForwardLayer();
+      } else {
+        prepareBackwardLayer();
       }
 
-      clearPendingCommit();
-      clearPlaybackGuard();
-      lastCommitTime = now;
+      viewportHeight =
+        getViewportHeight();
 
-      if (state.isAnimating) return;
+      const destination =
+        direction > 0
+          ? -viewportHeight
+          : viewportHeight;
+
+      const from = clamp(
+        dragY,
+        -viewportHeight,
+        viewportHeight
+      );
+
+      const remainingDistance =
+        Math.abs(
+          destination - from
+        );
+
+      animating = true;
       state.isAnimating = true;
-      
+
+      dragging = false;
+      takingOver = false;
+      motionDirection = direction;
+
       clearAuto();
       stopProg();
-      resetSeekUiImmediate();
 
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
+      animate({
+        from,
+        to: destination,
+        duration:
+          getCommitDuration(
+            remainingDistance
+          ),
+        easing: cinematicEase,
+        complete: () =>
+          finishCommit(direction)
+      });
 
-      clearTimeout(settleTimer);
-
-      const height = gestureHeight || vh();
-      const duration = 160; 
-      const videoToPause = refs.videoCurrent;
-
-      activeCommitDir = dir;
-      activeCommitTargetIndex = targetIndex;
-      activeCommitVideoToPause = videoToPause;
-
-      if (targetItem?.type === 'video' && targetVideo) {
-        targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
-      }
-
-      refs.layerCurrent.style.willChange = 'transform';
-      targetLayer.style.willChange = 'transform';
-
-      const monsterCurve = 'cubic-bezier(0.15, 0.85, 0.2, 1)';
-
-      refs.layerCurrent.style.transition = `transform ${duration}ms ${monsterCurve}`;
-      targetLayer.style.transition = `transform ${duration}ms ${monsterCurve}`;
-
-      updateLayerEffects(refs.layerCurrent, 0.3);
-
-      setTr(refs.layerCurrent, dir > 0 ? -height : height);
-      setTr(targetLayer, 0);
-
-      settleTimer = setTimeout(() => {
-        finishCommit(dir, targetIndex, videoToPause);
-      }, duration); 
+      return true;
     }
 
-    function snapBack() {
-      if (state.isAnimating) return;
+    /* =========================================================
+       SNAP BACK
+       ========================================================= */
 
-      clearPendingCommit();
-      resetQueue();
+    const finishSnapBack = () => {
+      animating = false;
+      state.isAnimating = false;
+      motionDirection = 0;
 
+      dragY = 0;
+      velocityY = 0;
+
+      resetGesture();
+      renderTrack(0);
+      prepareLayers(false);
+
+      bindAutoAdvanceForCurrent();
+    };
+
+    const snapBack = () => {
+      if (
+        animating ||
+        !hasLayers()
+      ) {
+        return;
+      }
+
+      viewportHeight =
+        getViewportHeight();
+
+      const from = clamp(
+        dragY,
+        -viewportHeight,
+        viewportHeight
+      );
+
+      const ratio =
+        Math.abs(from) /
+        Math.max(1, viewportHeight);
+
+      const duration = clamp(
+        config.snapMinDurationMs +
+          ratio *
+            (
+              config.snapMaxDurationMs -
+              config.snapMinDurationMs
+            ),
+        config.snapMinDurationMs,
+        config.snapMaxDurationMs
+      );
+
+      animating = true;
       state.isAnimating = true;
 
-      const duration = 200;
-      const snapDir = preparedDir;
-      const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
-      const height = gestureHeight || vh();
-      
-      refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
-      if (targetLayer) {
-        targetLayer.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+      dragging = false;
+      takingOver = false;
+      motionDirection = 0;
+
+      animate({
+        from,
+        to: 0,
+        duration,
+        easing: easeOutCubic,
+        complete: finishSnapBack
+      });
+    };
+
+    /* =========================================================
+       TAKEOVER
+       ========================================================= */
+
+    const beginTakeover = (x, y) => {
+      if (
+        !animating ||
+        !isDirection(motionDirection)
+      ) {
+        return false;
       }
 
-      updateLayerEffects(refs.layerCurrent, 1);
+      takingOver = true;
+      dragging = false;
+      axis = null;
 
-      setTr(refs.layerCurrent, 0);
+      startX = x;
+      startY = y;
 
-      if (targetLayer) {
-        setTr(targetLayer, preparedDir > 0 ? height : -height);
-      }
+      lastY = y;
+      lastTime = performance.now();
 
-      settleTimer = setTimeout(() => {
-        preparedDir = 0;
-        resetTransformsNoAnim();
+      takeoverOrigin = dragY;
+      velocityY = 0;
+
+      return true;
+    };
+
+    const activateTakeover =
+      (x, y, dy) => {
+        const direction =
+          motionDirection;
+
+        takeoverOrigin = dragY;
+
+        cancelMotion();
+
+        animating = false;
         state.isAnimating = false;
-        bindAutoAdvanceForCurrent();
-        guardCurrentPlayback('snapBack');
+        motionDirection = 0;
 
-        if (snapDir < 0) warmBackwardNext();
-        else warmForwardNext();
-      }, duration);
-    }
+        if (!recycle(direction)) {
+          takingOver = false;
+          dragging = false;
+          axis = null;
+          return false;
+        }
+
+        prepareMotion();
+
+        takingOver = false;
+        dragging = true;
+        axis = 'vertical';
+
+        const transferredDistance =
+          Math.sign(dy) *
+          Math.max(
+            0,
+            Math.abs(dy) -
+              config.takeoverMinDistancePx
+          );
+
+        startX = x;
+        startY =
+          y - transferredDistance;
+
+        lastY = y;
+        lastTime =
+          performance.now();
+
+        dragY = clamp(
+          transferredDistance,
+          -viewportHeight,
+          viewportHeight
+        );
+
+        velocityY = 0;
+
+        renderTrack(dragY);
+
+        return true;
+      };
+
+    const updateTakeover =
+      (x, y) => {
+        if (
+          !takingOver ||
+          !isDirection(motionDirection)
+        ) {
+          return false;
+        }
+
+        const dx = x - startX;
+        const dy = y - startY;
+
+        if (!axis) {
+          if (
+            Math.abs(dx) <
+              config.axisLockPx &&
+            Math.abs(dy) <
+              config.axisLockPx
+          ) {
+            return false;
+          }
+
+          axis =
+            Math.abs(dy) >
+            Math.abs(dx)
+              ? 'vertical'
+              : 'horizontal';
+
+          if (axis !== 'vertical') {
+            takingOver = false;
+            axis = null;
+            return false;
+          }
+        }
+
+        const gestureDirection =
+          dy < 0 ? 1 : -1;
+
+        if (
+          gestureDirection !==
+            motionDirection ||
+          Math.abs(dy) <
+            config.takeoverMinDistancePx
+        ) {
+          return true;
+        }
+
+        return activateTakeover(
+          x,
+          y,
+          dy
+        );
+      };
+
+    /* =========================================================
+       NORMAL GESTURE
+       ========================================================= */
+
+    const beginGesture = (x, y) => {
+      if (animating) {
+        return beginTakeover(x, y);
+      }
+
+      cancelMotion();
+      prepareMotion();
+
+      dragging = true;
+      takingOver = false;
+      axis = null;
+
+      startX = x;
+      startY = y;
+
+      lastY = y;
+      lastTime =
+        performance.now();
+
+      dragY = 0;
+      velocityY = 0;
+
+      clearAuto();
+      stopProg();
+
+      prepareForwardLayer();
+      prepareBackwardLayer();
+
+      return true;
+    };
+
+    const updateDrag = (x, y) => {
+      if (!dragging) {
+        return false;
+      }
+
+      const dx = x - startX;
+      const dy = y - startY;
+
+      if (!axis) {
+        if (
+          Math.abs(dx) <
+            config.axisLockPx &&
+          Math.abs(dy) <
+            config.axisLockPx
+        ) {
+          return false;
+        }
+
+        axis =
+          Math.abs(dy) >
+          Math.abs(dx)
+            ? 'vertical'
+            : 'horizontal';
+
+        if (axis !== 'vertical') {
+          dragging = false;
+          resetTransformsNoAnim();
+          return false;
+        }
+      }
+
+      const now =
+        performance.now();
+
+      const dt =
+        Math.max(
+          1,
+          now - lastTime
+        );
+
+      const instantVelocity =
+        (y - lastY) / dt;
+
+      velocityY =
+        velocityY *
+          (
+            1 -
+            config.velocitySmoothing
+          ) +
+        instantVelocity *
+          config.velocitySmoothing;
+
+      lastY = y;
+      lastTime = now;
+
+      dragY = clamp(
+        dy,
+        -viewportHeight,
+        viewportHeight
+      );
+
+      renderTrack(dragY);
+
+      return true;
+    };
+
+    const updateGesture =
+      (x, y) => {
+        if (
+          takingOver &&
+          animating
+        ) {
+          return updateTakeover(
+            x,
+            y
+          );
+        }
+
+        if (
+          dragging &&
+          !animating
+        ) {
+          return updateDrag(
+            x,
+            y
+          );
+        }
+
+        return false;
+      };
+
+    /* =========================================================
+       END GESTURE
+       ========================================================= */
+
+    const endGesture =
+      cancelled => {
+        if (
+          takingOver &&
+          animating
+        ) {
+          takingOver = false;
+          axis = null;
+          return;
+        }
+
+        if (
+          !dragging ||
+          animating
+        ) {
+          return;
+        }
+
+        const distance =
+          Math.abs(dragY);
+
+        const threshold =
+          Math.max(
+            config.commitMinDistancePx,
+            viewportHeight *
+              config.commitDistanceRatio
+          );
+
+        const distanceCommit =
+          distance >= threshold;
+
+        const flickCommit =
+          distance >=
+            config.flickMinDistancePx &&
+          Math.abs(velocityY) >=
+            config.flickVelocityPxMs &&
+          Math.sign(velocityY) ===
+            Math.sign(dragY);
+
+        if (
+          !cancelled &&
+          axis === 'vertical' &&
+          dragY !== 0 &&
+          (
+            distanceCommit ||
+            flickCommit
+          )
+        ) {
+          commit(
+            dragY < 0 ? 1 : -1
+          );
+
+          return;
+        }
+
+        if (
+          axis === 'vertical' &&
+          dragY !== 0
+        ) {
+          snapBack();
+          return;
+        }
+
+        const isTap =
+          Math.abs(dragY) <
+          config.axisLockPx;
+
+        resetGesture();
+        resetTransformsNoAnim();
+
+        if (
+          isTap &&
+          refs.videoCurrent
+        ) {
+          if (
+            refs.videoCurrent.paused
+          ) {
+            if (
+              typeof ensureSoundOn ===
+              'function'
+            ) {
+              ensureSoundOn(true);
+            } else {
+              tryPlay(
+                refs.videoCurrent
+              );
+            }
+
+            showPlayOverlay(false);
+          } else {
+            refs.videoCurrent.pause();
+            stopProg();
+            showPlayOverlay(true);
+          }
+        }
+
+        bindAutoAdvanceForCurrent();
+      };
+
+    /* =========================================================
+       EXCLUDED TARGET
+       ========================================================= */
+
+    const isExcludedTarget =
+      target => {
+        if (
+          typeof isInteractiveTarget ===
+          'function'
+        ) {
+          return isInteractiveTarget(
+            target
+          );
+        }
+
+        return false;
+      };
+
+    /* =========================================================
+       TOUCH
+       ========================================================= */
+
+    const handleTouchStart =
+      event => {
+        touchBlocked =
+          event.touches.length !== 1 ||
+          isExcludedTarget(
+            event.target
+          );
+
+        if (touchBlocked) {
+          return;
+        }
+
+        const touch =
+          event.touches[0];
+
+        beginGesture(
+          touch.clientX,
+          touch.clientY
+        );
+      };
+
+    const handleTouchMove =
+      event => {
+        if (
+          touchBlocked ||
+          event.touches.length !== 1 ||
+          (
+            !dragging &&
+            !takingOver
+          )
+        ) {
+          return;
+        }
+
+        const touch =
+          event.touches[0];
+
+        if (
+          !swipeSoundUnlocked &&
+          typeof ensureSoundOn ===
+            'function' &&
+          (
+            dragging ||
+            takingOver
+          )
+        ) {
+          ensureSoundOn(true);
+          swipeSoundUnlocked = true;
+        }
+
+        if (
+          updateGesture(
+            touch.clientX,
+            touch.clientY
+          )
+        ) {
+          event.preventDefault();
+        }
+      };
+
+    const handleTouchEnd = () => {
+      touchBlocked = false;
+      endGesture(false);
+    };
+
+    const handleTouchCancel = () => {
+      touchBlocked = false;
+      endGesture(true);
+    };
+
+    /* =========================================================
+       LISTENERS
+       ========================================================= */
+
+    document.addEventListener(
+      'touchstart',
+      handleTouchStart,
+      { passive: true }
+    );
+
+    document.addEventListener(
+      'touchmove',
+      handleTouchMove,
+      { passive: false }
+    );
+
+    document.addEventListener(
+      'touchend',
+      handleTouchEnd,
+      { passive: true }
+    );
+
+    document.addEventListener(
+      'touchcancel',
+      handleTouchCancel,
+      { passive: true }
+    );
+
+    /* =========================================================
+       AUTO ADVANCE
+       ========================================================= */
 
     function autoAdvance() {
-      if (state.isAnimating || dragging) return;
+      if (
+        animating ||
+        dragging ||
+        takingOver
+      ) {
+        return;
+      }
 
-      warmForwardNext();
-      preparedDir = 1;
+      prepareForwardLayer();
       commit(1);
     }
 
-    function finishGesture(cancelled) {
-      if (!dragging || state.isAnimating) return;
+    /* =========================================================
+       VISIBILITY / RECOVERY
+       ========================================================= */
 
-      const totalDy = dy;
-      const endT = performance.now();
-      const dt = Math.max(1, endT - startT);
-      const height = gestureHeight || vh();
-      
-      dragging = false;
-      swipeSoundUnlocked = false;
-      touchBlocked = false;
+    function recoverVisibleState() {
+      cancelMotion();
 
-      if (cancelled || preparedDir === 0) {
-        if (preparedDir !== 0) {
-          snapBack();
-        } else {
-          const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
+      animating = false;
+      state.isAnimating = false;
+      motionDirection = 0;
 
-          if (isTap && refs.videoCurrent) {
-            if (refs.videoCurrent.paused) { 
-              ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
-              showPlayOverlay(false);
-              guardCurrentPlayback('tapPlay');
-            } else {
-              clearPlaybackGuard();
-              refs.videoCurrent.pause();
-              stopProg();
-              showPlayOverlay(true);
-            }
-          }
+      resetGesture();
+      resetTransformsNoAnim();
 
-          resetTransformsNoAnim();
-          bindAutoAdvanceForCurrent();
-        }
+      bindAutoAdvanceForCurrent();
 
-        return;
-      }
-
-      const vy = (lastMoveY - startY) / dt;
-      const isBackward = preparedDir === -1;
-
-      const thresholdRatio = isBackward ? BACKWARD_THRESHOLD_RATIO : THRESHOLD_RATIO;
-      const minDy = isBackward ? BACKWARD_MIN_COMMIT_DY : MIN_COMMIT_DY;
-      const minVy = isBackward ? BACKWARD_MIN_COMMIT_VY : MIN_COMMIT_VY;
+      const item =
+        playlist[state.index];
 
       if (
-        Math.abs(totalDy) >= height * thresholdRatio ||
-        (Math.abs(totalDy) >= minDy && Math.abs(vy) >= minVy)
+        item?.type === 'video' &&
+        refs.videoCurrent
       ) {
-        commit(preparedDir);
-      } else {
-        snapBack();
+        refs.videoCurrent.muted =
+          state.isMuted;
+
+        tryPlay(
+          refs.videoCurrent
+        );
       }
 
-      dy = 0;
-      dx = 0;
+      requestAnimationFrame(() => {
+        prepareForwardLayer();
+        prepareBackwardLayer();
+      });
     }
 
-    document.addEventListener('touchstart', (e) => {
-      touchBlocked = e.touches.length !== 1 || isInteractiveTarget(e.target);
-
-      if (touchBlocked) return;
-
-      gestureHeight = vh();
-
-      if (state.isAnimating) {
-        const interrupted = interruptActiveCommit();
-
-        if (!interrupted || state.isAnimating) {
-          queueHasStart = true;
-          queueStartY = e.touches[0].clientY;
-          queueStartX = e.touches[0].clientX;
-          queuedDir = 0;
-          return;
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          recoverVisibleState();
         }
-      }
+      },
+      { passive: true }
+    );
 
-      dragging = true;
-      preparedDir = 0;
+    window.addEventListener(
+      'pageshow',
+      recoverVisibleState,
+      { passive: true }
+    );
 
-      startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
-      startT = performance.now();
-      lastMoveY = startY;
-      
-      clearAuto();
-      stopProg();
+    /* =========================================================
+       INITIAL GEOMETRY
+       ========================================================= */
 
-      refs.layerCurrent.style.transition = 'none';
-      refs.layerNext.style.transition = 'none';
-      if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-      
-      refs.layerCurrent.style.willChange = 'transform';
-      refs.layerNext.style.willChange = 'transform';
-      if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
-      
-      if (startY < gestureHeight * 0.45) {
-        warmBackwardNext();
-      } else {
-        warmForwardNext();
-      }
-    }, { passive: true });
+    viewportHeight =
+      getViewportHeight();
 
-    document.addEventListener('touchmove', (e) => {
-      if (touchBlocked) return;
+    resetTransformsNoAnim();
 
-      if (state.isAnimating) {
-        if (!e.touches || e.touches.length !== 1) return;
-
-        const qy = e.touches[0].clientY;
-        const qx = e.touches[0].clientX;
-
-        if (!queueHasStart) {
-          queueHasStart = true;
-          queueStartY = qy;
-          queueStartX = qx;
-          queuedDir = 0;
-          return;
-        }
-
-        const qdy = qy - queueStartY;
-        const qdx = qx - queueStartX;
-
-        if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < QUEUE_MOVE_ACTIVATE_PX) return;
-
-        const nextQueuedDir = qdy < 0 ? 1 : -1;
-
-        if (queuedDir !== 0 && queuedDir !== nextQueuedDir) {
-          queueStartY = qy;
-          queueStartX = qx;
-        }
-
-        queuedDir = nextQueuedDir;
-        return;
-      }
-
-      if (!dragging) {
-        if (!e.touches || e.touches.length !== 1) return;
-
-        dragging = true;
-        preparedDir = 0;
-        gestureHeight = gestureHeight || vh();
-
-        startY = e.touches[0].clientY;
-        startX = e.touches[0].clientX;
-        startT = performance.now();
-        lastMoveY = startY;
-
-        clearAuto();
-        stopProg();
-
-        refs.layerCurrent.style.transition = 'none';
-        refs.layerNext.style.transition = 'none';
-        if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-      }
-
-      const y = e.touches[0].clientY;
-      const x = e.touches[0].clientX;
-
-      const ddy = y - startY;
-      const ddx = x - startX;
-
-      if (Math.abs(ddx) > Math.abs(ddy) * 1.4 || Math.abs(ddy) < MOVE_ACTIVATE_PX) return;
-
-      e.preventDefault();
-
-      const previousDy = dy;
-      const nextDy = ddy;
-
-      if (Math.abs(nextDy - previousDy) > MAX_MOVE_STEP_PX) {
-        dy = previousDy + Math.sign(nextDy - previousDy) * MAX_MOVE_STEP_PX;
-      } else {
-        dy = nextDy;
-      }
-
-      dx = ddx;
-      lastMoveY = y;
-
-      if (!swipeSoundUnlocked && typeof ensureSoundOn === 'function') {
-        ensureSoundOn(true);
-        swipeSoundUnlocked = true;
-      }
-
-      const rawDir = dy < 0 ? 1 : -1;
-      const isDirectionFlip = preparedDir !== 0 && preparedDir !== rawDir;
-      const dir = isDirectionFlip && Math.abs(dy) < DIRECTION_FLIP_DAMPING_PX ? preparedDir : rawDir;
-
-      if (preparedDir !== dir) prepareNextForDirection(dir);
-
-      if (!raf) {
-        raf = requestAnimationFrame(() => {
-          raf = 0;
-
-          const height = gestureHeight;
-          const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
-          const currentOpacity = Math.max(1 - progress, 0.3);
-          const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
-          
-          updateLayerEffects(refs.layerCurrent, currentOpacity);
-
-          setTr(refs.layerCurrent, dy);
-
-          if (targetLayer) {
-            if (preparedDir > 0) {
-              setTr(targetLayer, height + dy);
-            } else if (preparedDir < 0) {
-              setTr(targetLayer, -height + dy);
-            }
-          }
-        });
-      }
-    }, { passive: false });
-
-    document.addEventListener('touchend', () => {
-      touchBlocked = false;
-      finishGesture(false);
-    }, { passive: true });
-
-    document.addEventListener('touchcancel', () => {
-      touchBlocked = false;
-      finishGesture(true);
-    }, { passive: true });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        recoverVisibleState();
-      } else {
-        clearPlaybackGuard();
-        clearPendingCommit();
-        resetQueue();
-      }
-    }, { passive: true });
-
-    window.addEventListener('pageshow', () => {
-      recoverVisibleState();
-    }, { passive: true });
+    /* =========================================================
+       PUBLIC API — COMPATIBLE WITH APP.JS
+       ========================================================= */
 
     return {
       autoAdvance,
@@ -779,11 +1282,13 @@
       warmBackwardNext,
       commit,
       resetTransformsNoAnim,
+
       isDragging() {
         return dragging;
       }
     };
   }
 
-  window.initTikbooSwipe = initTikbooSwipe;
+  window.initTikbooSwipe =
+    initTikbooSwipe;
 })();
