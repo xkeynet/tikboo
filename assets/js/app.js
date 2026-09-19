@@ -603,10 +603,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // =========================================================
-  // === HLS-ONLY PIPELINE / POSTER COVER ===
+  // === HLS-ONLY PIPELINE / DIRECT VIDEO ===
   // =========================================================
   const hlsByVideo = new WeakMap();
-  const frameCleanupByVideo = new WeakMap();
 
   const ua = navigator.userAgent || '';
 
@@ -617,137 +616,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       navigator.maxTouchPoints > 1
     );
 
-  function derivePoster(manifest) {
-    if (!manifest) return '';
-
-    try {
-      const url = new URL(manifest, window.location.href);
-
-      url.pathname = url.pathname.replace(
-        /\/manifest\/video\.m3u8$/i,
-        '/thumbnails/thumbnail.jpg'
-      );
-
-      url.search = '';
-      url.searchParams.set('time', '0s');
-      url.searchParams.set('fit', 'crop');
-      url.searchParams.set('height', '1080');
-
-      return url.toString();
-    } catch (e) {
-      return manifest.replace(
-        /\/manifest\/video\.m3u8(?:\?.*)?$/i,
-        '/thumbnails/thumbnail.jpg?time=0s&fit=crop&height=1080'
-      );
-    }
-  }
-
   function destroyHls(el) {
     const hls = hlsByVideo.get(el);
 
     if (hls) {
       hls.destroy();
       hlsByVideo.delete(el);
-    }
-  }
-
-  function clearFrameWatch(el) {
-    const cleanup = frameCleanupByVideo.get(el);
-
-    if (cleanup) {
-      cleanup();
-      frameCleanupByVideo.delete(el);
-    }
-  }
-
-  function showPoster(img, src) {
-    if (!img || !src) return;
-
-    img.onload = null;
-    img.onerror = null;
-    img.style.transition = 'none';
-    img.style.display = 'block';
-    img.style.opacity = '1';
-
-    img.onerror = () => {
-      img.style.opacity = '1';
-      img.style.display = 'block';
-    };
-
-    if (img.getAttribute('src') !== src) {
-      img.src = src;
-    }
-  }
-
-  function hidePoster(img) {
-    if (!img) return;
-
-    img.style.transition = 'opacity 120ms linear';
-    img.style.opacity = '0';
-
-    const finish = () => {
-      if (img.style.opacity === '0') {
-        img.style.display = 'none';
-      }
-    };
-
-    img.addEventListener('transitionend', finish, { once: true });
-    setTimeout(finish, 160);
-  }
-
-  function watchFirstRenderedFrame(video, poster) {
-    clearFrameWatch(video);
-
-    let revealed = false;
-    let frameRequest = 0;
-
-    const reveal = () => {
-      if (revealed || video.currentTime <= 0.05) return;
-
-      revealed = true;
-      clearFrameWatch(video);
-      hidePoster(poster);
-    };
-
-    const onTimeUpdate = () => {
-      reveal();
-    };
-
-    const onLoadedData = () => {
-      if (
-        typeof video.requestVideoFrameCallback !== 'function'
-      ) {
-        return;
-      }
-
-      frameRequest = video.requestVideoFrameCallback(
-        (now, metadata) => {
-          if (
-            (metadata?.mediaTime ?? video.currentTime) > 0.05
-          ) {
-            reveal();
-          }
-        }
-      );
-    };
-
-    video.addEventListener('timeupdate', onTimeUpdate);
-    video.addEventListener('loadeddata', onLoadedData);
-
-    frameCleanupByVideo.set(video, () => {
-      video.removeEventListener('timeupdate', onTimeUpdate);
-      video.removeEventListener('loadeddata', onLoadedData);
-
-      if (
-        frameRequest &&
-        typeof video.cancelVideoFrameCallback === 'function'
-      ) {
-        video.cancelVideoFrameCallback(frameRequest);
-      }
-    });
-
-    if (video.currentTime > 0.05) {
-      reveal();
     }
   }
 
@@ -760,7 +634,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    clearFrameWatch(el);
     destroyHls(el);
 
     el.pause();
@@ -829,7 +702,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   function clearVideo(el) {
     if (!el) return;
 
-    clearFrameWatch(el);
     destroyHls(el);
 
     el.pause();
@@ -895,17 +767,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     hideAll(layer);
 
     if (item.type === 'video') {
-      const poster =
-        item.poster ||
-        derivePoster(item.manifest);
-
-      showPoster(im, poster);
+      clearImage(im);
 
       v.style.display = 'block';
       v.muted = forNext ? true : state.isMuted;
 
       setVideo(v, item.manifest);
-      watchFirstRenderedFrame(v, im);
 
       if (!forNext) {
         tryPlay(v);
