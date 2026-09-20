@@ -3,10 +3,10 @@
   width="24"
   height="24"
   viewBox="0 0 24 24"
-  fill="none"
+  fill="#FFFFFF"
 >
   <path
-    d="M10 22L0 12L10 2l1.775 1.775L3.55 12l8.225 8.225L10 22Z"
-    fill="#FFFFFF"
+    d="M16.9001 0.00015L19.1017 2.20178L9.30339 12.0016L19.1017 21.7984L16.9001 24L4.89859 12.0016Z"
+    fill-rule="evenodd"
   />
 </svg>
