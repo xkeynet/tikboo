@@ -742,11 +742,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!v) return;
 
     v.muted = true;
-
-    if (v.readyState >= 2) return;
+    v.defaultMuted = true;
+    v.playsInline = true;
 
     try {
-      v.load();
+      const playPromise = v.play();
+
+      if (
+        playPromise &&
+        typeof playPromise.catch === 'function'
+      ) {
+        playPromise.catch(() => {});
+      }
     } catch (e) {}
   }
 
