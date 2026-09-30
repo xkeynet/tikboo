@@ -222,10 +222,20 @@
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
-      if (videoEl !== refs.videoCurrent) {
-        videoEl.pause();
-        videoEl.currentTime = 0;
-      }
+      videoEl.muted = true;
+      videoEl.defaultMuted = true;
+      videoEl.playsInline = true;
+
+      try {
+        const playPromise = videoEl.play();
+
+        if (
+          playPromise &&
+          typeof playPromise.catch === 'function'
+        ) {
+          playPromise.catch(() => {});
+        }
+      } catch (e) {}
     }
 
     function prepareForwardLayer(heightOverride) {
