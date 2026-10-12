@@ -446,7 +446,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function showSeek(show) {
     if (!seekWrap) return;
-
     seekWrap.style.display = show ? 'flex' : 'none';
     seekWrap.setAttribute('aria-hidden', show ? 'false' : 'true');
 
@@ -483,7 +482,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           '<span class="t-sep"> / </span>' +
           '<span class="t-tot">00:00</span>';
       }
-
       return;
     }
 
@@ -738,23 +736,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // =========================================================
+  // === PREPARE NEXT VIDEO WITHOUT PLAYBACK ===
+  // =========================================================
   function primeNextVideo(v) {
     if (!v) return;
 
+    v.pause();
     v.muted = true;
-    v.defaultMuted = true;
     v.playsInline = true;
 
-    try {
-      const playPromise = v.play();
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
 
-      if (
-        playPromise &&
-        typeof playPromise.catch === 'function'
-      ) {
-        playPromise.catch(() => {});
-      }
-    } catch (e) {}
+    v.preload = 'auto';
   }
 
   function setLayerContent(layer, item, forNext) {
@@ -1036,8 +1031,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     seekPill.addEventListener('touchmove', (e) => {
       if (!ageGateUnlocked) return;
       if (!pillTouching) return;
-      if (PLAYLIST[state.index].type !== 'video') return;
       if (!e.touches || e.touches.length !== 1) return;
+      if (PLAYLIST[state.index].type !== 'video') return;
 
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
@@ -1210,19 +1205,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   initVideoShareSheet();
 
   // =========================================================
-  // === Profile Page ===
+  // === Profile Page — TEMPORARILY DISABLED ===
   // =========================================================
   const profileBtn = document.getElementById('profileBtn');
 
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
-      if (!ageGateUnlocked) return;
-
-      track('profile_open', {
-        source: 'bottom_nav'
-      });
-
-      window.location.href = '/profile.html';
+      // Tikboo MVP: Profile navigation temporarily disabled.
+      // Original profile functionality retained for future activation.
+      return;
     });
   }
 
