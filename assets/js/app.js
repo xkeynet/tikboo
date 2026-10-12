@@ -161,6 +161,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 3000);
   }
 
+  // =========================================================
+  // === SEEK PILL: RESET ON SWIPE COMMIT ===
+  // =========================================================
+  function resetSeekPillOnCommit() {
+    clearSeekInactiveTimer();
+
+    if (seekRaf) {
+      cancelAnimationFrame(seekRaf);
+      seekRaf = 0;
+    }
+
+    pillTouching = false;
+    pillSeeking = false;
+    pillMoved = false;
+    wasPlayingBeforeSeek = false;
+
+    if (seekPill) {
+      seekPill.style.transition = 'none';
+      seekPill.classList.remove('is-active');
+    }
+
+    if (seekTime) {
+      seekTime.classList.remove('is-active');
+    }
+
+    setAllSidesScrubbing(false);
+
+    if (seekPill) {
+      void seekPill.offsetHeight;
+      seekPill.style.transition = '';
+    }
+  }
+
+  document.addEventListener(
+    'tikboo:swipe:commit',
+    resetSeekPillOnCommit
+  );
+
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
   refs.videoPrev.preload = 'auto';
   refs.videoCurrent.preload = 'auto';
@@ -174,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     v.setAttribute('x-webkit-airplay', 'deny');
   });
 
-  [refs.imgPrev, refs.imgCurrent, refs.imgNext].forEach((img) => {
+  [refs.imgPrev, refs.imgCurrent, refs.videoNext].forEach((img) => {
     img.decoding = 'async';
   });
 
