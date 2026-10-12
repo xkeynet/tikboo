@@ -175,16 +175,9 @@
 
       if (videoEl !== refs.videoCurrent) {
         videoEl.muted = true;
-        videoEl.preload = 'auto';
 
         try {
-          videoEl.load();
-          const p = videoEl.play();
-          if (p && typeof p.then === 'function') {
-            p.then(() => {
-              videoEl.pause();
-            }).catch(() => {});
-          }
+          if (videoEl.readyState === 0) videoEl.load();
         } catch (e) {}
       }
     }
@@ -675,15 +668,6 @@
           dragging = false;
           resetTransformsNoAnim();
           return false;
-        }
-      }
-
-      // PREDIKTIVNÍ BUFFEROVÁNÍ BĚHEM TAŽENÍ PRSTEM (PŘI PŘEKROČENÍ 20px)
-      if (Math.abs(dy) > 20) {
-        if (dy < 0) {
-          prepareForwardLayer();
-        } else {
-          prepareBackwardLayer();
         }
       }
 
