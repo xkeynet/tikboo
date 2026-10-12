@@ -161,44 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 3000);
   }
 
-  // =========================================================
-  // === SEEK PILL: RESET ON SWIPE COMMIT ===
-  // =========================================================
-  function resetSeekPillOnCommit() {
-    clearSeekInactiveTimer();
-
-    if (seekRaf) {
-      cancelAnimationFrame(seekRaf);
-      seekRaf = 0;
-    }
-
-    pillTouching = false;
-    pillSeeking = false;
-    pillMoved = false;
-    wasPlayingBeforeSeek = false;
-
-    if (seekPill) {
-      seekPill.style.transition = 'none';
-      seekPill.classList.remove('is-active');
-    }
-
-    if (seekTime) {
-      seekTime.classList.remove('is-active');
-    }
-
-    setAllSidesScrubbing(false);
-
-    if (seekPill) {
-      void seekPill.offsetHeight;
-      seekPill.style.transition = '';
-    }
-  }
-
-  document.addEventListener(
-    'tikboo:swipe:commit',
-    resetSeekPillOnCommit
-  );
-
   // === HARDEN VIDEO ELEMENTS FOR iOS / SMOOTHNESS ===
   refs.videoPrev.preload = 'auto';
   refs.videoCurrent.preload = 'auto';
@@ -212,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     v.setAttribute('x-webkit-airplay', 'deny');
   });
 
-  [refs.imgPrev, refs.imgCurrent, refs.videoNext].forEach((img) => {
+  [refs.imgPrev, refs.imgCurrent, refs.imgNext].forEach((img) => {
     img.decoding = 'async';
   });
 
@@ -500,7 +462,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     sec = Math.floor(sec);
 
     const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 60) / 60);
+    const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
 
     const hh = String(h).padStart(2, '0');
@@ -643,169 +605,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================
   const hlsByVideo = new WeakMap();
 
-  // =========================================================
-  // === PHASE 1: VIDEO FIRST-FRAME READINESS ===
-  // =========================================================
-  const videoReadiness = new WeakMap();
-
-  function getVideoReadiness(el) {
-    if (!el) return null;
-
-    let record = videoReadiness.get(el);
-
-    if (!record) {
-      record = {
-        manifest: '',
-        generation: 0,
-        status: 'idle',
-        firstFrameReady: false,
-        canPlay: false,
-        startedAt: 0,
-        firstFrameAt: 0,
-        error: null
-      };
-
-      videoReadiness.set(el, record);
-    }
-
-    return record;
-  }
-
-  function getVideoRole(el) {
-    if (el === refs.videoCurrent) return 'CURRENT';
-    if (el === refs.videoNext) return 'NEXT';
-    if (el === refs.videoPrev) return 'PREVIOUS';
-    return 'UNKNOWN';
-  }
-
-  function reportVideoReadiness(el, eventName) {
-    const record = getVideoReadiness(el);
-    if (!record || !record.manifest) return;
-
-    const elapsedMs = record.startedAt
-      ? Math.round(performance.now() - record.startedAt)
-      : null;
-
-    console.debug('[Tikboo Video Readiness]', {
-      role: getVideoRole(el),
-      event: eventName,
-      status: record.status,
-      firstFrameReady: record.firstFrameReady,
-      canPlay: record.canPlay,
-      readyState: el.readyState,
-      networkState: el.networkState,
-      elapsedMs,
-      manifest: record.manifest
-    });
-  }
-
-  function resetVideoReadiness(el, manifest = '') {
-    const record = getVideoReadiness(el);
-    if (!record) return;
-
-    record.generation++;
-    record.manifest = manifest;
-    record.status = manifest ? 'loading' : 'idle';
-    record.firstFrameReady = false;
-    record.canPlay = false;
-    record.startedAt = manifest ? performance.now() : 0;
-    record.firstFrameAt = 0;
-    record.error = null;
-
-    if (manifest) reportVideoReadiness(el, 'source-assigned');
-  }
-
-  function refreshVideoReadiness(el, eventName) {
-    const record = getVideoReadiness(el);
-    if (!record || !record.manifest) return;
-
-    if ((el.dataset.manifest || '') !== record.manifest) return;
-
-    const hasCurrentData = el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
-    const canPlayNow = el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
-
-    if (hasCurrentData && !record.firstFrameReady) {
-      record.firstFrameReady = true;
-      record.firstFrameAt = performance.now();
-    }
-
-    record.canPlay = canPlayNow;
-
-    if (record.firstFrameReady) {
-      record.status = canPlayNow ? 'playable' : 'frame-ready';
-    } else {
-      record.status = 'loading';
-    }
-
-    reportVideoReadiness(el, eventName);
-  }
-
-  function markVideoWaiting(el) {
-    const record = getVideoReadiness(el);
-    if (!record || !record.manifest) return;
-    if ((el.dataset.manifest || '') !== record.manifest) return;
-
-    record.canPlay = false;
-    record.status = record.firstFrameReady ? 'buffering' : 'loading';
-
-    reportVideoReadiness(el, 'waiting');
-  }
-
-  function markVideoError(el, reason = 'media-error') {
-    const record = getVideoReadiness(el);
-    if (!record || !record.manifest) return;
-    if ((el.dataset.manifest || '') !== record.manifest) return;
-
-    record.status = 'error';
-    record.canPlay = false;
-    record.error = reason;
-
-    reportVideoReadiness(el, 'error');
-  }
-
-  [refs.videoPrev, refs.videoCurrent, refs.videoNext].forEach((el) => {
-    getVideoReadiness(el);
-
-    el.addEventListener('loadeddata', () => {
-      refreshVideoReadiness(el, 'loadeddata');
-    });
-
-    el.addEventListener('canplay', () => {
-      refreshVideoReadiness(el, 'canplay');
-    });
-
-    el.addEventListener('waiting', () => {
-      markVideoWaiting(el);
-    });
-
-    el.addEventListener('error', () => {
-      markVideoError(el, el.error?.message || 'media-error');
-    });
-  });
-
-  // Diagnostic API — read-only snapshots.
-  window.TikbooVideoReadiness = {
-    snapshot() {
-      return [refs.videoPrev, refs.videoCurrent, refs.videoNext].map((el) => {
-        const record = getVideoReadiness(el);
-
-        return {
-          role: getVideoRole(el),
-          manifest: record.manifest,
-          status: record.status,
-          firstFrameReady: record.firstFrameReady,
-          canPlay: record.canPlay,
-          readyState: el.readyState,
-          networkState: el.networkState,
-          firstFrameMs: record.firstFrameAt && record.startedAt
-            ? Math.round(record.firstFrameAt - record.startedAt)
-            : null,
-          error: record.error
-        };
-      });
-    }
-  };
-
   const ua = navigator.userAgent || '';
 
   const isIOS =
@@ -830,7 +629,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentManifest = el.dataset.manifest || '';
 
     if (currentManifest === manifest) {
-      refreshVideoReadiness(el, 'source-reused');
       return;
     }
 
@@ -840,8 +638,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     el.dataset.manifest = manifest;
     el.removeAttribute('src');
     el.load();
-
-    resetVideoReadiness(el, manifest);
 
     if (
       isIOS &&
@@ -888,7 +684,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
-        markVideoError(el, data.details || 'hls-fatal-error');
         destroyHls(el);
       });
 
@@ -911,8 +706,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     delete el.dataset.manifest;
     el.removeAttribute('src');
     el.load();
-
-    resetVideoReadiness(el);
   }
 
   function clearImage(el) {
@@ -957,8 +750,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     v.setAttribute('webkit-playsinline', '');
 
     v.preload = 'auto';
-
-    refreshVideoReadiness(v, 'prime-next');
   }
 
   function setLayerContent(layer, item, forNext) {
@@ -1049,6 +840,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   function bindAutoAdvanceForCurrent() {
     clearAuto();
     stopProg();
+
+    // =====================================================
+    // SEEK STATE RESET — CURRENT VIDEO COMMIT
+    // =====================================================
+    // Zruší stav seekování předchozího videa.
+    // Běžný 3s timeout po seekování zůstává zachován.
+    clearSeekInactiveTimer();
+
+    if (seekRaf) {
+      cancelAnimationFrame(seekRaf);
+      seekRaf = 0;
+    }
+
+    pillTouching = false;
+    pillSeeking = false;
+    pillMoved = false;
+    wasPlayingBeforeSeek = false;
+
+    setSeekActive(false);
+    // =====================================================
 
     if (!ageGateUnlocked) {
       bindPreviewLoopForCurrent();
