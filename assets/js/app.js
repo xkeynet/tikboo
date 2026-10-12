@@ -841,6 +841,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearAuto();
     stopProg();
 
+    // =====================================================
+    // SEEK STATE RESET — CURRENT VIDEO COMMIT
+    // =====================================================
+    // Zruší stav seekování předchozího videa.
+    // Běžný 3s timeout po seekování zůstává zachován.
     clearSeekInactiveTimer();
 
     if (seekRaf) {
@@ -854,6 +859,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     wasPlayingBeforeSeek = false;
 
     setSeekActive(false);
+    // =====================================================
 
     if (!ageGateUnlocked) {
       bindPreviewLoopForCurrent();
@@ -1225,6 +1231,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
+      // Tikboo MVP: Profile navigation temporarily disabled.
+      // Original profile functionality retained for future activation.
       return;
     });
   }
