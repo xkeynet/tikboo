@@ -219,23 +219,18 @@
       });
     }
 
+    // Prepare adjacent video without starting playback.
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
+      videoEl.pause();
       videoEl.muted = true;
-      videoEl.defaultMuted = true;
       videoEl.playsInline = true;
 
-      try {
-        const playPromise = videoEl.play();
+      videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
 
-        if (
-          playPromise &&
-          typeof playPromise.catch === 'function'
-        ) {
-          playPromise.catch(() => {});
-        }
-      } catch (e) {}
+      videoEl.preload = 'auto';
     }
 
     function prepareForwardLayer(heightOverride) {
@@ -347,13 +342,9 @@
         refs.videoCurrent = refs.videoPrev;
         refs.imgCurrent = refs.imgPrev;
 
-        refs.layerNext = oldCurrentLayer;
-        refs.videoNext = oldCurrentVideo;
-        refs.imgNext = oldCurrentImg;
-
-        refs.layerPrev = oldNextLayer;
-        refs.videoPrev = oldNextVideo;
-        refs.imgPrev = oldNextImg;
+        refs.layerNext = oldNextLayer;
+        refs.videoNext = oldNextVideo;
+        refs.imgNext = oldNextImg;
 
         nextLoadedIndex = normalizeIndex(state.index + 1);
         prevLoadedIndex = null;
@@ -667,7 +658,7 @@
         }
 
         const qdy = qy - queueStartY;
-        const qdx = qx - queueStartX;
+        const qdx = x - startX;
 
         if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < QUEUE_MOVE_ACTIVATE_PX) return;
 
