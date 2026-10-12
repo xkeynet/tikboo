@@ -1,16 +1,16 @@
 // /assets/js/swipe.js - Reels
 (function () {
   function initTikbooSwipe(options) {
-    const { 
-      refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg, 
-      bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent, 
-      ensureSoundOn, isInteractiveTarget 
+    const {
+      refs, state, playlist, vh, normalizeIndex, tryPlay, clearAuto, stopProg,
+      bindAutoAdvanceForCurrent, syncSoundUI, showPlayOverlay, setLayerContent,
+      ensureSoundOn, isInteractiveTarget
     } = options;
 
-    const THRESHOLD_RATIO = 0.50; 
-    const MOVE_ACTIVATE_PX = 3;    
-    const MIN_COMMIT_DY = 70;      
-    const MIN_COMMIT_VY = 0.42;    
+    const THRESHOLD_RATIO = 0.50;
+    const MOVE_ACTIVATE_PX = 3;
+    const MIN_COMMIT_DY = 70;
+    const MIN_COMMIT_VY = 0.42;
     const TAP_MAX_MOVE = 8;
     const TAP_MAX_TIME = 220;
 
@@ -21,6 +21,9 @@
     const DIRECTION_FLIP_DAMPING_PX = 12;
     const QUEUE_MOVE_ACTIVATE_PX = 2;
     const MAX_MOVE_STEP_PX = 260;
+
+    const COMMIT_COOLDOWN = 55;
+    const PRELOAD_TIMEOUT = 8000;
 
     let dragging = false;
     let startY = 0, startX = 0, dy = 0, dx = 0;
@@ -43,7 +46,9 @@
     let playbackGuardTimers = [];
     let gestureHeight = 0;
     let touchBlocked = false;
-    const COMMIT_COOLDOWN = 55;
+
+    let pendingVideoWait = null;
+    let preloadGeneration = 0;
 
     const seekPill = document.getElementById('seekPill');
     const seekTime = document.getElementById('seekTime');
@@ -112,6 +117,13 @@
       playbackGuardTimers = [];
     }
 
+    function cancelVideoWait() {
+      if (!pendingVideoWait) return;
+
+      pendingVideoWait.cancel();
+      pendingVideoWait = null;
+    }
+
     function resetQueue() {
       queuedDir = 0;
       queueHasStart = false;
@@ -123,6 +135,10 @@
       activeCommitDir = 0;
       activeCommitTargetIndex = null;
       activeCommitVideoToPause = null;
+    }
+
+    function isVideoReady(video) {
+      return !!video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0;
     }
 
     function guardCurrentPlayback(reason) {
@@ -143,19 +159,14 @@
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
 
-        if (video.readyState === 0) {
-          try {
-            video.load();
-          } catch (e) {}
-          return;
-        }
+        if (video.readyState === 0) return;
 
         if (video.paused && video.readyState >= 2) {
           tryPlay(video);
         }
       };
 
-      delays.forEach((delay) => {
+      delays.forEach(delay => {
         const timer = setTimeout(() => {
           playbackGuardTimers = playbackGuardTimers.filter(t => t !== timer);
           attempt();
@@ -194,6 +205,7 @@
 
       clearPendingCommit();
       clearPlaybackGuard();
+      cancelVideoWait();
 
       dragging = false;
       dy = 0;
@@ -219,24 +231,23 @@
       });
     }
 
-    // Prepare adjacent video without starting playback.
     function prewarmVideo(videoEl, item) {
       if (!videoEl || !item || item.type !== 'video') return;
 
-      videoEl.pause();
       videoEl.muted = true;
       videoEl.playsInline = true;
-
       videoEl.setAttribute('playsinline', '');
       videoEl.setAttribute('webkit-playsinline', '');
-
       videoEl.preload = 'auto';
+
+      // Do not repeatedly call load(): HLS.js owns the media pipeline.
+      // The attached HLS instance starts loading through setLayerContent().
     }
 
     function prepareForwardLayer(heightOverride) {
       const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index + 1);
-      
+
       if (nextLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerNext, playlist[targetIndex], true);
         nextLoadedIndex = targetIndex;
@@ -253,7 +264,7 @@
 
       const height = heightOverride || vh();
       const targetIndex = normalizeIndex(state.index - 1);
-      
+
       if (prevLoadedIndex !== targetIndex) {
         setLayerContent(refs.layerPrev, playlist[targetIndex], true);
         prevLoadedIndex = targetIndex;
@@ -287,22 +298,66 @@
       preparedDir = dir;
     }
 
-    function retryCommitOnce(dir) {
-      clearPendingCommit();
+    function waitForVideoReady(video, onReady, onTimeout) {
+      cancelVideoWait();
 
-      pendingCommitTimer = setTimeout(() => {
-        pendingCommitTimer = 0;
+      if (isVideoReady(video)) {
+        onReady();
+        return;
+      }
 
-        if (state.isAnimating) return;
+      const generation = ++preloadGeneration;
+      let finished = false;
+      let timeout = 0;
 
-        commit(dir);
-      }, 90);
+      const cleanup = () => {
+        video.removeEventListener('loadeddata', check);
+        video.removeEventListener('canplay', check);
+        video.removeEventListener('playing', check);
+        video.removeEventListener('error', fail);
+        clearTimeout(timeout);
+      };
+
+      const finish = (ready) => {
+        if (finished) return;
+        finished = true;
+        cleanup();
+
+        if (pendingVideoWait?.generation === generation) {
+          pendingVideoWait = null;
+        }
+
+        if (ready) onReady();
+        else onTimeout();
+      };
+
+      const check = () => {
+        if (isVideoReady(video)) finish(true);
+      };
+
+      const fail = () => finish(false);
+
+      pendingVideoWait = {
+        generation,
+        cancel() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+        }
+      };
+
+      video.addEventListener('loadeddata', check);
+      video.addEventListener('canplay', check);
+      video.addEventListener('playing', check);
+      video.addEventListener('error', fail);
+
+      timeout = setTimeout(() => finish(false), PRELOAD_TIMEOUT);
+
+      check();
     }
 
     function finishCommit(dir, targetIndex, videoToPause) {
-      if (videoToPause) {
-        videoToPause.pause();
-      }
+      if (videoToPause) videoToPause.pause();
 
       state.index = targetIndex;
 
@@ -401,9 +456,8 @@
     function commit(dir) {
       const now = performance.now();
 
-      if (now - lastCommitTime < COMMIT_COOLDOWN) {
-        return;
-      }
+      if (now - lastCommitTime < COMMIT_COOLDOWN) return;
+      if (state.isAnimating) return;
 
       const targetIndex = normalizeIndex(state.index + dir);
       const targetItem = playlist[targetIndex];
@@ -415,18 +469,49 @@
         return;
       }
 
-      if (targetItem?.type === 'video' && targetVideo && targetVideo.readyState < 1) {
-        retryCommitOnce(dir);
+      // Ensure the destination layer has the correct content.
+      if (dir > 0 && nextLoadedIndex !== targetIndex) {
+        prepareForwardLayer();
+      } else if (dir < 0 && prevLoadedIndex !== targetIndex) {
+        prepareBackwardLayer();
+      }
+
+      if (targetItem?.type === 'video' && targetVideo && !isVideoReady(targetVideo)) {
+        if (pendingVideoWait) return;
+
+        // Keep the current video visible while waiting for the next frame.
+        refs.layerCurrent.style.transition = 'none';
+        setTr(refs.layerCurrent, 0);
+
+        targetLayer.style.transition = 'none';
+        setTr(targetLayer, dir > 0 ? vh() : -vh());
+
+        updateLayerEffects(refs.layerCurrent, 1);
+
+        waitForVideoReady(
+          targetVideo,
+          () => {
+            if (!state.isAnimating && !dragging) commit(dir);
+          },
+          () => {
+            console.warn('[Tikboo Swipe] Next video not ready within timeout:', targetIndex);
+            preparedDir = 0;
+            resetTransformsNoAnim();
+            bindAutoAdvanceForCurrent();
+            guardCurrentPlayback('preloadTimeout');
+          }
+        );
+
         return;
       }
 
+      cancelVideoWait();
       clearPendingCommit();
       clearPlaybackGuard();
-      lastCommitTime = now;
 
-      if (state.isAnimating) return;
+      lastCommitTime = now;
       state.isAnimating = true;
-      
+
       clearAuto();
       stopProg();
       resetSeekUiImmediate();
@@ -437,7 +522,7 @@
       clearTimeout(settleTimer);
 
       const height = gestureHeight || vh();
-      const duration = 160; 
+      const duration = 160;
       const videoToPause = refs.videoCurrent;
 
       activeCommitDir = dir;
@@ -446,31 +531,7 @@
 
       if (targetItem?.type === 'video' && targetVideo) {
         targetVideo.muted = state.isMuted;
-
-        try {
-          if (targetVideo.readyState < 1) {
-            targetVideo.load();
-          }
-        } catch (e) {}
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          tryPlay(targetVideo);
-        }, 8);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 60);
-
-        setTimeout(() => {
-          if (!state.isAnimating) return;
-          if (targetVideo.paused || targetVideo.readyState < 2) {
-            tryPlay(targetVideo);
-          }
-        }, 140);
+        tryPlay(targetVideo);
       }
 
       refs.layerCurrent.style.willChange = 'transform';
@@ -488,12 +549,13 @@
 
       settleTimer = setTimeout(() => {
         finishCommit(dir, targetIndex, videoToPause);
-      }, duration); 
+      }, duration);
     }
 
     function snapBack() {
       if (state.isAnimating) return;
 
+      cancelVideoWait();
       clearPendingCommit();
       resetQueue();
 
@@ -503,8 +565,9 @@
       const snapDir = preparedDir;
       const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
       const height = gestureHeight || vh();
-      
+
       refs.layerCurrent.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
+
       if (targetLayer) {
         targetLayer.style.transition = `transform ${duration}ms cubic-bezier(0.2, 0, 0.2, 1)`;
       }
@@ -544,7 +607,7 @@
       const endT = performance.now();
       const dt = Math.max(1, endT - startT);
       const height = gestureHeight || vh();
-      
+
       dragging = false;
       swipeSoundUnlocked = false;
       touchBlocked = false;
@@ -556,7 +619,7 @@
           const isTap = Math.abs(totalDy) < TAP_MAX_MOVE && dt < TAP_MAX_TIME;
 
           if (isTap && refs.videoCurrent) {
-            if (refs.videoCurrent.paused) { 
+            if (refs.videoCurrent.paused) {
               ensureSoundOn ? ensureSoundOn(true) : tryPlay(refs.videoCurrent);
               showPlayOverlay(false);
               guardCurrentPlayback('tapPlay');
@@ -597,9 +660,9 @@
 
     document.addEventListener('touchstart', (e) => {
       touchBlocked = e.touches.length !== 1 || isInteractiveTarget(e.target);
-
       if (touchBlocked) return;
 
+      cancelVideoWait();
       gestureHeight = vh();
 
       if (state.isAnimating) {
@@ -621,18 +684,21 @@
       startX = e.touches[0].clientX;
       startT = performance.now();
       lastMoveY = startY;
-      
+
+      dy = 0;
+      dx = 0;
+
       clearAuto();
       stopProg();
 
       refs.layerCurrent.style.transition = 'none';
       refs.layerNext.style.transition = 'none';
       if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-      
+
       refs.layerCurrent.style.willChange = 'transform';
       refs.layerNext.style.willChange = 'transform';
       if (refs.layerPrev) refs.layerPrev.style.willChange = 'transform';
-      
+
       if (startY < gestureHeight * 0.45) {
         warmBackwardNext();
       } else {
@@ -658,7 +724,7 @@
         }
 
         const qdy = qy - queueStartY;
-        const qdx = x - startX;
+        const qdx = qx - queueStartX;
 
         if (Math.abs(qdx) > Math.abs(qdy) * 1.4 || Math.abs(qdy) < QUEUE_MOVE_ACTIVATE_PX) return;
 
@@ -673,25 +739,8 @@
         return;
       }
 
-      if (!dragging) {
-        if (!e.touches || e.touches.length !== 1) return;
-
-        dragging = true;
-        preparedDir = 0;
-        gestureHeight = gestureHeight || vh();
-
-        startY = e.touches[0].clientY;
-        startX = e.touches[0].clientX;
-        startT = performance.now();
-        lastMoveY = startY;
-
-        clearAuto();
-        stopProg();
-
-        refs.layerCurrent.style.transition = 'none';
-        refs.layerNext.style.transition = 'none';
-        if (refs.layerPrev) refs.layerPrev.style.transition = 'none';
-      }
+      if (!dragging) return;
+      if (!e.touches || e.touches.length !== 1) return;
 
       const y = e.touches[0].clientY;
       const x = e.touches[0].clientX;
@@ -734,9 +783,8 @@
           const progress = Math.min(Math.abs(dy) / (height * 0.4), 1);
           const currentOpacity = Math.max(1 - progress, 0.3);
           const targetLayer = preparedDir > 0 ? refs.layerNext : refs.layerPrev;
-          
-          updateLayerEffects(refs.layerCurrent, currentOpacity);
 
+          updateLayerEffects(refs.layerCurrent, currentOpacity);
           setTr(refs.layerCurrent, dy);
 
           if (targetLayer) {
@@ -766,6 +814,7 @@
       } else {
         clearPlaybackGuard();
         clearPendingCommit();
+        cancelVideoWait();
         resetQueue();
       }
     }, { passive: true });
