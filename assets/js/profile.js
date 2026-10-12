@@ -5,6 +5,12 @@
    ========================================================= */
 
 (() => {
+  /* =========================================================
+     PROFILE ACTIVATION
+     ========================================================= */
+
+  const PROFILE_ENABLED = false;
+
   const START_DELAY_MS = 2200;
   const FIRST_LINE_ENTER_STAGGER_MS = 95;
   const CHAR_ENTER_STAGGER_MS = 45;
@@ -615,6 +621,7 @@
      ========================================================= */
 
   const openProfile = () => {
+    if (!PROFILE_ENABLED) return;
     if (active) return;
 
     if (!intro && !createProfileOverlay()) return;
@@ -672,6 +679,8 @@
       if (profileButton) {
         event.preventDefault();
         event.stopImmediatePropagation();
+
+        if (!PROFILE_ENABLED) return;
 
         openProfile();
         return;
