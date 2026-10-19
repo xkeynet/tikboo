@@ -1,4 +1,4 @@
-name: Tikboo Media Worker
+name: Tikboo Predator Engine
 
 on:
   workflow_dispatch:
@@ -12,6 +12,10 @@ on:
 
   schedule:
     - cron: "7 0,4,8,12,16,20 * * *"
+
+concurrency:
+  group: tikboo-predator-production
+  cancel-in-progress: false
 
 jobs:
   process-video:
@@ -31,7 +35,7 @@ jobs:
         working-directory: worker
         run: npm install
 
-      - name: Run Tikboo Media Worker
+      - name: Run Tikboo Predator Engine
         working-directory: worker
         run: npm start
         env:
