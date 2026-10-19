@@ -5,6 +5,8 @@ import { WORKER_CONFIG } from './config.js';
 function normalizeHistory(history) {
   const lastSeen = new Map();
 
+  if (!Array.isArray(history)) return lastSeen;
+
   for (let i = 0; i < history.length; i += 1) {
     const handle = history[i]?.creator_handle;
     if (!handle || lastSeen.has(handle)) continue;
@@ -21,11 +23,21 @@ export function selectVideos(candidates, history = []) {
 
   for (const candidate of candidates) {
     const creator = candidate?.creator_handle;
-    if (!creator) continue;
+    const sourceKey = candidate?.source_key;
+    const videoNumber = Number(candidate?.video_number);
 
-    if (!byCreator.has(creator)) byCreator.set(creator, []);
-    byCreator.get(creator).push(candidate);
+    if (!creator || !sourceKey || !Number.isInteger(videoNumber) || videoNumber < 1) continue;
+
+    if (!byCreator.has(creator)) byCreator.set(creator, new Map());
+
+    const videos = byCreator.get(creator);
+
+    if (!videos.has(sourceKey)) {
+      videos.set(sourceKey, { ...candidate, video_number: videoNumber });
+    }
   }
+
+  if (!byCreator.size) return [];
 
   const lastSeen = normalizeHistory(history);
 
@@ -41,26 +53,56 @@ export function selectVideos(candidates, history = []) {
     return positionDiff || a.localeCompare(b);
   });
 
+  const queues = creators.map((creator) => ({
+    creator,
+    videos: [...byCreator.get(creator).values()].sort(
+      (a, b) => a.video_number - b.video_number || a.source_key.localeCompare(b.source_key)
+    ),
+    position: 0
+  }));
+
   const selected = [];
   const perCreatorLimit = WORKER_CONFIG.SELECTION.MAX_VIDEOS_PER_CREATOR_PER_RUN;
-  const runLimit = WORKER_CONFIG.DAILY_VIDEO_LIMIT;
 
-  for (const creator of creators) {
-    if (selected.length >= runLimit) break;
+  if (!Number.isInteger(perCreatorLimit) || perCreatorLimit < 1) {
+    throw new Error('[Tikboo Predator] Invalid per-creator selection limit.');
+  }
 
-    const videos = [...byCreator.get(creator)].sort(
-      (a, b) => a.video_number - b.video_number
-    );
+  // First pass: distribute candidates across creators.
+  for (const queue of queues) {
+    const count = Math.min(perCreatorLimit, queue.videos.length);
 
-    for (
-      let i = 0;
-      i < Math.min(perCreatorLimit, videos.length) &&
-      selected.length < runLimit;
-      i += 1
-    ) {
-      selected.push(videos[i]);
+    for (let i = 0; i < count; i += 1) {
+      selected.push(queue.videos[queue.position++]);
     }
   }
+
+  // Fallback passes: continue hunting through remaining videos.
+  // DAILY_VIDEO_LIMIT is enforced by the orchestrator, not candidate discovery.
+  let remaining = true;
+
+  while (remaining) {
+    remaining = false;
+
+    for (const queue of queues) {
+      if (queue.position >= queue.videos.length) continue;
+
+      remaining = true;
+
+      const count = Math.min(
+        perCreatorLimit,
+        queue.videos.length - queue.position
+      );
+
+      for (let i = 0; i < count; i += 1) {
+        selected.push(queue.videos[queue.position++]);
+      }
+    }
+  }
+
+  console.log(
+    `[Tikboo Predator] Selection: ${selected.length} candidates across ${creators.length} creators.`
+  );
 
   return selected;
 }
